@@ -169,6 +169,20 @@ service cloud.firestore {
       }
     }
 
+    /* ---------------- pushTokens ---------------- */
+    // Per gebruiker één document met het adres van zijn apparaat. Niemand kan
+    // hier lezen: alleen de PHP-proxy leest deze collectie server-side met een
+    // servicesleutel, en die omzeilt deze regels. Zo kan geen enkele gebruiker
+    // de tokens van anderen opvragen.
+
+    match /pushTokens/{uid} {
+      allow read: if false;
+      allow create, update: if isEigenaar(uid)
+                            && request.resource.data.uid == uid
+                            && request.resource.data.rol == rol();
+      allow delete: if isEigenaar(uid) || isAdmin();
+    }
+
     // Alles wat hierboven niet expliciet is toegestaan, is verboden.
     match /{document=**} {
       allow read, write: if false;

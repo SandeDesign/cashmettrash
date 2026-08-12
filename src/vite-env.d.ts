@@ -9,6 +9,9 @@ interface ImportMetaEnv {
   readonly VITE_FIREBASE_APP_ID: string;
   readonly VITE_CHECKOUT_URL?: string;
   readonly VITE_STRIPE_PROXY_URL?: string;
+  readonly VITE_PUSH_URL?: string;
+  /** Web Push-certificaat uit Firebase, nodig om meldingen te kunnen ontvangen. */
+  readonly VITE_FIREBASE_VAPID_KEY?: string;
 }
 
 interface ImportMeta {

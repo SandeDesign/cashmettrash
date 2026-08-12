@@ -23,8 +23,8 @@ const Gesprek: React.FC = () => {
     return stop;
   }, [customerId, volgBerichten, markeerGelezen]);
 
-  const verstuur = async (tekst: string) => {
-    await stuurBericht({ customerId, customerNaam: naam, afzender: 'admin', tekst });
+  const verstuur = async (tekst: string, tikkieLink?: string) => {
+    await stuurBericht({ customerId, customerNaam: naam, afzender: 'admin', tekst, tikkieLink });
   };
 
   const extra = (bericht: ChatBericht) =>
@@ -57,6 +57,7 @@ const Gesprek: React.FC = () => {
         ikBen="admin"
         onVerstuur={verstuur}
         renderExtra={extra}
+        magTikkieSturen
         legeTekst="Nog geen berichten met deze klant."
       />
     </AppLayout>

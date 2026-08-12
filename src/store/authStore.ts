@@ -11,6 +11,7 @@ import { auth, db } from '../lib/firebase';
 import type { AuthState, Customer, RegisterData, User } from '../types';
 import { formatPostcode, getFirebaseErrorMessage } from '../utils/validation';
 import { clearErrorLogs } from '../utils/errorLogger';
+import { stuurPushNaarRol } from '../utils/push';
 
 interface AuthStore extends AuthState {
   login: (email: string, wachtwoord: string) => Promise<void>;
@@ -85,6 +86,12 @@ export const useAuthStore = create<AuthStore>((set) => ({
 
       await setDoc(doc(db, 'users', uid), user);
       await setDoc(doc(db, 'customers', uid), customer);
+
+      void stuurPushNaarRol('admin', {
+        titel: 'Nieuwe klant',
+        tekst: `${data.naam} heeft zich aangemeld.`,
+        url: '/admin',
+      });
 
       set({ user, loading: false });
     } catch (error: unknown) {

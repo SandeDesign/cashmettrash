@@ -6,7 +6,7 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { format, isSameDay } from 'date-fns';
 import { nl } from 'date-fns/locale';
-import { Send } from 'lucide-react';
+import { Link2, Send, X } from 'lucide-react';
 import Loading from '../shared/Loading';
 import type { ChatBericht } from '../../types';
 
@@ -15,7 +15,9 @@ interface ChatVensterProps {
   loading: boolean;
   /** Welke kant 'ik' ben; bepaalt links of rechts uitlijnen. */
   ikBen: 'klant' | 'admin';
-  onVerstuur: (tekst: string) => Promise<void>;
+  onVerstuur: (tekst: string, tikkieLink?: string) => Promise<void>;
+  /** Alleen de beheerder mag een Tikkie-link meesturen. */
+  magTikkieSturen?: boolean;
   /** Extra inhoud onder een bericht, bijvoorbeeld de Tikkie-knoppen. */
   renderExtra?: (bericht: ChatBericht) => React.ReactNode;
   legeTekst?: string;
@@ -30,9 +32,12 @@ const ChatVenster: React.FC<ChatVensterProps> = ({
   ikBen,
   onVerstuur,
   renderExtra,
+  magTikkieSturen = false,
   legeTekst = 'Nog geen berichten.',
 }) => {
   const [tekst, setTekst] = useState('');
+  const [tikkieLink, setTikkieLink] = useState('');
+  const [tikkieOpen, setTikkieOpen] = useState(false);
   const [bezig, setBezig] = useState(false);
   const onderkant = useRef<HTMLDivElement>(null);
 
@@ -40,15 +45,20 @@ const ChatVenster: React.FC<ChatVensterProps> = ({
     onderkant.current?.scrollIntoView({ block: 'end' });
   }, [berichten.length]);
 
+  const linkSchoon = tikkieLink.trim();
+  const linkGeldig = !tikkieOpen || linkSchoon === '' || /^https?:\/\/\S+$/.test(linkSchoon);
+
   const verstuur = async (e: React.FormEvent) => {
     e.preventDefault();
     const schoon = tekst.trim();
-    if (!schoon || bezig) return;
+    if (!schoon || bezig || !linkGeldig) return;
 
     setBezig(true);
     try {
-      await onVerstuur(schoon);
+      await onVerstuur(schoon, linkSchoon || undefined);
       setTekst('');
+      setTikkieLink('');
+      setTikkieOpen(false);
     } finally {
       setBezig(false);
     }
@@ -116,21 +126,72 @@ const ChatVenster: React.FC<ChatVensterProps> = ({
 
       <form
         onSubmit={verstuur}
-        className="sticky bottom-0 flex gap-2 pt-3 pb-1"
+        className="sticky bottom-0 pt-3 pb-1"
         style={{ background: 'var(--cmt-paper)' }}
       >
-        <input
-          className="cmt-input flex-1"
-          value={tekst}
-          onChange={(e) => setTekst(e.target.value)}
-          placeholder="Typ een bericht"
-          maxLength={1000}
-          aria-label="Bericht"
-        />
-        <button type="submit" className="cmt-btn-primary !px-4" disabled={!tekst.trim() || bezig}>
-          <Send className="w-4 h-4" />
-          <span className="sr-only">Versturen</span>
-        </button>
+        {/* Een Tikkie-link hoort bij het bericht, niet in de tekst zelf: zo krijgt
+            de klant er een echte knop bij in plaats van een kale URL. */}
+        {tikkieOpen && (
+          <div className="flex items-center gap-2 mb-2">
+            <input
+              className="cmt-input flex-1 !py-2 !text-sm"
+              inputMode="url"
+              placeholder="https://tikkie.me/pay/..."
+              value={tikkieLink}
+              onChange={(e) => setTikkieLink(e.target.value)}
+              aria-label="Tikkie-link"
+              autoFocus
+            />
+            <button
+              type="button"
+              className="cmt-btn-ghost !p-2"
+              onClick={() => {
+                setTikkieOpen(false);
+                setTikkieLink('');
+              }}
+              aria-label="Tikkie-link weghalen"
+            >
+              <X className="w-4 h-4" />
+            </button>
+          </div>
+        )}
+
+        {!linkGeldig && (
+          <p className="text-xs mb-2" style={{ color: 'var(--cmt-error)' }}>
+            Een Tikkie-link begint met https://
+          </p>
+        )}
+
+        <div className="flex gap-2">
+          {magTikkieSturen && !tikkieOpen && (
+            <button
+              type="button"
+              className="cmt-btn-secondary !px-3"
+              onClick={() => setTikkieOpen(true)}
+              title="Tikkie-link toevoegen"
+            >
+              <Link2 className="w-4 h-4" />
+              <span className="sr-only">Tikkie-link toevoegen</span>
+            </button>
+          )}
+
+          <input
+            className="cmt-input flex-1"
+            value={tekst}
+            onChange={(e) => setTekst(e.target.value)}
+            placeholder={tikkieOpen ? 'Schrijf er iets bij' : 'Typ een bericht'}
+            maxLength={1000}
+            aria-label="Bericht"
+          />
+          <button
+            type="submit"
+            className="cmt-btn-primary !px-4"
+            disabled={!tekst.trim() || bezig || !linkGeldig}
+          >
+            <Send className="w-4 h-4" />
+            <span className="sr-only">Versturen</span>
+          </button>
+        </div>
       </form>
     </div>
   );

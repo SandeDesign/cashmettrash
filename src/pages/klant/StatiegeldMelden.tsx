@@ -14,6 +14,7 @@ import { useAuth } from '../../hooks/useAuth';
 import { useCustomerStore } from '../../store/customerStore';
 import { useStatiegeldStore } from '../../store/statiegeldStore';
 import { formatCenten, STATIEGELD_SERVICE_CENTEN } from '../../utils/constants';
+import { stuurPushNaarRol } from '../../utils/push';
 
 const AantalVeld: React.FC<{
   id: string;
@@ -68,6 +69,16 @@ const StatiegeldMelden: React.FC = () => {
 
     try {
       await maakMelding(customer, { plastic, blik }, opmerking.trim() || undefined);
+      void stuurPushNaarRol('jayce', {
+        titel: 'Nieuwe ophaaltaak',
+        tekst: `Er staat statiegeld klaar bij ${customer.naam}.`,
+        url: '/jayce',
+      });
+      void stuurPushNaarRol('admin', {
+        titel: 'Statiegeld aangemeld',
+        tekst: `${customer.naam} heeft statiegeld aangemeld.`,
+        url: '/admin',
+      });
       navigate('/mijn', { replace: true });
     } catch (error: unknown) {
       setFout(error instanceof Error ? error.message : 'Aanmelden mislukt');

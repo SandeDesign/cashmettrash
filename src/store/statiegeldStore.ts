@@ -33,8 +33,14 @@ interface StatiegeldStore {
   maakMelding: (customer: Customer, items: StatiegeldItems, opmerking?: string) => Promise<string>;
   /** Jayce: telling corrigeren en afvinken. */
   markeerOpgehaald: (logId: string, jayceId: string, itemsWerkelijk: StatiegeldItems) => Promise<void>;
-  /** Admin: ingescand bij Viatim. */
+  /** Admin: ingescand bij Viatim. Losse stap, voor als je nog geen Tikkie hebt. */
   markeerVerwerkt: (logId: string) => Promise<void>;
+  /**
+   * Admin: in één handeling afronden. Zet verwerkt bij Viatim, registreert de
+   * Tikkie en zet de ophaalkosten open. Dit is de normale weg; de twee losse
+   * stappen blijven bestaan voor uitzonderingen.
+   */
+  rekenAf: (logId: string, tikkieBedrag: number, tikkieLink: string) => Promise<void>;
   /**
    * Admin: Tikkie uit Viatim gedeeld. Zet tegelijk de ophaalkosten op
    * openstaand, want die worden pas na het ophalen in rekening gebracht.
@@ -145,6 +151,20 @@ export const useStatiegeldStore = create<StatiegeldStore>((set, get) => ({
     const updates = {
       status: 'verwerktBijViatim' as StatiegeldStatus,
       verwerktOp: new Date().toISOString(),
+    };
+    await updateDoc(doc(db, COLLECTIE, logId), updates);
+    set({ logs: get().logs.map((l) => (l.id === logId ? { ...l, ...updates } : l)) });
+  },
+
+  rekenAf: async (logId, tikkieBedrag, tikkieLink) => {
+    const nu = new Date().toISOString();
+    const updates = {
+      status: 'tikkieVerstuurd' as StatiegeldStatus,
+      verwerktOp: nu,
+      tikkieBedrag,
+      tikkieLink,
+      tikkieVerstuurdOp: nu,
+      servicekostenStatus: 'openstaand' as ServicekostenStatus,
     };
     await updateDoc(doc(db, COLLECTIE, logId), updates);
     set({ logs: get().logs.map((l) => (l.id === logId ? { ...l, ...updates } : l)) });

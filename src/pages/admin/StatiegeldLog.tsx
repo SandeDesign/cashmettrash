@@ -1,22 +1,23 @@
 // src/pages/admin/StatiegeldLog.tsx
 //
-// Statiegeld-administratie: gegroepeerd per klant. Toont de schatting van de klant
-// naast de telling van Jayce.
+// Statiegeld-administratie, gegroepeerd per klant.
 //
-// De Tikkie komt uit Viatim en kan hier niet worden aangepast; je plakt alleen
-// het bedrag en de link. De app zet die link automatisch in het gesprek met de
-// klant en zet tegelijk de ophaalkosten op openstaand.
+// Per melding is er één duidelijke vervolgstap in plaats van een rij knoppen
+// naast elkaar. Het afrekenen zelf gebeurt in een apart scherm, zodat je rustig
+// het bedrag en de link uit Viatim kunt overnemen.
 
 import React, { useEffect, useMemo, useState } from 'react';
 import { format } from 'date-fns';
 import { nl } from 'date-fns/locale';
-import { Check, Download, Send } from 'lucide-react';
+import { Check, Download, ExternalLink, Recycle, Wallet } from 'lucide-react';
 import AppLayout from '../../components/layout/AppLayout';
 import { ADMIN_NAV } from '../../components/layout/navItems';
 import Loading from '../../components/shared/Loading';
+import AfrekenSheet from '../../components/admin/AfrekenSheet';
 import { StatiegeldStatusBadge } from '../../components/common/StatusBadge';
 import { useStatiegeldStore } from '../../store/statiegeldStore';
 import { useChatStore } from '../../store/chatStore';
+import { stuurPushNaarKlant } from '../../utils/push';
 import {
   formatCenten,
   SERVICEKOSTEN_STATUS_LABEL,
@@ -28,104 +29,52 @@ import type { StatiegeldLog as StatiegeldLogType } from '../../types';
 const datumTijd = (iso?: string) =>
   iso ? format(new Date(iso), 'd MMM yyyy HH:mm', { locale: nl }) : '';
 
-const TikkieKnop: React.FC<{
-  log: StatiegeldLogType;
-  onVerstuur: (centen: number, link: string) => Promise<void>;
-}> = ({ log, onVerstuur }) => {
-  const [open, setOpen] = useState(false);
-  const [euro, setEuro] = useState('');
-  const [link, setLink] = useState('');
-  const [bezig, setBezig] = useState(false);
+const datum = (iso: string) => format(new Date(iso), 'd MMM', { locale: nl });
 
-  if (!open) {
-    return (
-      <button className="cmt-btn-primary !py-1.5 !px-3 !text-xs" onClick={() => setOpen(true)}>
-        <Send className="w-3.5 h-3.5" /> Tikkie delen
-      </button>
-    );
-  }
-
-  const centen = Math.round(parseFloat(euro.replace(',', '.')) * 100);
-  const geldigBedrag = Number.isFinite(centen) && centen > 0;
-  const geldigeLink = /^https?:\/\/\S+$/.test(link.trim());
-  const geldig = geldigBedrag && geldigeLink;
-
-  return (
-    <form
-      className="w-full flex flex-wrap items-end gap-2"
-      onSubmit={async (e) => {
-        e.preventDefault();
-        if (!geldig) return;
-        setBezig(true);
-        try {
-          await onVerstuur(centen, link.trim());
-        } finally {
-          setBezig(false);
-        }
-      }}
-    >
-      <div>
-        <label className="cmt-label !text-xs" htmlFor={`bedrag-${log.id}`}>
-          Bedrag uit Viatim
-        </label>
-        <input
-          id={`bedrag-${log.id}`}
-          className="cmt-input !w-28 !py-1.5 !text-sm"
-          inputMode="decimal"
-          placeholder="2,85"
-          value={euro}
-          onChange={(e) => setEuro(e.target.value)}
-          autoFocus
-        />
-      </div>
-
-      <div className="flex-1 min-w-[12rem]">
-        <label className="cmt-label !text-xs" htmlFor={`link-${log.id}`}>
-          Tikkie-link
-        </label>
-        <input
-          id={`link-${log.id}`}
-          className="cmt-input !py-1.5 !text-sm"
-          inputMode="url"
-          placeholder="https://tikkie.me/pay/..."
-          value={link}
-          onChange={(e) => setLink(e.target.value)}
-        />
-      </div>
-
-      <button type="submit" className="cmt-btn-primary !py-1.5 !px-3 !text-xs" disabled={!geldig || bezig}>
-        {bezig ? '...' : 'Delen in chat'}
-      </button>
-      <button
-        type="button"
-        className="cmt-btn-ghost !py-1.5 !px-2 !text-xs"
-        onClick={() => setOpen(false)}
-      >
-        Annuleren
-      </button>
-    </form>
-  );
-};
+/** Wat er voor deze melding als eerstvolgende moet gebeuren. */
+function volgendeStap(log: StatiegeldLogType): string | null {
+  if (log.status === 'aangemeld') return 'Wacht op Jayce';
+  if (log.status === 'opgehaald') return 'Afrekenen';
+  if (log.status === 'verwerktBijViatim') return 'Afrekenen';
+  if (log.servicekostenStatus === 'openstaand') return 'Wacht op betaling';
+  return null;
+}
 
 const StatiegeldLogPagina: React.FC = () => {
-  const { logs, loading, error, loadAlle, markeerVerwerkt, markeerTikkieVerstuurd } =
-    useStatiegeldStore();
+  const { logs, loading, error, loadAlle, markeerVerwerkt, rekenAf } = useStatiegeldStore();
   const stuurBericht = useChatStore((s) => s.stuurBericht);
+
   const [alleenOpenstaand, setAlleenOpenstaand] = useState(true);
+  const [afrekenen, setAfrekenen] = useState<StatiegeldLogType | null>(null);
 
   useEffect(() => {
     loadAlle();
   }, [loadAlle]);
 
-  // Openstaand is alles waar nog iets voor moet gebeuren: de Tikkie moet nog
-  // gedeeld worden, of de ophaalkosten zijn nog niet betaald.
+  // Openstaand is alles waar nog iets voor moet gebeuren: nog niet afgerekend,
+  // of afgerekend maar de ophaalkosten staan nog open.
   const zichtbaar = alleenOpenstaand
     ? logs.filter((l) => l.status !== 'tikkieVerstuurd' || l.servicekostenStatus === 'openstaand')
     : logs;
 
-  /** Deelt de Tikkie en plaatst hem meteen in het gesprek met de klant. */
-  const deelTikkie = async (log: StatiegeldLogType, centen: number, link: string) => {
-    await markeerTikkieVerstuurd(log.id, centen, link);
+  /** Gegroepeerd per klant, zodat je alles van één persoon bij elkaar ziet. */
+  const perKlant = useMemo(() => {
+    const groepen = new Map<string, { naam: string; items: StatiegeldLogType[] }>();
+    for (const log of zichtbaar) {
+      const groep = groepen.get(log.customerId) ?? { naam: log.customerNaam, items: [] };
+      groep.items.push(log);
+      groepen.set(log.customerId, groep);
+    }
+    return [...groepen.entries()].sort((a, b) => a[1].naam.localeCompare(b[1].naam, 'nl'));
+  }, [zichtbaar]);
+
+  const teAfrekenen = zichtbaar.filter(
+    (l) => l.status === 'opgehaald' || l.status === 'verwerktBijViatim'
+  ).length;
+
+  /** Rondt af en stuurt de Tikkie meteen naar de klant. */
+  const handelAf = async (log: StatiegeldLogType, centen: number, link: string) => {
+    await rekenAf(log.id, centen, link);
     await stuurBericht({
       customerId: log.customerId,
       customerNaam: log.customerNaam,
@@ -136,18 +85,13 @@ const StatiegeldLogPagina: React.FC = () => {
       tikkieLink: link,
       statiegeldLogId: log.id,
     });
+    void stuurPushNaarKlant(log.customerId, {
+      titel: 'Je Tikkie staat klaar',
+      tekst: `Je krijgt ${formatCenten(centen)} terug voor je statiegeld.`,
+      url: '/chat',
+    });
+    setAfrekenen(null);
   };
-
-  /** Gegroepeerd per klant, nieuwste melding eerst binnen elke groep. */
-  const perKlant = useMemo(() => {
-    const groepen = new Map<string, { naam: string; items: StatiegeldLogType[] }>();
-    for (const log of zichtbaar) {
-      const groep = groepen.get(log.customerId) ?? { naam: log.customerNaam, items: [] };
-      groep.items.push(log);
-      groepen.set(log.customerId, groep);
-    }
-    return [...groepen.entries()].sort((a, b) => a[1].naam.localeCompare(b[1].naam, 'nl'));
-  }, [zichtbaar]);
 
   const exporteer = () => {
     const csv = naarCsv(
@@ -182,8 +126,22 @@ const StatiegeldLogPagina: React.FC = () => {
   };
 
   return (
-    <AppLayout nav={ADMIN_NAV} title="Statiegeld-log">
+    <AppLayout nav={ADMIN_NAV} title="Statiegeld">
       <div className="cmt-flow-stat">
+        {teAfrekenen > 0 && (
+          <div className="cmt-card cmt-card-tint cmt-card-flow mb-5">
+            <div className="flex items-center gap-2 mb-1" style={{ color: 'var(--cmt-stat)' }}>
+              <Wallet className="w-5 h-5" />
+              <span className="font-bold">
+                {teAfrekenen} {teAfrekenen === 1 ? 'melding' : 'meldingen'} klaar om af te rekenen
+              </span>
+            </div>
+            <p className="text-sm" style={{ color: 'var(--cmt-ink-soft)' }}>
+              Scan ze in bij Viatim en neem het bedrag en de Tikkie-link hier over.
+            </p>
+          </div>
+        )}
+
         <div className="flex flex-wrap items-center gap-3 mb-4">
           <label className="flex items-center gap-2 text-sm">
             <input
@@ -212,80 +170,101 @@ const StatiegeldLogPagina: React.FC = () => {
         {loading && logs.length === 0 ? (
           <Loading />
         ) : perKlant.length === 0 ? (
-          <div className="cmt-card cmt-empty-state">Niets openstaand.</div>
+          <div className="cmt-card cmt-empty-state">
+            <span className="cmt-empty-state-icon">
+              <Check className="w-6 h-6" />
+            </span>
+            <p>Niets openstaand. Alles is afgerekend.</p>
+          </div>
         ) : (
-          <div className="space-y-5">
+          <div className="space-y-4">
             {perKlant.map(([customerId, groep]) => (
-              <section key={customerId} className="cmt-card cmt-card-flow">
-                <header className="mb-3">
+              <section key={customerId} className="cmt-card cmt-card-flow !p-0 overflow-hidden">
+                <header className="px-5 pt-4 pb-3">
                   <h2 className="font-bold">{groep.naam}</h2>
                   <p className="text-xs" style={{ color: 'var(--cmt-ink-muted)' }}>
                     {groep.items[0].adres}, {groep.items[0].postcode} {groep.items[0].plaats}
                   </p>
                 </header>
 
-                <ul className="space-y-3">
-                  {groep.items.map((log) => (
-                    <li
-                      key={log.id}
-                      className="pt-3 flex flex-wrap items-center gap-3"
-                      style={{ borderTop: '1px solid var(--cmt-border)' }}
-                    >
-                      <div className="flex-1 min-w-[14rem]">
-                        <p className="text-sm">
-                          <span style={{ color: 'var(--cmt-ink-muted)' }}>Schatting klant:</span>{' '}
-                          {log.items.plastic} flessen, {log.items.blik} blikjes
-                        </p>
-                        <p className="text-sm font-semibold">
-                          <span className="font-normal" style={{ color: 'var(--cmt-ink-muted)' }}>
-                            Geteld door Jayce:
-                          </span>{' '}
-                          {log.itemsWerkelijk
-                            ? `${log.itemsWerkelijk.plastic} flessen, ${log.itemsWerkelijk.blik} blikjes`
-                            : 'nog niet opgehaald'}
-                        </p>
-                        <p className="text-xs mt-0.5" style={{ color: 'var(--cmt-ink-muted)' }}>
-                          Aangemeld {datumTijd(log.aangemaaktOp)}
-                          {log.tikkieBedrag != null && ` · Tikkie ${formatCenten(log.tikkieBedrag)}`}
-                        </p>
-                      </div>
+                <ul>
+                  {groep.items.map((log) => {
+                    const geteld = log.itemsWerkelijk ?? log.items;
+                    const stap = volgendeStap(log);
+                    const kanAfrekenen =
+                      log.status === 'opgehaald' || log.status === 'verwerktBijViatim';
 
-                      <div className="flex flex-wrap items-center gap-2">
-                        <StatiegeldStatusBadge status={log.status} />
+                    return (
+                      <li
+                        key={log.id}
+                        className="px-5 py-4 flex flex-wrap items-center gap-x-4 gap-y-3"
+                        style={{ borderTop: '1px solid var(--cmt-border)' }}
+                      >
+                        <div className="flex-1 min-w-[12rem]">
+                          <p className="font-semibold text-sm flex items-center gap-1.5">
+                            <Recycle className="w-4 h-4" style={{ color: 'var(--cmt-stat)' }} />
+                            {geteld.plastic} flessen · {geteld.blik} blikjes
+                          </p>
+                          <p className="text-xs mt-0.5" style={{ color: 'var(--cmt-ink-muted)' }}>
+                            Aangemeld {datum(log.aangemaaktOp)}
+                            {log.tikkieBedrag != null && ` · Tikkie ${formatCenten(log.tikkieBedrag)}`}
+                            {log.servicekostenStatus === 'betaald' && ' · ophaalkosten betaald'}
+                          </p>
+                        </div>
 
-                        {log.servicekostenStatus === 'openstaand' && (
-                          <span className="cmt-badge cmt-badge-warning">
-                            {formatCenten(log.servicekosten)} ophaalkosten open
-                          </span>
+                        <div className="flex items-center gap-2 flex-wrap">
+                          <StatiegeldStatusBadge status={log.status} />
+                          {log.servicekostenStatus === 'openstaand' && (
+                            <span className="cmt-badge cmt-badge-warning">
+                              {formatCenten(log.servicekosten)} open
+                            </span>
+                          )}
+                        </div>
+
+                        {/* Eén duidelijke vervolgstap per regel. */}
+                        <div className="w-full sm:w-auto sm:ml-auto">
+                          {kanAfrekenen ? (
+                            <button
+                              className="cmt-btn-primary cmt-btn-block sm:!w-auto"
+                              onClick={() => setAfrekenen(log)}
+                            >
+                              <ExternalLink className="w-4 h-4" /> Afrekenen
+                            </button>
+                          ) : (
+                            stap && (
+                              <span className="text-xs" style={{ color: 'var(--cmt-ink-muted)' }}>
+                                {stap}
+                              </span>
+                            )
+                          )}
+                        </div>
+
+                        {/* Losse tussenstap, voor als de Tikkie er nog niet is. */}
+                        {log.status === 'opgehaald' && (
+                          <button
+                            className="cmt-btn-ghost !py-1.5 !px-2 !text-xs w-full sm:w-auto"
+                            onClick={() => markeerVerwerkt(log.id)}
+                          >
+                            Alleen ingescand bij Viatim
+                          </button>
                         )}
-                        {log.servicekostenStatus === 'betaald' && (
-                          <span className="cmt-badge cmt-badge-done">Ophaalkosten betaald</span>
-                        )}
-                      </div>
-
-                      {log.status === 'opgehaald' && (
-                        <button
-                          className="cmt-btn-secondary !py-1.5 !px-3 !text-xs"
-                          onClick={() => markeerVerwerkt(log.id)}
-                        >
-                          <Check className="w-3.5 h-3.5" /> Verwerkt bij Viatim
-                        </button>
-                      )}
-
-                      {log.status === 'verwerktBijViatim' && (
-                        <TikkieKnop
-                          log={log}
-                          onVerstuur={(centen, link) => deelTikkie(log, centen, link)}
-                        />
-                      )}
-                    </li>
-                  ))}
+                      </li>
+                    );
+                  })}
                 </ul>
               </section>
             ))}
           </div>
         )}
       </div>
+
+      {afrekenen && (
+        <AfrekenSheet
+          log={afrekenen}
+          onSluiten={() => setAfrekenen(null)}
+          onAfrekenen={(centen, link) => handelAf(afrekenen, centen, link)}
+        />
+      )}
     </AppLayout>
   );
 };

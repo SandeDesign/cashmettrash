@@ -21,6 +21,7 @@ import {
 } from 'firebase/firestore';
 import { db } from '../lib/firebase';
 import type { ChatBericht, ChatGesprek } from '../types';
+import { stuurPushNaarKlant, stuurPushNaarRol } from '../utils/push';
 
 const GESPREKKEN = 'chatGesprekken';
 
@@ -121,6 +122,25 @@ export const useChatStore = create<ChatStore>((set) => ({
         ongelezenKlant: afzender === 'admin' ? 1 : 0,
         ongelezenAdmin: afzender === 'klant' ? 1 : 0,
       });
+    }
+
+    // De ontvanger een seintje geven. Een Tikkie-bericht kondigt zichzelf al aan
+    // vanuit de afrekenpagina, dus dat slaan we hier over om dubbele meldingen
+    // te voorkomen.
+    if (!tikkieLink) {
+      if (afzender === 'klant') {
+        void stuurPushNaarRol('admin', {
+          titel: `Bericht van ${customerNaam}`,
+          tekst: samenvatting(tekst),
+          url: `/admin/berichten/${customerId}`,
+        });
+      } else {
+        void stuurPushNaarKlant(customerId, {
+          titel: 'Nieuw bericht',
+          tekst: samenvatting(tekst),
+          url: '/chat',
+        });
+      }
     }
   },
 

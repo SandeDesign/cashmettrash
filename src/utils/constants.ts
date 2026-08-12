@@ -20,6 +20,8 @@ export const CHECKOUT_URL =
 export const STRIPE_PROXY_URL =
   import.meta.env.VITE_STRIPE_PROXY_URL ||
   'https://internedata.nl/uploads/cashmettrash/stripe-proxy.php';
+export const PUSH_URL =
+  import.meta.env.VITE_PUSH_URL || 'https://internedata.nl/uploads/cashmettrash/push.php';
 
 /** Formatteert een bedrag in centen als "€ 4,99". */
 export function formatCenten(centen: number): string {

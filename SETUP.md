@@ -1,6 +1,6 @@
 # CashMetTrash opzetten
 
-Vijf stappen: Firebase, PHP-proxy, Vercel, rollen, bedrijfsgegevens.
+Zes stappen: Firebase, PHP-proxy, meldingen, Vercel, rollen, bedrijfsgegevens.
 
 ---
 
@@ -105,7 +105,49 @@ Zorg dat beide bestanden CORS toestaan voor het productiedomein.
 
 ---
 
-## 3. Vercel
+## 3. Pushmeldingen
+
+Meldingen lopen via Firebase Cloud Messaging. De app kan die niet zelf versturen,
+daar is een servicesleutel voor nodig, dus dat doet `push.php` op internedata.nl.
+
+### 3.1 Sleutels ophalen
+
+1. Firebase Console > Projectinstellingen > **Cloud Messaging** > Web-configuratie
+   > **Sleutelpaar genereren**. Kopieer die sleutel naar Vercel als
+   `VITE_FIREBASE_VAPID_KEY`. Zonder deze sleutel blijft de knop om meldingen aan
+   te zetten verborgen.
+2. Projectinstellingen > **Serviceaccounts** > Nieuwe persoonlijke sleutel
+   genereren. Je krijgt een JSON-bestand.
+
+### 3.2 push.php plaatsen
+
+1. Zet `php/push.php` uit deze repo in `/uploads/cashmettrash/`.
+2. Zet het JSON-bestand uit stap 1.2 ernaast als `service-account.json`.
+3. Vul bovenin `push.php` je Firebase project-id in bij `PROJECT_ID`.
+4. Schermd het JSON-bestand af met een `.htaccess` in dezelfde map:
+
+   ```apache
+   <Files "service-account.json">
+     Require all denied
+   </Files>
+   ```
+
+   Controleer daarna dat `https://internedata.nl/uploads/cashmettrash/service-account.json`
+   een foutmelding geeft en niet het bestand.
+
+`push.php` controleert bij elke aanroep het inlogtoken van de gebruiker, zoekt
+zelf op welke apparaten bij de rol horen, en verstuurt de melding. De app krijgt
+nooit tokens van andere gebruikers te zien.
+
+### 3.3 Waar het aan staat
+
+Iedereen zet meldingen zelf aan via het kaartje op zijn eigen pagina. Op een
+iPhone of iPad kan dat pas als de app op het beginscherm staat; dat is een regel
+van Apple, en de app legt het uit.
+
+---
+
+## 4. Vercel
 
 1. Koppel de repo aan een Vercel-project. Framework wordt herkend als **Vite**;
    build command `npm run build`, output `dist`. Dat staat al in `vercel.json`.
@@ -119,6 +161,7 @@ Zorg dat beide bestanden CORS toestaan voor het productiedomein.
    VITE_FIREBASE_STORAGE_BUCKET
    VITE_FIREBASE_MESSAGING_SENDER_ID
    VITE_FIREBASE_APP_ID
+   VITE_FIREBASE_VAPID_KEY
    ```
 
    Optioneel, alleen als je naar een andere proxy-map wilt wijzen:
@@ -138,7 +181,7 @@ Zorg dat beide bestanden CORS toestaan voor het productiedomein.
 
 ---
 
-## 4. Rollen instellen
+## 5. Rollen instellen
 
 Iedereen die zich registreert krijgt de rol `klant`. De security rules staan niet
 toe dat een gebruiker zijn eigen rol wijzigt, dus `jayce` en `admin` zet je
@@ -156,7 +199,7 @@ rollen simpelweg niet gebruikt.
 
 ---
 
-## 5. Bedrijfsgegevens invullen
+## 6. Bedrijfsgegevens invullen
 
 De juridische pagina's staan er, maar zijn nog niet compleet: de gegevens van de
 rechtspersoon ontbreken. Zolang dat zo is tonen alle juridische pagina's zichtbaar
@@ -181,7 +224,7 @@ op basis van wat de app feitelijk doet, maar een jurist heeft er niet naar gekek
 
 ---
 
-## 6. Logo-assets
+## 7. Logo-assets
 
 De definitieve assets staan in `public/` en hoeven niet meer vervangen te worden:
 

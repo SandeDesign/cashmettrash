@@ -37,12 +37,14 @@ const Profiel = lazy(() => import('./pages/klant/Profiel'));
 const KlantChat = lazy(() => import('./pages/klant/Chat'));
 
 const JayceTaken = lazy(() => import('./pages/jayce/Taken'));
+const JayceScore = lazy(() => import('./pages/jayce/Score'));
 
 const AdminOverzicht = lazy(() => import('./pages/admin/Overzicht'));
 const AdminGlasOrders = lazy(() => import('./pages/admin/GlasOrders'));
 const AdminStatiegeldLog = lazy(() => import('./pages/admin/StatiegeldLog'));
 const AdminGesprekken = lazy(() => import('./pages/admin/Gesprekken'));
 const AdminGesprek = lazy(() => import('./pages/admin/Gesprek'));
+const AdminCijfers = lazy(() => import('./pages/admin/Cijfers'));
 
 /** Stuurt een ingelogde gebruiker naar het dashboard van zijn rol. */
 const NaarDashboard: React.FC = () => {
@@ -164,6 +166,15 @@ const AppRoutes: React.FC = () => {
           }
         />
 
+        <Route
+          path="/jayce/score"
+          element={
+            <RoleGuard allowedRoles={['jayce']}>
+              <JayceScore />
+            </RoleGuard>
+          }
+        />
+
         {/* Admin */}
         <Route
           path="/admin"
@@ -202,6 +213,15 @@ const AppRoutes: React.FC = () => {
           element={
             <RoleGuard allowedRoles={['admin']}>
               <AdminGesprek />
+            </RoleGuard>
+          }
+        />
+
+        <Route
+          path="/admin/cijfers"
+          element={
+            <RoleGuard allowedRoles={['admin']}>
+              <AdminCijfers />
             </RoleGuard>
           }
         />

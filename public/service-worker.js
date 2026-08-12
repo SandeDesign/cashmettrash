@@ -1,6 +1,6 @@
 // public/service-worker.js
 // Verhoog CACHE_VERSION bij elke deploy om caches te verversen.
-const CACHE_VERSION = 'v1.2.0';
+const CACHE_VERSION = 'v1.3.0';
 const STATIC_CACHE = `cashmettrash-static-${CACHE_VERSION}`;
 const DYNAMIC_CACHE = `cashmettrash-dynamic-${CACHE_VERSION}`;
 
@@ -90,6 +90,56 @@ self.addEventListener('fetch', (event) => {
 
         return response;
       });
+    })
+  );
+});
+
+// ---------------------------------------------------------------------------
+// Pushmeldingen. Firebase Cloud Messaging levert de melding hier af, ook als de
+// app dicht is. We tonen hem zelf, zodat we de tekst en het icoon bepalen.
+// ---------------------------------------------------------------------------
+
+self.addEventListener('push', (event) => {
+  if (!event.data) return;
+
+  let lading = {};
+  try {
+    lading = event.data.json();
+  } catch {
+    lading = { notification: { title: 'CashMetTrash', body: event.data.text() } };
+  }
+
+  const inhoud = lading.notification || lading.data || {};
+  const titel = inhoud.title || 'CashMetTrash';
+
+  event.waitUntil(
+    self.registration.showNotification(titel, {
+      body: inhoud.body || '',
+      icon: '/icon-192.png?v=2',
+      badge: '/icon-192.png?v=2',
+      tag: inhoud.tag || 'cashmettrash',
+      // Nieuwe melding vervangt de vorige met dezelfde tag, maar laat wel
+      // opnieuw van zich horen.
+      renotify: true,
+      data: { url: (lading.data && lading.data.url) || inhoud.url || '/' },
+    })
+  );
+});
+
+self.addEventListener('notificationclick', (event) => {
+  event.notification.close();
+  const doel = new URL(event.notification.data?.url || '/', self.location.origin).href;
+
+  event.waitUntil(
+    self.clients.matchAll({ type: 'window', includeUncontrolled: true }).then((vensters) => {
+      // Staat de app al open? Dan die gebruiken in plaats van een nieuw tabblad.
+      for (const venster of vensters) {
+        if ('focus' in venster) {
+          venster.navigate?.(doel);
+          return venster.focus();
+        }
+      }
+      return self.clients.openWindow(doel);
     })
   );
 });

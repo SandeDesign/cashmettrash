@@ -49,8 +49,15 @@ niet in het datamodel, niet in de UI, niet in de security rules.
 | Rol | Route | Rechten |
 |---|---|---|
 | `klant` | `/mijn` | Glas aanvragen + betalen, statiegeld aanmelden, ophaalkosten betalen, chatten met de beheerder, eigen gegevens |
-| `jayce` | `/jayce` | Openstaande taken zien en afvinken, statiegeld tellen. **Ziet nooit bedragen en heeft geen toegang tot de chat** |
-| `admin` | `/admin` | Alle orders + Stripe-status, statiegeld-log per klant, Tikkie delen, chatten met klanten, CSV-export |
+| `jayce` | `/jayce`, `/jayce/score` | Openstaande taken zien en afvinken, statiegeld tellen, eigen score. **Ziet nooit bedragen en heeft geen toegang tot de chat** |
+| `admin` | `/admin` | Takenlijst, orders, statiegeld afrekenen, chatten met klanten, cijfers op `/admin/cijfers`, CSV-export |
+
+**Dashboards tonen acties, geen cijfers.** `/admin` en `/mijn` beantwoorden de
+vraag "wat moet ik nu doen". Getallen horen op `/admin/cijfers` en `/jayce/score`.
+
+**De pagina's van Jayce zijn geschreven voor een tienjarige.** Korte zinnen, "je"
+en "jij", geen woorden als melding, verwerken of status. Rauwe Firebase-fouten
+worden daar nooit getoond, altijd een eigen tekst.
 
 Registratie geeft altijd `klant`. `jayce` en `admin` worden handmatig in Firestore
 gezet; `firestore.rules` blokkeert rol-escalatie.
@@ -68,6 +75,7 @@ gezet; `firestore.rules` blokkeert rol-escalatie.
 - Stripe via PHP-proxy op internedata.nl (`/uploads/cashmettrash/`)
 - lucide-react (iconen), date-fns (datums)
 - Poppins wordt zelf gehost vanuit `public/fonts/`; geen Google Fonts
+- Pushmeldingen via Firebase Cloud Messaging, verstuurd door `php/push.php`
 - Routes worden lazy geladen met `React.lazy`, met een voortgangsbalk als fallback
 - Vercel hosting
 
@@ -104,6 +112,9 @@ chatGesprekken/{customerId}
 chatGesprekken/{customerId}/berichten/{id}
   afzender: 'klant' | 'admin', tekst, aangemaaktOp,
   tikkieLink?, statiegeldLogId?     // alleen door admin te zetten
+
+pushTokens/{uid}
+  uid, rol, token, bijgewerktOp     // niemand kan hier lezen; alleen push.php
 ```
 
 `GLAS_PRIJS_CENTEN = 499` en `STATIEGELD_SERVICE_CENTEN = 200` staan op één plek:
@@ -145,6 +156,7 @@ Componentklassen: `cmt-card` (+ `-flow`, `-tint`), `cmt-btn-primary/secondary/gh
 |---|---|
 | `checkout.php` | Stripe Checkout-sessie, **alleen `mode: "payment"`** |
 | `stripe-proxy.php` | Sessiestatus ophalen na terugkeer |
+| `push.php` | Pushmeldingen versturen. Controleert het inlogtoken en zoekt zelf de ontvangers op in `pushTokens` |
 
 Waarom een proxy: de Stripe secret key blijft server-side en CORS wordt omzeild.
 Endpoints zijn overschrijfbaar via `VITE_CHECKOUT_URL` / `VITE_STRIPE_PROXY_URL`.
@@ -240,6 +252,9 @@ alsnog een witte flits.
 - [ ] Geen e-mailnotificaties in v1, bevestigingsmails zijn bewust uitgesteld
 - [ ] Tikkie-koppeling is handmatig: je plakt bedrag en link uit Viatim, de app
       deelt ze in de chat. Geen Viatim- of Tikkie-API in v1
+- [ ] Meldingen worden verstuurd door het apparaat dat de handeling doet. Sluit
+      iemand de app te snel, dan kan een melding wegvallen. Een Cloud Function
+      die op Firestore luistert zou dat oplossen, maar vereist het Blaze-plan
 - [ ] Ophaalkosten worden achteraf geïnd. Betaalt een klant niet, dan blijft de
       melding op 'openstaand' staan; er is geen automatische herinnering
 - [ ] Geen unit- of E2E-tests

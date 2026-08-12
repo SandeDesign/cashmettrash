@@ -12,6 +12,7 @@ import Loading from '../../components/shared/Loading';
 import { useGlasStore } from '../../store/glasStore';
 import { useStatiegeldStore } from '../../store/statiegeldStore';
 import { retrieveSession } from '../../utils/stripe';
+import { stuurPushNaarRol } from '../../utils/push';
 
 type Resultaat = 'bezig' | 'gelukt' | 'openstaand' | 'fout';
 
@@ -51,8 +52,24 @@ const BetalingGelukt: React.FC = () => {
         try {
           if (soort === 'service') {
             await markeerServicekostenBetaald(orderId, sessionId, sessie.payment_status);
+            void stuurPushNaarRol('admin', {
+              titel: 'Ophaalkosten betaald',
+              tekst: 'Een klant heeft de ophaalkosten voor statiegeld voldaan.',
+              url: '/admin/statiegeld',
+            });
           } else {
             await markeerBetaald(orderId, sessionId, sessie.payment_status);
+            // Jayce hoort meteen dat er glas klaarstaat; bedragen krijgt hij niet.
+            void stuurPushNaarRol('jayce', {
+              titel: 'Nieuwe ophaaltaak',
+              tekst: 'Er staat glas voor je klaar.',
+              url: '/jayce',
+            });
+            void stuurPushNaarRol('admin', {
+              titel: 'Glas betaald',
+              tekst: 'Een klant heeft een ophaalbeurt glas betaald.',
+              url: '/admin',
+            });
           }
           setResultaat('gelukt');
         } catch {

@@ -1,118 +1,208 @@
 // src/pages/admin/Overzicht.tsx
+//
+// Dit is een takenlijst, geen cijferoverzicht. De vraag die deze pagina moet
+// beantwoorden is "wat moet ik nu doen", niet "hoe gaat het". De cijfers staan
+// op /admin/cijfers.
+
 import React, { useEffect, useMemo } from 'react';
 import { Link } from 'react-router-dom';
-import { Euro, Recycle, Send, Wine } from 'lucide-react';
+import {
+  ArrowRight,
+  CheckCircle,
+  Clock,
+  MessageSquare,
+  Recycle,
+  Wallet,
+  Wine,
+} from 'lucide-react';
 import AppLayout from '../../components/layout/AppLayout';
 import { ADMIN_NAV } from '../../components/layout/navItems';
 import Loading from '../../components/shared/Loading';
+import MeldingenKaart from '../../components/common/MeldingenKaart';
+import { useAuth } from '../../hooks/useAuth';
 import { useGlasStore } from '../../store/glasStore';
 import { useStatiegeldStore } from '../../store/statiegeldStore';
+import { useChatStore } from '../../store/chatStore';
 import { formatCenten } from '../../utils/constants';
 
-const WEEK_MS = 7 * 24 * 60 * 60 * 1000;
+/** Een aanvraag die na een dag nog niet betaald is, is waarschijnlijk blijven hangen. */
+const VERLOPEN_NA_MS = 24 * 60 * 60 * 1000;
 
-const Tegel: React.FC<{
-  label: string;
-  waarde: string;
-  toelichting: string;
+interface Taak {
+  id: string;
   icon: React.ReactNode;
   flow: 'glas' | 'stat';
-}> = ({ label, waarde, toelichting, icon, flow }) => (
-  <div className={`cmt-flow-${flow} cmt-card cmt-card-flow`}>
-    <div className="flex items-center gap-2 mb-2" style={{ color: 'var(--cmt-accent)' }}>
-      {icon}
-      <span className="text-sm font-semibold">{label}</span>
+  titel: string;
+  uitleg: string;
+  aantal: number;
+  naar: string;
+  knop: string;
+  /** Dringend zet de kaart in de aandachtkleur. */
+  dringend?: boolean;
+}
+
+const TaakKaart: React.FC<{ taak: Taak }> = ({ taak }) => (
+  <li className={`cmt-flow-${taak.flow} cmt-card cmt-card-flow cmt-animate-in`}>
+    <div className="flex items-start gap-3">
+      <span
+        className="flex items-center justify-center w-11 h-11 rounded-full flex-shrink-0"
+        style={{ background: 'var(--cmt-accent-bg)', color: 'var(--cmt-accent)' }}
+      >
+        {taak.icon}
+      </span>
+
+      <div className="flex-1 min-w-0">
+        <div className="flex items-center gap-2 flex-wrap">
+          <h3 className="font-bold">{taak.titel}</h3>
+          <span className={`cmt-badge ${taak.dringend ? 'cmt-badge-warning' : 'cmt-badge-neutral'}`}>
+            {taak.aantal}
+          </span>
+        </div>
+        <p className="text-sm mt-0.5" style={{ color: 'var(--cmt-ink-soft)' }}>
+          {taak.uitleg}
+        </p>
+      </div>
     </div>
-    <p className="text-2xl font-bold">{waarde}</p>
-    <p className="text-xs mt-1" style={{ color: 'var(--cmt-ink-muted)' }}>
-      {toelichting}
-    </p>
-  </div>
+
+    <Link to={taak.naar} className="cmt-btn-primary cmt-btn-block mt-4 sm:!w-auto sm:!inline-flex">
+      {taak.knop} <ArrowRight className="w-4 h-4" />
+    </Link>
+  </li>
 );
 
 const AdminOverzicht: React.FC = () => {
+  const { user } = useAuth();
   const { orders, loading: glasLaadt, loadAlle: loadGlas } = useGlasStore();
   const { logs, loading: statLaadt, loadAlle: loadStatiegeld } = useStatiegeldStore();
+  const { gesprekken, volgGesprekken } = useChatStore();
 
   useEffect(() => {
     loadGlas();
     loadStatiegeld();
-  }, [loadGlas, loadStatiegeld]);
+    return volgGesprekken();
+  }, [loadGlas, loadStatiegeld, volgGesprekken]);
 
-  const cijfers = useMemo(() => {
-    const grens = Date.now() - WEEK_MS;
-    const dezeWeek = orders.filter((o) => new Date(o.aangemaaktOp).getTime() >= grens);
-    const betaaldDezeWeek = dezeWeek.filter((o) => o.status === 'betaald' || o.status === 'opgehaald');
+  const taken = useMemo<Taak[]>(() => {
+    const lijst: Taak[] = [];
 
-    return {
-      glasAantal: betaaldDezeWeek.length,
-      glasOmzet: betaaldDezeWeek.reduce((som, o) => som + o.bedrag, 0),
-      glasOpenstaand: orders.filter((o) => o.status === 'betaald' || o.status === 'ingepland').length,
-      teVerwerken: logs.filter((l) => l.status === 'opgehaald').length,
-      openTikkies: logs.filter((l) => l.status === 'verwerktBijViatim').length,
-    };
-  }, [orders, logs]);
+    const afTeRekenen = logs.filter(
+      (l) => l.status === 'opgehaald' || l.status === 'verwerktBijViatim'
+    ).length;
+    if (afTeRekenen > 0) {
+      lijst.push({
+        id: 'afrekenen',
+        icon: <Wallet className="w-5 h-5" />,
+        flow: 'stat',
+        titel: 'Statiegeld afrekenen',
+        uitleg: 'Jayce heeft dit opgehaald. Scan in bij Viatim en deel de Tikkie.',
+        aantal: afTeRekenen,
+        naar: '/admin/statiegeld',
+        knop: 'Afrekenen',
+        dringend: true,
+      });
+    }
 
-  if ((glasLaadt || statLaadt) && orders.length === 0 && logs.length === 0) {
-    return (
-      <AppLayout nav={ADMIN_NAV} title="Overzicht">
-        <Loading />
-      </AppLayout>
-    );
-  }
+    const ongelezen = gesprekken.reduce((som, g) => som + (g.ongelezenAdmin || 0), 0);
+    if (ongelezen > 0) {
+      lijst.push({
+        id: 'chat',
+        icon: <MessageSquare className="w-5 h-5" />,
+        flow: 'stat',
+        titel: 'Berichten beantwoorden',
+        uitleg: 'Er wachten klanten op een antwoord.',
+        aantal: ongelezen,
+        naar: '/admin/berichten',
+        knop: 'Naar de berichten',
+        dringend: true,
+      });
+    }
+
+    const openKosten = logs.filter((l) => l.servicekostenStatus === 'openstaand');
+    if (openKosten.length > 0) {
+      const bedrag = openKosten.reduce((som, l) => som + l.servicekosten, 0);
+      lijst.push({
+        id: 'ophaalkosten',
+        icon: <Clock className="w-5 h-5" />,
+        flow: 'stat',
+        titel: 'Ophaalkosten staan open',
+        uitleg: `Samen ${formatCenten(bedrag)}. Een herinnering in de chat helpt vaak.`,
+        aantal: openKosten.length,
+        naar: '/admin/statiegeld',
+        knop: 'Bekijken',
+      });
+    }
+
+    const blijvenHangen = orders.filter(
+      (o) =>
+        o.status === 'aangemeld' &&
+        Date.now() - new Date(o.aangemaaktOp).getTime() > VERLOPEN_NA_MS
+    ).length;
+    if (blijvenHangen > 0) {
+      lijst.push({
+        id: 'onbetaald',
+        icon: <Wine className="w-5 h-5" />,
+        flow: 'glas',
+        titel: 'Aanvragen zonder betaling',
+        uitleg: 'Deze klanten zijn onderweg afgehaakt bij het betalen.',
+        aantal: blijvenHangen,
+        naar: '/admin/glas',
+        knop: 'Bekijken',
+      });
+    }
+
+    const wachtOpJayce =
+      orders.filter((o) => o.status === 'betaald' || o.status === 'ingepland').length +
+      logs.filter((l) => l.status === 'aangemeld').length;
+    if (wachtOpJayce > 0) {
+      lijst.push({
+        id: 'jayce',
+        icon: <Recycle className="w-5 h-5" />,
+        flow: 'glas',
+        titel: 'Klaar voor Jayce',
+        uitleg: 'Deze adressen staan op zijn lijst. Hier hoef jij niets voor te doen.',
+        aantal: wachtOpJayce,
+        naar: '/admin/glas',
+        knop: 'Bekijken',
+      });
+    }
+
+    return lijst;
+  }, [orders, logs, gesprekken]);
+
+  const laadt = (glasLaadt || statLaadt) && orders.length === 0 && logs.length === 0;
+  const werkTeDoen = taken.filter((t) => t.dringend).length;
 
   return (
-    <AppLayout nav={ADMIN_NAV} title="Overzicht">
-      <h2 className="text-sm font-semibold mb-3" style={{ color: 'var(--cmt-ink-muted)' }}>
-        Afgelopen 7 dagen
-      </h2>
+    <AppLayout nav={ADMIN_NAV} title="Te doen">
+      {laadt ? (
+        <Loading />
+      ) : taken.length === 0 ? (
+        <div className="cmt-card cmt-empty-state">
+          <span className="cmt-empty-state-icon">
+            <CheckCircle className="w-6 h-6" />
+          </span>
+          <p className="font-semibold" style={{ color: 'var(--cmt-ink)' }}>
+            Niets te doen
+          </p>
+          <p className="text-sm mt-1">Alles is afgehandeld. Mooi moment voor koffie.</p>
+        </div>
+      ) : (
+        <>
+          <p className="-mt-2 mb-5 text-sm" style={{ color: 'var(--cmt-ink-muted)' }}>
+            {werkTeDoen === 0
+              ? 'Niets dringends. Hieronder loopt alles zoals het hoort.'
+              : `${werkTeDoen === 1 ? 'Eén ding' : `${werkTeDoen} dingen`} vragen om actie.`}
+          </p>
 
-      <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-4 mb-8">
-        <Tegel
-          flow="glas"
-          icon={<Wine className="w-4 h-4" />}
-          label="Glas opgehaald"
-          waarde={String(cijfers.glasAantal)}
-          toelichting="betaalde ophaalbeurten deze week"
-        />
-        <Tegel
-          flow="glas"
-          icon={<Euro className="w-4 h-4" />}
-          label="Omzet glas"
-          waarde={formatCenten(cijfers.glasOmzet)}
-          toelichting="naar de bedrijfsrekening"
-        />
-        <Tegel
-          flow="glas"
-          icon={<Wine className="w-4 h-4" />}
-          label="Nog op te halen"
-          waarde={String(cijfers.glasOpenstaand)}
-          toelichting="betaald, staat klaar voor Jayce"
-        />
-        <Tegel
-          flow="stat"
-          icon={<Recycle className="w-4 h-4" />}
-          label="Bij Jayce"
-          waarde={String(cijfers.teVerwerken)}
-          toelichting="opgehaald, nog in te scannen bij Viatim"
-        />
-        <Tegel
-          flow="stat"
-          icon={<Send className="w-4 h-4" />}
-          label="Tikkie te sturen"
-          waarde={String(cijfers.openTikkies)}
-          toelichting="verwerkt bij Viatim, klant wacht nog"
-        />
-      </div>
+          <ul className="space-y-3">
+            {taken.map((taak) => (
+              <TaakKaart key={taak.id} taak={taak} />
+            ))}
+          </ul>
+        </>
+      )}
 
-      <div className="flex flex-wrap gap-2">
-        <Link to="/admin/glas" className="cmt-btn-secondary">
-          <Wine className="w-4 h-4" /> Glas-orders
-        </Link>
-        <Link to="/admin/statiegeld" className="cmt-flow-stat cmt-btn-secondary">
-          <Recycle className="w-4 h-4" /> Statiegeld-log
-        </Link>
-      </div>
+      <MeldingenKaart uid={user?.uid} rol={user?.rol} />
     </AppLayout>
   );
 };
