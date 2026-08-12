@@ -61,11 +61,14 @@ src/
 ├── components/
 │   ├── common/                 Toast, CmtModal, StatusBadge, CollapsibleSection
 │   ├── guards/RoleGuard.tsx
-│   ├── layout/                 AppLayout, navItems
+│   ├── landing/HeroIllustratie.tsx
+│   ├── layout/                 AppLayout, PublicHeader, navItems
 │   └── shared/                 ErrorBoundary, Loading, Logo, ScrollToTop
 ├── hooks/useAuth.ts
-├── lib/firebase.ts
+├── lib/                        firebase, configCheck
 ├── pages/
+│   ├── Landing.tsx             publieke landingspagina op /
+│   ├── Login.tsx · Registreren.tsx · GeenToegang.tsx
 │   ├── klant/                  Overzicht, GlasAanvraag, StatiegeldMelden,
 │   │                           BetalingGelukt, BetalingGeannuleerd, Profiel
 │   ├── jayce/Taken.tsx

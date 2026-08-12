@@ -9,6 +9,7 @@ import RoleGuard from './components/guards/RoleGuard';
 import { useAuth } from './hooks/useAuth';
 import { setupGlobalErrorHandlers } from './utils/errorLogger';
 
+import Landing from './pages/Landing';
 import Login from './pages/Login';
 import Registreren from './pages/Registreren';
 import GeenToegang from './pages/GeenToegang';
@@ -61,7 +62,7 @@ const AppRoutes: React.FC = () => {
 
   return (
     <Routes>
-      <Route path="/" element={isAuthenticated ? <NaarDashboard /> : <Navigate to="/login" replace />} />
+      <Route path="/" element={isAuthenticated ? <NaarDashboard /> : <Landing />} />
       <Route path="/login" element={isAuthenticated ? <NaarDashboard /> : <Login />} />
       <Route
         path="/registreren"
