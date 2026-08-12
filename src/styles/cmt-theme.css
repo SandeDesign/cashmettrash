@@ -475,6 +475,142 @@ h1, h2, h3, h4 {
   padding: 1.5rem;
 }
 
+/* ---------- Mobiel menu ---------- */
+/* Eén ronde knop rechtsonder in plaats van een rij knopjes. Het paneel dat
+   daaruit opent groepeert de pagina's, zodat er ook bij de beheerder met negen
+   pagina's geen lijst ontstaat waar je doorheen moet scrollen. */
+
+.cmt-menu-knop {
+  position: fixed;
+  right: 1rem;
+  bottom: 1rem;
+  z-index: 50;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.9rem 1.1rem;
+  border-radius: 999px;
+  background: var(--cmt-glas);
+  color: #fff;
+  font-weight: 700;
+  box-shadow: 0 10px 24px rgba(14, 143, 108, 0.35);
+  transition: transform 0.18s ease, box-shadow 0.18s ease, background 0.18s ease;
+}
+
+.cmt-menu-knop:active {
+  transform: scale(0.94);
+}
+
+.cmt-menu-knop.is-open {
+  background: var(--cmt-ink);
+  box-shadow: 0 10px 24px rgba(20, 24, 31, 0.35);
+}
+
+.cmt-menu-knop-label {
+  font-size: 0.875rem;
+  max-width: 8rem;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.cmt-menu-waas {
+  background: rgba(20, 24, 31, 0.35);
+  backdrop-filter: blur(2px);
+  animation: cmt-fade-in 0.2s ease both;
+}
+
+.cmt-menu-paneel {
+  background: var(--cmt-surface);
+  border: 1px solid var(--cmt-border);
+  border-radius: var(--cmt-radius-lg);
+  box-shadow: var(--cmt-shadow-lift);
+  padding: 1rem;
+  animation: cmt-menu-op 0.24s cubic-bezier(0.2, 0.9, 0.3, 1.2) both;
+  transform-origin: bottom right;
+}
+
+@keyframes cmt-menu-op {
+  from { opacity: 0; transform: translateY(12px) scale(0.96); }
+  to { opacity: 1; transform: none; }
+}
+
+.cmt-menu-sluit {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 2rem;
+  height: 2rem;
+  border-radius: 999px;
+  background: var(--cmt-paper);
+  color: var(--cmt-ink-soft);
+}
+
+.cmt-menu-groep {
+  border: 1px solid var(--cmt-border);
+  border-radius: var(--cmt-radius-md);
+  overflow: hidden;
+}
+
+.cmt-menu-kop {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0.7rem 0.85rem;
+  font-size: 0.8125rem;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+  text-transform: uppercase;
+  color: var(--cmt-ink-soft);
+  background: var(--cmt-paper);
+}
+
+.cmt-menu-tegel {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 0.5rem;
+  padding: 0.85rem;
+  border-radius: var(--cmt-radius-md);
+  border: 1px solid var(--cmt-border);
+  background: var(--cmt-surface);
+  color: var(--cmt-ink);
+  transition: transform 0.15s ease, border-color 0.15s ease, background 0.15s ease;
+}
+
+.cmt-menu-tegel:active {
+  transform: scale(0.96);
+}
+
+.cmt-menu-tegel-icoon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 2.5rem;
+  height: 2.5rem;
+  border-radius: 0.9rem;
+  background: var(--cmt-glas-bg);
+  color: var(--cmt-glas);
+}
+
+.cmt-menu-tegel.is-actief {
+  border-color: var(--cmt-glas);
+  background: var(--cmt-glas-bg);
+}
+
+.cmt-menu-tegel.is-actief .cmt-menu-tegel-icoon {
+  background: var(--cmt-glas);
+  color: #fff;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .cmt-menu-paneel,
+  .cmt-menu-waas {
+    animation: none;
+  }
+}
+
 /* ---------- Animaties ---------- */
 
 .cmt-animate-in {

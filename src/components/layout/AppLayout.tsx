@@ -3,6 +3,7 @@ import React from 'react';
 import { Link, NavLink } from 'react-router-dom';
 import { LogOut } from 'lucide-react';
 import Logo from '../shared/Logo';
+import MobielMenu from './MobielMenu';
 import { useAuthStore } from '../../store/authStore';
 import { useAuth } from '../../hooks/useAuth';
 
@@ -11,8 +12,8 @@ export interface NavItem {
   label: string;
   icon: React.ReactNode;
   end?: boolean;
-  /** Laat dit item weg uit de mobiele onderbalk; daar passen er hooguit vijf. */
-  alleenDesktop?: boolean;
+  /** Kopje waaronder dit item in het mobiele menu komt te staan. */
+  groep?: string;
 }
 
 interface AppLayoutProps {
@@ -26,7 +27,6 @@ const AppLayout: React.FC<AppLayoutProps> = ({ children, nav = [], title }) => {
   const { user } = useAuth();
   const logout = useAuthStore((s) => s.logout);
   const heeftNav = nav.length > 0;
-  const mobielNav = nav.filter((item) => !item.alleenDesktop);
 
   return (
     <div className="min-h-screen flex flex-col" style={{ background: 'var(--cmt-paper)' }}>
@@ -91,30 +91,7 @@ const AppLayout: React.FC<AppLayoutProps> = ({ children, nav = [], title }) => {
         {children}
       </main>
 
-      {mobielNav.length > 0 && (
-        <nav
-          className="md:hidden fixed bottom-0 inset-x-0 z-40 safe-area-bottom"
-          style={{ background: 'var(--cmt-surface)', borderTop: '1px solid var(--cmt-border)' }}
-          aria-label="Hoofdnavigatie"
-        >
-          <div className="flex">
-            {mobielNav.map((item) => (
-              <NavLink
-                key={item.to}
-                to={item.to}
-                end={item.end}
-                className="flex-1 flex flex-col items-center gap-1 py-2.5 text-xs font-medium"
-                style={({ isActive }) => ({
-                  color: isActive ? 'var(--cmt-glas)' : 'var(--cmt-ink-muted)',
-                })}
-              >
-                {item.icon}
-                {item.label}
-              </NavLink>
-            ))}
-          </div>
-        </nav>
-      )}
+      {heeftNav && <MobielMenu nav={nav} />}
     </div>
   );
 };

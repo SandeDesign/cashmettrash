@@ -51,7 +51,7 @@ niet in het datamodel, niet in de UI, niet in de security rules.
 | `klant` | `/mijn` | Glas aanvragen + betalen, statiegeld aanmelden, ophaalkosten betalen, chatten met de beheerder, eigen gegevens |
 | `jayce` | `/jayce`, `/jayce/route`, `/jayce/bekenden`, `/jayce/score` | Openstaande taken zien en afvinken, statiegeld tellen, de route bekijken, bekenden zien, eigen score. **Geen toegang tot de chat.** Het enige bedrag dat hij ziet is zijn eigen potje |
 | `moeder` | `/mama`, `/mama/plekken`, `/mama/ideeen` | Meekijken met de ronde en zien bij welke ritten ze mee moet, gevaarlijke plekken markeren, ideeën doorgeven. Geen orders, geen chat |
-| `admin` | `/admin` | Takenlijst, orders, statiegeld afrekenen, chatten met klanten, klanten als bekende aanwijzen (`/admin/klanten`), werkgebied (`/admin/instellingen`), dagoverzicht (`/admin/dagoverzicht`), ideeën (`/admin/ideeen`), cijfers (`/admin/cijfers`), CSV-export |
+| `admin` | `/admin` | Takenlijst, orders, statiegeld afrekenen, chatten met klanten, rollen toewijzen en klanten als bekende aanwijzen (`/admin/klanten`), werkgebied (`/admin/instellingen`), dagoverzicht (`/admin/dagoverzicht`), ideeën (`/admin/ideeen`), cijfers (`/admin/cijfers`), CSV-export |
 
 **Dashboards tonen acties, geen cijfers.** `/admin` en `/mijn` beantwoorden de
 vraag "wat moet ik nu doen". Getallen horen op `/admin/cijfers` en `/jayce/score`.
@@ -60,12 +60,17 @@ vraag "wat moet ik nu doen". Getallen horen op `/admin/cijfers` en `/jayce/score
 en "jij", geen woorden als melding, verwerken of status. Rauwe Firebase-fouten
 worden daar nooit getoond, altijd een eigen tekst.
 
-Registratie geeft altijd `klant`. `jayce`, `moeder` en `admin` worden handmatig in
-Firestore gezet; `firestore.rules` blokkeert rol-escalatie.
+Registratie geeft altijd `klant`. De beheerder wijst daarna rollen toe op
+`/admin/klanten`; `firestore.rules` staat alleen een admin toe `users.rol` te
+wijzigen, en blokkeert rol-escalatie door de gebruiker zelf. De allereerste admin
+zet je met de hand in de Firestore-console, want anders kan niemand rollen geven.
+Een beheerder kan zijn eigen rol niet aanpassen, zodat de laatste admin niet per
+ongeluk verdwijnt.
 
-De navigatie per rol staat in `src/components/layout/navItems.tsx`. Op mobiel
-worden de items met `alleenDesktop: true` weggelaten; in de onderbalk passen er
-hooguit vijf naast elkaar.
+De navigatie per rol staat in `src/components/layout/navItems.tsx`. Op desktop is
+dat de balk onder de header; op mobiel opent `MobielMenu` rechtsonder een paneel
+waarin de items per `groep` bij elkaar staan, ingeklapt op het groepje na waar je
+nu bent. Houd een groep klein, anders wordt uitklappen alsnog een lange lijst.
 
 ### Bekende
 

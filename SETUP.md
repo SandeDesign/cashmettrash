@@ -197,25 +197,31 @@ van Apple, en de app legt het uit.
 ## 5. Rollen instellen
 
 Iedereen die zich registreert krijgt de rol `klant`. De security rules staan niet
-toe dat een gebruiker zijn eigen rol wijzigt, dus `jayce`, `moeder` en `admin` zet
-je handmatig:
+toe dat een gebruiker zijn eigen rol wijzigt, dus de eerste beheerder zet je met de
+hand:
 
-1. Laat Jayce, zijn moeder en jezelf normaal registreren via `/registreren`.
+1. Registreer jezelf normaal via `/registreren`.
 2. Open in de Firebase Console **Firestore > `users`**.
-3. Zoek het document met de juiste `email` en wijzig het veld `rol`:
-   - jouw account → `admin`
-   - Jayce → `jayce`
-   - zijn moeder → `moeder`
-4. Uitloggen en opnieuw inloggen; je komt nu op `/admin`, `/jayce` of `/mama`.
+3. Zoek het document met jouw `email` en zet het veld `rol` op `admin`.
+4. Uitloggen en opnieuw inloggen; je komt nu op `/admin`.
+
+Dat is de enige keer dat je in de console hoeft te zijn. Alle andere rollen deel je
+daarna uit in de app zelf, op **/admin/klanten**: laat Jayce en zijn moeder normaal
+registreren en kies bij hun naam de rol *Jayce* of *Moeder*. Ze moeten daarna wel
+even uit- en opnieuw inloggen.
+
+Je eigen rol staat op slot, zodat je jezelf niet per ongeluk kunt degraderen en de
+app zonder beheerder achterblijft.
 
 Het bijbehorende `customers`-document mag blijven staan; het wordt voor deze
 rollen simpelweg niet gebruikt.
 
 ### Bekenden aanwijzen
 
-Een bekende is een klant die dicht bij Jayce staat. Die vlag zet je in de app zelf
-op **/admin/klanten**, met het vinkje *Bekende van Jayce*. Een bekende mag buiten
-het werkgebied wonen en kan zijn statiegeld aan Jayce schenken.
+Een bekende is een klant die dicht bij Jayce staat. Die vlag zet je op dezelfde
+pagina **/admin/klanten**, met het vinkje *Bekende van Jayce* naast de rol. Dat
+vinkje verschijnt alleen bij mensen met de rol klant. Een bekende mag buiten het
+werkgebied wonen en kan zijn statiegeld aan Jayce schenken.
 
 ### Werkgebied instellen
 

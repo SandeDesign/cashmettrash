@@ -22,47 +22,52 @@ import {
 
 const STAPPEN = [
   {
-    titel: 'Meld je aan',
-    tekst: 'Maak een account met je adres, zodat Jayce weet waar hij langs moet komen.',
+    titel: 'Zeg waar je woont',
+    tekst: 'Maak een account met je adres. Anders weet Jayce niet bij welke deur hij moet zijn.',
   },
   {
-    titel: 'Zet het klaar',
-    tekst: 'Geef in de app door wat er klaarstaat: glas, statiegeld, of allebei.',
+    titel: 'Zet je zooi klaar',
+    tekst: 'Bij de deur, in de schuur, achterom. Tik in de app aan wat er staat: glas, statiegeld, of allebei.',
   },
   {
-    titel: 'Jayce komt langs',
-    tekst: 'Hij komt met de skelter langs, haalt het op en vinkt het af. Je ziet de status terug in je overzicht.',
+    titel: 'Ratel, ratel, weg',
+    tekst: 'Daar komt de skelter. Jayce laadt alles in, vinkt het af, en jij ziet in de app dat het gelukt is.',
   },
 ];
 
 const VRAGEN = [
   {
-    vraag: 'Waarom betaal ik voor glas en krijg ik geld voor statiegeld?',
+    vraag: 'Waarom kost glas geld en levert statiegeld juist geld op?',
     antwoord:
-      'Op glazen flessen zit geen statiegeld, die leveren niets op. Je betaalt dus voor de moeite van het ophalen en wegbrengen. Op plastic flessen en blikjes zit wél statiegeld, en dat is van jou. Je krijgt het volledige bedrag terug via een Tikkie zodra alles is ingeleverd.',
+      'Simpel: op een wijnfles zit geen statiegeld. Die is bij de glasbak niets waard, dus je betaalt Jayce voor het sjouwen. Op plastic flessen en blikjes zit wél statiegeld, en dat is en blijft van jou. Zodra alles in de automaat is geweest krijg je dat hele bedrag terug via een Tikkie.',
   },
   {
-    vraag: 'Hoeveel kost het ophalen van glas?',
-    antwoord: `${formatCenten(GLAS_PRIJS_CENTEN)} per ophaalbeurt, niet per fles. Of je nu vijf of vijftig flessen klaarzet, de prijs blijft hetzelfde.`,
+    vraag: 'Wat kost het ophalen van glas?',
+    antwoord: `${formatCenten(GLAS_PRIJS_CENTEN)} per keer. Niet per fles. Vijf flessen of vijftig flessen, de skelter rijdt toch, dus de prijs blijft hetzelfde.`,
   },
   {
-    vraag: 'Wat kost het ophalen van statiegeld?',
-    antwoord: `Het aanmelden is gratis. Als je statiegeld is ingeleverd krijg je het volledige bedrag terug via een Tikkie, en betaal je ${formatCenten(STATIEGELD_SERVICE_CENTEN)} ophaalkosten in de app. Je betaalt dus pas iets als het echt is opgehaald.`,
+    vraag: 'En het ophalen van statiegeld?',
+    antwoord: `Aanmelden kost niets. Pas als het echt is opgehaald en ingeleverd krijg je je statiegeld terug via een Tikkie, en betaal je ${formatCenten(STATIEGELD_SERVICE_CENTEN)} voor de rit. Staat er niets voor de deur, dan betaal je ook niets.`,
   },
   {
-    vraag: 'Wanneer komt Jayce langs?',
+    vraag: 'Wanneer staat hij voor de deur?',
     antwoord:
-      'Zodra het hem uitkomt, meestal binnen een paar dagen. Hij plant zijn eigen rondje met de skelter. Je hoeft geen tijdslot te kiezen en niet thuis te zijn: zet het klaar op een plek die je in de opmerking doorgeeft.',
+      'Als het hem uitkomt, meestal binnen een paar dagen. Hij plant zijn rondje zelf. Je hoeft geen tijd te kiezen en je hoeft niet thuis te zijn: zet het ergens neer en schrijf in de opmerking waar het staat.',
   },
   {
-    vraag: 'Moet ik precies tellen hoeveel flessen en blikjes ik heb?',
+    vraag: 'Moet ik alles precies natellen?',
     antwoord:
-      'Nee, een schatting is genoeg. Jayce telt bij het ophalen na, en dat aantal is wat telt voor je Tikkie.',
+      'Nee joh, gokken mag. Jayce telt bij het ophalen zelf na, en dat getal is wat meetelt voor je Tikkie.',
   },
   {
-    vraag: 'Krijgt Jayce mijn statiegeld?',
+    vraag: 'Houdt Jayce mijn statiegeld?',
     antwoord:
-      'Nee. Het statiegeld is en blijft van jou, en er loopt geen geld via Jayce. Je krijgt het volledige bedrag dat uit de inleverautomaat komt terug via Tikkie. De ophaalkosten betaal je apart in de app.',
+      'Nee. Er gaat geen cent statiegeld via Jayce. Wat de inleverautomaat uitspuugt gaat helemaal naar jou, we kunnen dat bedrag niet eens aanpassen. De ophaalkosten betaal je los in de app.',
+  },
+  {
+    vraag: 'Ik woon niet in de buurt. Mag ik ook?',
+    antwoord:
+      'Dan wordt het lastig, want hij rijdt op een skelter en niet op een vrachtwagen. We halen op in Tilburg rond de Magriethof. Woon je net buiten de lijn? Maak toch een account aan en stuur een berichtje, dan kijken we mee.',
   },
 ];
 
@@ -80,27 +85,27 @@ const Landing: React.FC = () => (
             </span>
 
             <h1 className="cmt-display mb-4">
-              Jayce haalt je{' '}
-              <span style={{ color: 'var(--cmt-glas)' }}>glas</span> en{' '}
-              <span style={{ color: 'var(--cmt-stat)' }}>statiegeld</span> op.
+              Zet je{' '}
+              <span style={{ color: 'var(--cmt-glas)' }}>flessen</span> buiten.{' '}
+              <span style={{ color: 'var(--cmt-stat)' }}>Jayce</span> doet de rest.
             </h1>
 
             <p className="cmt-lead mb-7 max-w-lg">
-              Geen kratten meer naar de supermarkt sjouwen. Zet het klaar, geef het door
-              in de app, en Jayce komt het met de skelter ophalen.
+              Nooit meer met een rammelende krat naar de supermarkt. Zet het bij de deur,
+              tik het aan in de app, en dan hoor je de skelter aankomen.
             </p>
 
             <div className="flex flex-col sm:flex-row gap-3">
               <Link to="/registreren" className="cmt-btn-primary cmt-btn-lg">
-                Meld je aan <ArrowRight className="w-4 h-4" />
+                Ik doe mee <ArrowRight className="w-4 h-4" />
               </Link>
               <a href="#hoe-het-werkt" className="cmt-btn-secondary cmt-btn-lg">
-                Hoe werkt het?
+                Hoe gaat dat dan?
               </a>
             </div>
 
             <p className="mt-4 text-sm" style={{ color: 'var(--cmt-ink-muted)' }}>
-              Gratis account · geen abonnement · je betaalt alleen per ophaalbeurt
+              Gratis account · nergens aan vast · je betaalt alleen als hij echt langskomt
             </p>
           </div>
 
@@ -113,10 +118,10 @@ const Landing: React.FC = () => (
     <section className="cmt-section cmt-section-alt">
       <div className="max-w-5xl mx-auto px-4">
         <div className="max-w-2xl mb-10">
-          <h2 className="cmt-section-title mb-3">Twee soorten, twee verhalen</h2>
+          <h2 className="cmt-section-title mb-3">Twee bakken, twee verhalen</h2>
           <p className="cmt-lead">
-            Glas en statiegeld gaan allebei mee in dezelfde ronde, maar het geld werkt
-            precies andersom. Dit is het enige dat je hoeft te onthouden.
+            Alles gaat mee in dezelfde ronde, maar met het geld gebeurt precies het
+            tegenovergestelde. Onthoud alleen dit en je snapt de hele app.
           </p>
         </div>
 
@@ -130,25 +135,25 @@ const Landing: React.FC = () => (
               <Wine className="w-6 h-6" />
             </span>
 
-            <h3 className="text-xl font-bold mb-1">Glas</h3>
+            <h3 className="text-xl font-bold mb-1">Glas: jij betaalt</h3>
             <p className="text-sm mb-5" style={{ color: 'var(--cmt-ink-soft)' }}>
-              Wijnflessen, bierflesjes, potten en jampotten.
+              Wijnflessen, bierflesjes, jampotten. Alles wat rinkelt.
             </p>
 
             <p className="cmt-prijs">{formatCenten(GLAS_PRIJS_CENTEN)}</p>
             <p className="text-sm mb-5" style={{ color: 'var(--cmt-ink-muted)' }}>
-              per ophaalbeurt, ongeacht hoeveel je klaarzet
+              per keer, hoeveel je ook buiten zet
             </p>
 
             <ul className="cmt-lijst">
               <li>
-                <Check className="w-4 h-4" /> Je betaalt vooraf in de app, veilig via Stripe
+                <Check className="w-4 h-4" /> Vooraf afrekenen in de app, netjes via Stripe
               </li>
               <li>
-                <Check className="w-4 h-4" /> Geen abonnement, je vraagt het aan wanneer je wilt
+                <Check className="w-4 h-4" /> Geen abonnement, je roept hem wanneer je wilt
               </li>
               <li>
-                <Check className="w-4 h-4" /> Op glas zit geen statiegeld, dus dit levert niets op
+                <Check className="w-4 h-4" /> Hier zit geen statiegeld op, dus dit levert niets op
               </li>
             </ul>
           </article>
@@ -162,25 +167,25 @@ const Landing: React.FC = () => (
               <Recycle className="w-6 h-6" />
             </span>
 
-            <h3 className="text-xl font-bold mb-1">Statiegeld</h3>
+            <h3 className="text-xl font-bold mb-1">Statiegeld: jij krijgt</h3>
             <p className="text-sm mb-5" style={{ color: 'var(--cmt-ink-soft)' }}>
-              Plastic flessen en blikjes met statiegeldlogo.
+              Plastic flessen en blikjes met het statiegeldlogo.
             </p>
 
             <p className="cmt-prijs">{formatCenten(STATIEGELD_SERVICE_CENTEN)}</p>
             <p className="text-sm mb-5" style={{ color: 'var(--cmt-ink-muted)' }}>
-              ophaalkosten, pas te betalen nadat het is opgehaald
+              voor de rit, en pas als hij echt is langsgeweest
             </p>
 
             <ul className="cmt-lijst">
               <li>
-                <Check className="w-4 h-4" /> Je statiegeld krijg je volledig terug via Tikkie
+                <Check className="w-4 h-4" /> Je statiegeld komt tot de laatste cent bij je terug
               </li>
               <li>
-                <Check className="w-4 h-4" /> Aanmelden is gratis, een schatting van de aantallen is genoeg
+                <Check className="w-4 h-4" /> Aanmelden is gratis en een ruwe schatting is prima
               </li>
               <li>
-                <Check className="w-4 h-4" /> Bij de meeste kratten hou je onder de streep geld over
+                <Check className="w-4 h-4" /> Bij een volle krat hou je onder de streep gewoon geld over
               </li>
             </ul>
           </article>
@@ -191,7 +196,7 @@ const Landing: React.FC = () => (
     {/* ---------------- Hoe het werkt ---------------- */}
     <section id="hoe-het-werkt" className="cmt-section scroll-mt-20">
       <div className="max-w-5xl mx-auto px-4">
-        <h2 className="cmt-section-title mb-10 max-w-xl">In drie stappen geregeld</h2>
+        <h2 className="cmt-section-title mb-10 max-w-xl">Drie stappen en klaar</h2>
 
         <ol className="grid sm:grid-cols-3 gap-6">
           {STAPPEN.map((stap, i) => (
@@ -224,15 +229,15 @@ const Landing: React.FC = () => (
             </span>
 
             <div>
-              <h2 className="cmt-section-title mb-3">Wie is Jayce?</h2>
+              <h2 className="cmt-section-title mb-3">En wie is die Jayce dan?</h2>
               <p className="cmt-lead mb-4 max-w-2xl">
-                Jayce is een jongen uit Tilburg die zijn eigen zakcentje verdient door
-                bij de buren glas en statiegeld op te halen. Hij rijdt het rondje zelf
-                op zijn skelter, telt zelf, en houdt zelf bij wat er nog moet gebeuren.
+                Een jongen uit Tilburg met een skelter en een plan. Hij rijdt zijn rondje
+                zelf, tilt zelf, telt zelf en vinkt zelf af. Zo verdient hij zijn eigen
+                zakcentje, en jij hoeft nergens heen.
               </p>
               <p className="text-sm max-w-2xl" style={{ color: 'var(--cmt-ink-soft)' }}>
-                Jij helpt hem op weg, hij scheelt jou een ritje naar de glasbak. Het
-                statiegeld blijft gewoon van jou, daar komt hij niet aan.
+                Jij scheelt hem een lege ronde, hij scheelt jou een ritje naar de glasbak.
+                Aan je statiegeld komt hij niet, dat blijft gewoon van jou.
               </p>
             </div>
           </div>
@@ -243,7 +248,7 @@ const Landing: React.FC = () => (
     {/* ---------------- Vragen ---------------- */}
     <section className="cmt-section">
       <div className="max-w-3xl mx-auto px-4">
-        <h2 className="cmt-section-title mb-8">Veelgestelde vragen</h2>
+        <h2 className="cmt-section-title mb-8">Dat vraagt iedereen</h2>
 
         <div className="space-y-3">
           {VRAGEN.map((item, i) => (
@@ -262,18 +267,18 @@ const Landing: React.FC = () => (
       <div className="max-w-3xl mx-auto px-4 text-center">
         <LogoLockup className="w-48 sm:w-56 mx-auto mb-6" />
 
-        <h2 className="cmt-section-title mb-3">Klaar om je kratten kwijt te raken?</h2>
+        <h2 className="cmt-section-title mb-3">Van die kratten af?</h2>
         <p className="cmt-lead mb-7 max-w-xl mx-auto">
-          Een account maken kost een minuut en is gratis. Woon je in Tilburg rond de
-          Magriethof, dan komt Jayce bij je langs.
+          Een account maken kost je een minuutje en verder niets. Woon je in Tilburg rond
+          de Magriethof, dan staat de skelter binnenkort bij jou voor de deur.
         </p>
 
         <div className="flex flex-col sm:flex-row gap-3 justify-center">
           <Link to="/registreren" className="cmt-btn-primary cmt-btn-lg">
-            Meld je aan <ArrowRight className="w-4 h-4" />
+            Ik doe mee <ArrowRight className="w-4 h-4" />
           </Link>
           <Link to="/login" className="cmt-btn-ghost cmt-btn-lg">
-            Ik heb al een account
+            Ik heb er al een
           </Link>
         </div>
       </div>
