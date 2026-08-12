@@ -1,6 +1,6 @@
 // src/types/index.ts
 
-export type Rol = 'klant' | 'jayce' | 'admin';
+export type Rol = 'klant' | 'jayce' | 'moeder' | 'admin';
 
 /** Account-document: users/{uid} */
 export interface User {
@@ -21,6 +21,14 @@ export interface Customer {
   plaats: string;
   telefoon: string;
   email: string;
+  /**
+   * Iemand die dicht bij Jayce staat. Een bekende mag buiten het werkgebied
+   * wonen en kan zijn statiegeld aan Jayce schenken. Alleen de admin zet dit.
+   */
+  isBekende?: boolean;
+  /** Coordinaten van het adres, voor de routeplanner en de straalcontrole. */
+  lat?: number;
+  lon?: number;
   createdAt: string;
   updatedAt: string;
 }
@@ -98,6 +106,12 @@ export interface StatiegeldLog {
   tikkieBedrag?: number;
   tikkieLink?: string;
 
+  /**
+   * De bekende schenkt dit statiegeld aan Jayce. Er gaat dan geen Tikkie naar de
+   * klant en er worden geen ophaalkosten gerekend.
+   */
+  geschonken?: boolean;
+
   /* Ophaalkosten, apart van het statiegeld. */
   servicekosten: number;
   servicekostenStatus: ServicekostenStatus;
@@ -148,4 +162,64 @@ export interface RegisterData {
   adres: string;
   postcode: string;
   plaats: string;
+}
+
+/* ------------------------------------------------------------------ */
+/* WERKGEBIED EN VEILIGHEID                                            */
+/* Jayce rijdt op de skelter, dus het gebied is klein en de route moet  */
+/* veilig zijn. Mama beheert de plekken die vermeden moeten worden.     */
+/* ------------------------------------------------------------------ */
+
+/** instellingen/werkgebied, één document. */
+export interface Werkgebied {
+  /** Postcodes waar we ophalen, als begin van de postcode: ['5045', '5046']. */
+  postcodes: string[];
+  /** Middelpunt van de ronde, meestal thuis. */
+  middelpuntLat: number;
+  middelpuntLon: number;
+  /** Tot hier mag Jayce alleen op pad, in meters. */
+  straalAlleenMeters: number;
+  /** Vanaf dit aantal flessen en blikjes samen is het te zwaar om alleen te doen. */
+  maxItemsAlleen: number;
+  bijgewerktOp: string;
+}
+
+/** gevaarlijkePlekken/{id}, aangewezen door mama. */
+export interface GevaarlijkePlek {
+  id: string;
+  lat: number;
+  lon: number;
+  /** Hoe groot de omweg eromheen moet zijn, in meters. */
+  straalMeters: number;
+  omschrijving: string;
+  aangemaaktDoor: string;
+  aangemaaktOp: string;
+}
+
+export type SuggestieStatus = 'nieuw' | 'gelezen' | 'gedaan';
+
+/** suggesties/{id}: ideeën van mama voor de beheerder. */
+export interface Suggestie {
+  id: string;
+  tekst: string;
+  vanNaam: string;
+  vanUid: string;
+  status: SuggestieStatus;
+  aangemaaktOp: string;
+}
+
+/** Een ophaaltaak zoals hij op de kaart en in de route staat. */
+export interface Ophaalpunt {
+  id: string;
+  soort: 'glas' | 'statiegeld';
+  customerNaam: string;
+  adres: string;
+  postcode: string;
+  plaats: string;
+  lat?: number;
+  lon?: number;
+  /** Aantal stuks, alleen bij statiegeld. */
+  aantalItems: number;
+  /** Te zwaar of te ver om alleen te doen. */
+  hulpNodig: boolean;
 }

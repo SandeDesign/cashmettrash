@@ -7,7 +7,7 @@
 // bericht naar de klant verstuurd.
 
 import React, { useEffect, useState } from 'react';
-import { AlertCircle, ExternalLink, Recycle, X } from 'lucide-react';
+import { AlertCircle, ExternalLink, Heart, Recycle, X } from 'lucide-react';
 import { formatCenten } from '../../utils/constants';
 import type { StatiegeldLog } from '../../types';
 
@@ -41,7 +41,10 @@ const AfrekenSheet: React.FC<AfrekenSheetProps> = ({ log, onSluiten, onAfrekenen
 
   const geteld = log.itemsWerkelijk ?? log.items;
   const centen = naarCenten(euro);
-  const linkGeldig = /^https?:\/\/\S+$/.test(link.trim());
+  // Bij een schenking gaat het bedrag naar het potje van Jayce, dus er is geen
+  // Tikkie naar de klant en er zijn geen ophaalkosten.
+  const schenking = !!log.geschonken;
+  const linkGeldig = schenking || /^https?:\/\/\S+$/.test(link.trim());
 
   const verstuur = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -58,7 +61,7 @@ const AfrekenSheet: React.FC<AfrekenSheetProps> = ({ log, onSluiten, onAfrekenen
     setFout(null);
     setBezig(true);
     try {
-      await onAfrekenen(centen, link.trim());
+      await onAfrekenen(centen, schenking ? '' : link.trim());
     } catch (error: unknown) {
       setFout(error instanceof Error ? error.message : 'Afrekenen mislukt');
       setBezig(false);
@@ -86,8 +89,17 @@ const AfrekenSheet: React.FC<AfrekenSheetProps> = ({ log, onSluiten, onAfrekenen
           </button>
         </div>
         <p className="text-sm mb-5" style={{ color: 'var(--cmt-ink-soft)' }}>
-          Vul in wat er uit Viatim kwam. De klant krijgt het bericht meteen in de chat.
+          {schenking
+            ? 'Vul in wat er uit Viatim kwam. Dit bedrag gaat naar het potje van Jayce, dus er wordt geen Tikkie gestuurd.'
+            : 'Vul in wat er uit Viatim kwam. De klant krijgt het bericht meteen in de chat.'}
         </p>
+
+        {schenking && (
+          <div className="cmt-alert cmt-alert-info mb-4">
+            <Heart className="w-5 h-5 flex-shrink-0" />
+            <span>{log.customerNaam} schenkt dit statiegeld aan Jayce.</span>
+          </div>
+        )}
 
         {fout && (
           <div className="cmt-alert cmt-alert-error mb-4">
@@ -125,23 +137,27 @@ const AfrekenSheet: React.FC<AfrekenSheetProps> = ({ log, onSluiten, onAfrekenen
             autoFocus
           />
           <p className="mt-1 text-xs" style={{ color: 'var(--cmt-ink-muted)' }}>
-            Dit bedrag gaat volledig naar de klant.
+            {schenking
+              ? 'Dit bedrag gaat naar het potje van Jayce.'
+              : 'Dit bedrag gaat volledig naar de klant.'}
           </p>
         </div>
 
-        <div className="mb-5">
-          <label className="cmt-label" htmlFor="afreken-link">
-            Tikkie-link
-          </label>
-          <input
-            id="afreken-link"
-            className="cmt-input"
-            inputMode="url"
-            placeholder="https://tikkie.me/pay/..."
-            value={link}
-            onChange={(e) => setLink(e.target.value)}
-          />
-        </div>
+        {!schenking && (
+          <div className="mb-5">
+            <label className="cmt-label" htmlFor="afreken-link">
+              Tikkie-link
+            </label>
+            <input
+              id="afreken-link"
+              className="cmt-input"
+              inputMode="url"
+              placeholder="https://tikkie.me/pay/..."
+              value={link}
+              onChange={(e) => setLink(e.target.value)}
+            />
+          </div>
+        )}
 
         <div
           className="flex items-baseline justify-between pt-4 mb-5"
@@ -150,7 +166,9 @@ const AfrekenSheet: React.FC<AfrekenSheetProps> = ({ log, onSluiten, onAfrekenen
           <span className="text-sm" style={{ color: 'var(--cmt-ink-soft)' }}>
             Ophaalkosten die de klant betaalt
           </span>
-          <span className="font-bold">{formatCenten(log.servicekosten)}</span>
+          <span className="font-bold">
+            {schenking ? 'geen' : formatCenten(log.servicekosten)}
+          </span>
         </div>
 
         <div className="flex flex-col-reverse sm:flex-row sm:justify-end gap-2">
@@ -163,7 +181,7 @@ const AfrekenSheet: React.FC<AfrekenSheetProps> = ({ log, onSluiten, onAfrekenen
             disabled={bezig || centen === null || !linkGeldig}
           >
             <ExternalLink className="w-4 h-4" />
-            {bezig ? 'Bezig...' : 'Afronden en versturen'}
+            {bezig ? 'Bezig...' : schenking ? 'Afronden' : 'Afronden en versturen'}
           </button>
         </div>
       </form>

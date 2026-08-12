@@ -64,6 +64,12 @@ const Cookies: React.FC = () => (
       dat bij een ander bedrijf opgehaald, waardoor dat bedrijf ziet dat jij langskomt.
       Dat gebeurt hier niet.
     </p>
+    <p>
+      Eén ding komt wel van buiten: de <strong>kaart</strong>. Die tekenen we met plaatjes van
+      OpenStreetMap, en de route rekent OpenRouteService uit. Dat gebeurt alleen op de
+      schermen met een kaart erop, en die zijn er voor Jayce, zijn moeder en de beheerder.
+      Als klant kom je er niet, dus voor jou verandert er niets.
+    </p>
 
     <h2>Waarom is er dan toch een melding onderaan?</h2>
     <p>

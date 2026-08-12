@@ -72,9 +72,33 @@ const StatiegeldLogPagina: React.FC = () => {
     (l) => l.status === 'opgehaald' || l.status === 'verwerktBijViatim'
   ).length;
 
-  /** Rondt af en stuurt de Tikkie meteen naar de klant. */
+  /**
+   * Rondt af en stuurt de Tikkie meteen naar de klant. Is het statiegeld
+   * geschonken, dan gaat het bedrag naar het potje van Jayce en krijgt de klant
+   * alleen een bedankje, geen Tikkie en geen ophaalkosten.
+   */
   const handelAf = async (log: StatiegeldLogType, centen: number, link: string) => {
     await rekenAf(log.id, centen, link);
+
+    if (log.geschonken) {
+      await stuurBericht({
+        customerId: log.customerId,
+        customerNaam: log.customerNaam,
+        afzender: 'admin',
+        tekst:
+          `Je statiegeld is ingeleverd en heeft ${formatCenten(centen)} opgebracht. ` +
+          'Dat bedrag gaat naar het potje van Jayce. Bedankt namens hem!',
+        statiegeldLogId: log.id,
+      });
+      void stuurPushNaarKlant(log.customerId, {
+        titel: 'Bedankt voor je gift',
+        tekst: `Je statiegeld heeft ${formatCenten(centen)} opgebracht voor Jayce.`,
+        url: '/chat',
+      });
+      setAfrekenen(null);
+      return;
+    }
+
     await stuurBericht({
       customerId: log.customerId,
       customerNaam: log.customerNaam,

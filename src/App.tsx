@@ -38,6 +38,12 @@ const KlantChat = lazy(() => import('./pages/klant/Chat'));
 
 const JayceTaken = lazy(() => import('./pages/jayce/Taken'));
 const JayceScore = lazy(() => import('./pages/jayce/Score'));
+const JayceRoute = lazy(() => import('./pages/jayce/Route'));
+const JayceBekenden = lazy(() => import('./pages/jayce/Bekenden'));
+
+const MoederOverzicht = lazy(() => import('./pages/moeder/Overzicht'));
+const MoederPlekken = lazy(() => import('./pages/moeder/Plekken'));
+const MoederIdeeen = lazy(() => import('./pages/moeder/Ideeen'));
 
 const AdminOverzicht = lazy(() => import('./pages/admin/Overzicht'));
 const AdminGlasOrders = lazy(() => import('./pages/admin/GlasOrders'));
@@ -45,6 +51,10 @@ const AdminStatiegeldLog = lazy(() => import('./pages/admin/StatiegeldLog'));
 const AdminGesprekken = lazy(() => import('./pages/admin/Gesprekken'));
 const AdminGesprek = lazy(() => import('./pages/admin/Gesprek'));
 const AdminCijfers = lazy(() => import('./pages/admin/Cijfers'));
+const AdminKlanten = lazy(() => import('./pages/admin/Klanten'));
+const AdminInstellingen = lazy(() => import('./pages/admin/Instellingen'));
+const AdminDagoverzicht = lazy(() => import('./pages/admin/Dagoverzicht'));
+const AdminIdeeen = lazy(() => import('./pages/admin/Ideeen'));
 
 /** Stuurt een ingelogde gebruiker naar het dashboard van zijn rol. */
 const NaarDashboard: React.FC = () => {
@@ -167,10 +177,52 @@ const AppRoutes: React.FC = () => {
         />
 
         <Route
+          path="/jayce/route"
+          element={
+            <RoleGuard allowedRoles={['jayce']}>
+              <JayceRoute />
+            </RoleGuard>
+          }
+        />
+        <Route
+          path="/jayce/bekenden"
+          element={
+            <RoleGuard allowedRoles={['jayce']}>
+              <JayceBekenden />
+            </RoleGuard>
+          }
+        />
+        <Route
           path="/jayce/score"
           element={
             <RoleGuard allowedRoles={['jayce']}>
               <JayceScore />
+            </RoleGuard>
+          }
+        />
+
+        {/* Mama */}
+        <Route
+          path="/mama"
+          element={
+            <RoleGuard allowedRoles={['moeder']}>
+              <MoederOverzicht />
+            </RoleGuard>
+          }
+        />
+        <Route
+          path="/mama/plekken"
+          element={
+            <RoleGuard allowedRoles={['moeder']}>
+              <MoederPlekken />
+            </RoleGuard>
+          }
+        />
+        <Route
+          path="/mama/ideeen"
+          element={
+            <RoleGuard allowedRoles={['moeder']}>
+              <MoederIdeeen />
             </RoleGuard>
           }
         />
@@ -213,6 +265,39 @@ const AppRoutes: React.FC = () => {
           element={
             <RoleGuard allowedRoles={['admin']}>
               <AdminGesprek />
+            </RoleGuard>
+          }
+        />
+
+        <Route
+          path="/admin/dagoverzicht"
+          element={
+            <RoleGuard allowedRoles={['admin']}>
+              <AdminDagoverzicht />
+            </RoleGuard>
+          }
+        />
+        <Route
+          path="/admin/klanten"
+          element={
+            <RoleGuard allowedRoles={['admin']}>
+              <AdminKlanten />
+            </RoleGuard>
+          }
+        />
+        <Route
+          path="/admin/ideeen"
+          element={
+            <RoleGuard allowedRoles={['admin']}>
+              <AdminIdeeen />
+            </RoleGuard>
+          }
+        />
+        <Route
+          path="/admin/instellingen"
+          element={
+            <RoleGuard allowedRoles={['admin']}>
+              <AdminInstellingen />
             </RoleGuard>
           }
         />

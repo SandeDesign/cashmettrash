@@ -5,9 +5,11 @@ import { AlertCircle, ArrowLeft, Wine } from 'lucide-react';
 import AppLayout from '../../components/layout/AppLayout';
 import { KLANT_NAV } from '../../components/layout/navItems';
 import Loading from '../../components/shared/Loading';
+import BuitenWerkgebied from '../../components/klant/BuitenWerkgebied';
 import { useAuth } from '../../hooks/useAuth';
 import { useCustomerStore } from '../../store/customerStore';
 import { useGlasStore } from '../../store/glasStore';
+import { useInstellingenStore, postcodeInGebied } from '../../store/instellingenStore';
 import { createCheckoutSession } from '../../utils/stripe';
 import { formatCenten, GLAS_PRIJS_CENTEN } from '../../utils/constants';
 
@@ -15,6 +17,7 @@ const GlasAanvraag: React.FC = () => {
   const { user } = useAuth();
   const { customer, loading, loadCustomer } = useCustomerStore();
   const maakOrder = useGlasStore((s) => s.maakOrder);
+  const { werkgebied, loadWerkgebied } = useInstellingenStore();
 
   const [opmerking, setOpmerking] = useState('');
   const [akkoordDirect, setAkkoordDirect] = useState(false);
@@ -23,7 +26,12 @@ const GlasAanvraag: React.FC = () => {
 
   useEffect(() => {
     if (user) loadCustomer(user.uid);
-  }, [user, loadCustomer]);
+    loadWerkgebied();
+  }, [user, loadCustomer, loadWerkgebied]);
+
+  // Buiten het werkgebied kan alleen een bekende nog aanvragen.
+  const mag =
+    !customer || !!customer.isBekende || postcodeInGebied(customer.postcode, werkgebied);
 
   const verstuur = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -79,6 +87,8 @@ const GlasAanvraag: React.FC = () => {
             <AlertCircle className="w-5 h-5 flex-shrink-0" />
             <span>We konden je gegevens niet laden. Probeer het later opnieuw.</span>
           </div>
+        ) : !mag ? (
+          <BuitenWerkgebied postcode={customer.postcode} plaats={customer.plaats} />
         ) : (
           <form onSubmit={verstuur} className="cmt-card cmt-animate-in">
             <Wine className="w-8 h-8 mb-3" style={{ color: 'var(--cmt-glas)' }} />

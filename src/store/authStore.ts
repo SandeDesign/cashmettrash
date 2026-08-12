@@ -12,6 +12,7 @@ import type { AuthState, Customer, RegisterData, User } from '../types';
 import { formatPostcode, getFirebaseErrorMessage } from '../utils/validation';
 import { clearErrorLogs } from '../utils/errorLogger';
 import { stuurPushNaarRol } from '../utils/push';
+import { ververCoordinaten } from './customerStore';
 
 interface AuthStore extends AuthState {
   login: (email: string, wachtwoord: string) => Promise<void>;
@@ -86,6 +87,10 @@ export const useAuthStore = create<AuthStore>((set) => ({
 
       await setDoc(doc(db, 'users', uid), user);
       await setDoc(doc(db, 'customers', uid), customer);
+
+      // Op de achtergrond, want de routeplanner heeft de coordinaten pas later
+      // nodig en het registreren mag er niet op wachten.
+      void ververCoordinaten(uid, customer.adres, customer.postcode, customer.plaats);
 
       void stuurPushNaarRol('admin', {
         titel: 'Nieuwe klant',

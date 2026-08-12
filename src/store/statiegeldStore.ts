@@ -30,7 +30,16 @@ interface StatiegeldStore {
   /** Openstaande meldingen voor Jayce. */
   loadOpenstaand: () => Promise<void>;
   loadAlle: () => Promise<void>;
-  maakMelding: (customer: Customer, items: StatiegeldItems, opmerking?: string) => Promise<string>;
+  /**
+   * Aanmelden door de klant. `geschonken` kan alleen aan staan bij een bekende:
+   * het statiegeld gaat dan naar Jayce en er zijn geen ophaalkosten.
+   */
+  maakMelding: (
+    customer: Customer,
+    items: StatiegeldItems,
+    opmerking?: string,
+    geschonken?: boolean
+  ) => Promise<string>;
   /** Jayce: telling corrigeren en afvinken. */
   markeerOpgehaald: (logId: string, jayceId: string, itemsWerkelijk: StatiegeldItems) => Promise<void>;
   /** Admin: ingescand bij Viatim. Losse stap, voor als je nog geen Tikkie hebt. */
@@ -116,7 +125,11 @@ export const useStatiegeldStore = create<StatiegeldStore>((set, get) => ({
     }
   },
 
-  maakMelding: async (customer, items, opmerking) => {
+  maakMelding: async (customer, items, opmerking, geschonken) => {
+    // Schenken kan alleen een bekende, en dan brengen we geen ophaalkosten in
+    // rekening: er komt bij deze melding immers niets bij de klant terug.
+    const schenkt = !!geschonken && !!customer.isBekende;
+
     const log: Omit<StatiegeldLog, 'id'> = {
       customerId: customer.id,
       customerNaam: customer.naam,
@@ -125,7 +138,8 @@ export const useStatiegeldStore = create<StatiegeldStore>((set, get) => ({
       plaats: customer.plaats,
       items,
       status: 'aangemeld',
-      servicekosten: STATIEGELD_SERVICE_CENTEN,
+      geschonken: schenkt,
+      servicekosten: schenkt ? 0 : STATIEGELD_SERVICE_CENTEN,
       servicekostenStatus: 'nietVerschuldigd',
       aangemaaktOp: new Date().toISOString(),
       ...(opmerking ? { opmerking } : {}),
@@ -158,13 +172,17 @@ export const useStatiegeldStore = create<StatiegeldStore>((set, get) => ({
 
   rekenAf: async (logId, tikkieBedrag, tikkieLink) => {
     const nu = new Date().toISOString();
+    // Bij een schenking gaat het bedrag naar het potje van Jayce: geen Tikkie
+    // naar de klant en dus ook geen ophaalkosten.
+    const schenking = !!get().logs.find((l) => l.id === logId)?.geschonken;
+
     const updates = {
       status: 'tikkieVerstuurd' as StatiegeldStatus,
       verwerktOp: nu,
       tikkieBedrag,
       tikkieLink,
       tikkieVerstuurdOp: nu,
-      servicekostenStatus: 'openstaand' as ServicekostenStatus,
+      servicekostenStatus: (schenking ? 'nietVerschuldigd' : 'openstaand') as ServicekostenStatus,
     };
     await updateDoc(doc(db, COLLECTIE, logId), updates);
     set({ logs: get().logs.map((l) => (l.id === logId ? { ...l, ...updates } : l)) });

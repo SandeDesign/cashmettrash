@@ -49,8 +49,9 @@ niet in het datamodel, niet in de UI, niet in de security rules.
 | Rol | Route | Rechten |
 |---|---|---|
 | `klant` | `/mijn` | Glas aanvragen + betalen, statiegeld aanmelden, ophaalkosten betalen, chatten met de beheerder, eigen gegevens |
-| `jayce` | `/jayce`, `/jayce/score` | Openstaande taken zien en afvinken, statiegeld tellen, eigen score. **Ziet nooit bedragen en heeft geen toegang tot de chat** |
-| `admin` | `/admin` | Takenlijst, orders, statiegeld afrekenen, chatten met klanten, cijfers op `/admin/cijfers`, CSV-export |
+| `jayce` | `/jayce`, `/jayce/route`, `/jayce/bekenden`, `/jayce/score` | Openstaande taken zien en afvinken, statiegeld tellen, de route bekijken, bekenden zien, eigen score. **Geen toegang tot de chat.** Het enige bedrag dat hij ziet is zijn eigen potje |
+| `moeder` | `/mama`, `/mama/plekken`, `/mama/ideeen` | Meekijken met de ronde en zien bij welke ritten ze mee moet, gevaarlijke plekken markeren, ideeën doorgeven. Geen orders, geen chat |
+| `admin` | `/admin` | Takenlijst, orders, statiegeld afrekenen, chatten met klanten, klanten als bekende aanwijzen (`/admin/klanten`), werkgebied (`/admin/instellingen`), dagoverzicht (`/admin/dagoverzicht`), ideeën (`/admin/ideeen`), cijfers (`/admin/cijfers`), CSV-export |
 
 **Dashboards tonen acties, geen cijfers.** `/admin` en `/mijn` beantwoorden de
 vraag "wat moet ik nu doen". Getallen horen op `/admin/cijfers` en `/jayce/score`.
@@ -59,8 +60,38 @@ vraag "wat moet ik nu doen". Getallen horen op `/admin/cijfers` en `/jayce/score
 en "jij", geen woorden als melding, verwerken of status. Rauwe Firebase-fouten
 worden daar nooit getoond, altijd een eigen tekst.
 
-Registratie geeft altijd `klant`. `jayce` en `admin` worden handmatig in Firestore
-gezet; `firestore.rules` blokkeert rol-escalatie.
+Registratie geeft altijd `klant`. `jayce`, `moeder` en `admin` worden handmatig in
+Firestore gezet; `firestore.rules` blokkeert rol-escalatie.
+
+De navigatie per rol staat in `src/components/layout/navItems.tsx`. Op mobiel
+worden de items met `alleenDesktop: true` weggelaten; in de onderbalk passen er
+hooguit vijf naast elkaar.
+
+### Bekende
+
+Een bekende is géén aparte rol maar een vlag op de klant (`customers.isBekende`),
+die alleen de beheerder via `/admin/klanten` kan zetten. Een bekende:
+
+- mag buiten het werkgebied wonen en toch aanvragen doen
+- kan bij het aanmelden kiezen het statiegeld aan Jayce te **schenken**. Dan gaat
+  het bedrag naar zijn potje, komt er geen Tikkie en zijn er geen ophaalkosten
+
+### Werkgebied
+
+`instellingen/werkgebied` bepaalt waar we ophalen. Twee dingen los van elkaar:
+
+- **postcodes**: wie daarbuiten woont kan niets aanvragen, tenzij hij bekende is.
+  Een lege lijst betekent: iedereen mag. Gecontroleerd met `postcodeInGebied`
+- **straal + maxItems**: Jayce mag alleen op pad binnen `straalAlleenMeters`.
+  Mama moet mee als het adres daarbuiten ligt **én** er minstens `maxItemsAlleen`
+  (standaard 30) stuks klaarstaan. Allebei, niet één van beide
+
+### Route
+
+`/jayce/route` tekent de ronde met Leaflet en OpenStreetMap-tegels. De route komt
+van OpenRouteService met het profiel `cycling-safe`; de plekken die mama markeert
+gaan als `avoid_polygons` mee. Zonder `VITE_ORS_API_KEY` blijft de kaart werken
+maar tekent de app geen route.
 
 ---
 
@@ -70,12 +101,15 @@ gezet; `firestore.rules` blokkeert rol-escalatie.
 - TypeScript strict
 - Vite 5
 - Tailwind CSS 3 + eigen design system (`src/styles/cmt-theme.css`)
-- Zustand 5 (`authStore`, `customerStore`, `glasStore`, `statiegeldStore`, `chatStore`)
+- Zustand 5 (`authStore`, `customerStore`, `glasStore`, `statiegeldStore`,
+  `chatStore`, `instellingenStore`)
 - Firebase Auth (email/wachtwoord) + Firestore
 - Stripe via PHP-proxy op internedata.nl (`/uploads/cashmettrash/`)
 - lucide-react (iconen), date-fns (datums)
 - Poppins wordt zelf gehost vanuit `public/fonts/`; geen Google Fonts
 - Pushmeldingen via Firebase Cloud Messaging, verstuurd door `php/push.php`
+- Kaart met Leaflet + react-leaflet en OpenStreetMap-tegels; routes via
+  OpenRouteService (`src/utils/geo.ts`). Alleen op de kaartpagina's geladen
 - Routes worden lazy geladen met `React.lazy`, met een voortgangsbalk als fallback
 - Vercel hosting
 
@@ -86,6 +120,8 @@ gezet; `firestore.rules` blokkeert rol-escalatie.
 ```ts
 users/{uid}            uid, email, naam, rol, createdAt, updatedAt
 customers/{uid}        naam, adres, postcode, plaats, telefoon, email, timestamps
+                       isBekende?      // alleen door admin te zetten
+                       lat?, lon?      // via OpenRouteService, voor de routeplanner
 
 glasOrders/{orderId}
   customerId, customerNaam, adres, postcode, plaats
@@ -101,7 +137,8 @@ statiegeldLogs/{logId}
   status: 'aangemeld' | 'opgehaald' | 'verwerktBijViatim' | 'tikkieVerstuurd'
   aangemaaktOp, opgehaaldOp?, verwerktOp?, jayceId?
   tikkieVerstuurdOp?, tikkieBedrag?, tikkieLink?   // registratie, niet aanpasbaar
-  servicekosten: 200                               // ophaalkosten in centen
+  geschonken: boolean                              // alleen een bekende mag dit
+  servicekosten: 200 | 0                           // 0 bij een schenking
   servicekostenStatus: 'nietVerschuldigd' | 'openstaand' | 'betaald'
   servicekostenBetaaldOp?, serviceStripeSessionId?, serviceStripeStatus?
 
@@ -115,6 +152,19 @@ chatGesprekken/{customerId}/berichten/{id}
 
 pushTokens/{uid}
   uid, rol, token, bijgewerktOp     // niemand kan hier lezen; alleen push.php
+
+instellingen/werkgebied
+  postcodes: string[]               // leeg = overal
+  middelpuntLat, middelpuntLon
+  straalAlleenMeters                // zo ver mag Jayce alleen
+  maxItemsAlleen                    // vanaf dit aantal moet mama mee
+  bijgewerktOp
+
+gevaarlijkePlekken/{plekId}
+  lat, lon, straalMeters, omschrijving, aangemaaktDoor, aangemaaktOp
+
+suggesties/{suggestieId}
+  tekst, vanNaam, vanUid, status: 'nieuw' | 'gelezen' | 'gedaan', aangemaaktOp
 ```
 
 `GLAS_PRIJS_CENTEN = 499` en `STATIEGELD_SERVICE_CENTEN = 200` staan op één plek:
@@ -189,9 +239,13 @@ Endpoints zijn overschrijfbaar via `VITE_CHECKOUT_URL` / `VITE_STRIPE_PROXY_URL`
 - Geen abonnementen of SEPA-machtigingen, alleen eenmalige betalingen
 - **Nooit** het statiegeldbedrag zelf als betaling behandelen. Dat komt uit Viatim,
   is niet aanpasbaar en gaat volledig naar de klant. De `servicekosten` staan daar los van
-- **Nooit** bedragen tonen in het Jayce-dashboard, en Jayce nooit toegang tot de chat geven
-- Geen analytics, trackers of third-party scripts. De juridische pagina's beweren
-  dat er niets naar derden gaat; dat moet waar blijven
+- **Nooit** bedragen tonen in het Jayce-dashboard, en Jayce nooit toegang tot de
+  chat geven. Eén uitzondering: op `/jayce/score` staat zijn eigen potje, want dat
+  is geld dat aan hem is geschonken
+- Geen analytics, trackers of third-party scripts. Kaart en route lopen wél langs
+  OpenStreetMap en OpenRouteService; dat staat zo in de privacyverklaring en in
+  het cookiebeleid, en gebeurt alleen op de kaartpagina's van Jayce, mama en de
+  beheerder. Een klant haalt nooit iets bij een derde partij op
 - Geen externe fonts of CDN's toevoegen, om dezelfde reden
 
 ### Naamgeving
@@ -212,9 +266,17 @@ VITE_FIREBASE_STORAGE_BUCKET=
 VITE_FIREBASE_MESSAGING_SENDER_ID=
 VITE_FIREBASE_APP_ID=
 
+# Web Push-certificaat; zonder deze sleutel blijft de meldingenknop verborgen
+VITE_FIREBASE_VAPID_KEY=
+
 # Optioneel
 VITE_CHECKOUT_URL=
 VITE_STRIPE_PROXY_URL=
+VITE_PUSH_URL=
+
+# Gratis sleutel van openrouteservice.org. Zonder sleutel blijft de kaart werken,
+# maar tekent de app geen route.
+VITE_ORS_API_KEY=
 ```
 
 Ingesteld in Vercel bij Settings > Environment Variables. Er staan geen hardcoded

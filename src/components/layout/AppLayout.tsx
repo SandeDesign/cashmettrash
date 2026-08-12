@@ -11,6 +11,8 @@ export interface NavItem {
   label: string;
   icon: React.ReactNode;
   end?: boolean;
+  /** Laat dit item weg uit de mobiele onderbalk; daar passen er hooguit vijf. */
+  alleenDesktop?: boolean;
 }
 
 interface AppLayoutProps {
@@ -24,6 +26,7 @@ const AppLayout: React.FC<AppLayoutProps> = ({ children, nav = [], title }) => {
   const { user } = useAuth();
   const logout = useAuthStore((s) => s.logout);
   const heeftNav = nav.length > 0;
+  const mobielNav = nav.filter((item) => !item.alleenDesktop);
 
   return (
     <div className="min-h-screen flex flex-col" style={{ background: 'var(--cmt-paper)' }}>
@@ -88,14 +91,14 @@ const AppLayout: React.FC<AppLayoutProps> = ({ children, nav = [], title }) => {
         {children}
       </main>
 
-      {heeftNav && (
+      {mobielNav.length > 0 && (
         <nav
           className="md:hidden fixed bottom-0 inset-x-0 z-40 safe-area-bottom"
           style={{ background: 'var(--cmt-surface)', borderTop: '1px solid var(--cmt-border)' }}
           aria-label="Hoofdnavigatie"
         >
           <div className="flex">
-            {nav.map((item) => (
+            {mobielNav.map((item) => (
               <NavLink
                 key={item.to}
                 to={item.to}

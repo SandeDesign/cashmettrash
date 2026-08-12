@@ -29,8 +29,24 @@ service cloud.firestore {
       return isSignedIn() && rol() == 'jayce';
     }
 
+    function isMoeder() {
+      return isSignedIn() && rol() == 'moeder';
+    }
+
+    // Mama kijkt mee met de ronde van Jayce, dus zij ziet dezelfde taken.
+    function isBegeleiding() {
+      return isJayce() || isMoeder() || isAdmin();
+    }
+
     function isEigenaar(customerId) {
       return isSignedIn() && request.auth.uid == customerId;
+    }
+
+    // Alleen een bekende van Jayce mag zijn statiegeld aan hem schenken. Die vlag
+    // zet de beheerder, dus hier is de klantgegevens de enige waarheid.
+    function isBekende() {
+      return isSignedIn()
+             && get(/databases/$(database)/documents/customers/$(request.auth.uid)).data.isBekende == true;
     }
 
     // Velden die bij een update ongewijzigd moeten blijven.
@@ -65,20 +81,25 @@ service cloud.firestore {
     /* ---------------- customers ---------------- */
 
     match /customers/{customerId} {
-      // Jayce staat hier bewust niet bij: naam en adres worden bij het aanmaken
-      // van een taak meegekopieerd, dus hij heeft geen toegang nodig tot
-      // telefoonnummers en e-mailadressen van alle klanten.
-      allow read: if isEigenaar(customerId) || isAdmin();
+      // Jayce en mama mogen dit lezen voor de routeplanner, die de coordinaten
+      // van de adressen nodig heeft.
+      allow read: if isEigenaar(customerId) || isBegeleiding();
 
-      allow create: if isEigenaar(customerId) && request.resource.data.id == customerId;
-      allow update: if (isEigenaar(customerId) && ongewijzigd(['id'])) || isAdmin();
+      allow create: if isEigenaar(customerId)
+                    && request.resource.data.id == customerId
+                    // Wie bekende is bepaalt de beheerder, niet de klant zelf.
+                    && !request.resource.data.keys().hasAny(['isBekende']);
+
+      allow update: if isAdmin()
+                    || (isEigenaar(customerId) && ongewijzigd(['id', 'isBekende']));
+
       allow delete: if isAdmin();
     }
 
     /* ---------------- glasOrders ---------------- */
 
     match /glasOrders/{orderId} {
-      allow read: if isEigenaar(resource.data.customerId) || isJayce() || isAdmin();
+      allow read: if isEigenaar(resource.data.customerId) || isBegeleiding();
 
       // De klant meldt aan tegen het vaste tarief; het bedrag is niet manipuleerbaar
       // en de order start altijd onbetaald zonder Stripe-gegevens.
@@ -109,7 +130,7 @@ service cloud.firestore {
     // Bevat bewust geen enkel Stripe- of betalingsveld.
 
     match /statiegeldLogs/{logId} {
-      allow read: if isEigenaar(resource.data.customerId) || isJayce() || isAdmin();
+      allow read: if isEigenaar(resource.data.customerId) || isBegeleiding();
 
       allow create: if isEigenaar(request.resource.data.customerId)
                     && request.resource.data.status == 'aangemeld'
@@ -118,7 +139,15 @@ service cloud.firestore {
                     && request.resource.data.items.plastic >= 0
                     && request.resource.data.items.blik >= 0
                     && request.resource.data.servicekostenStatus == 'nietVerschuldigd'
-                    && request.resource.data.servicekosten == 200
+                    // Schenken kan alleen een bekende, en dan zijn er geen
+                    // ophaalkosten. In alle andere gevallen ligt het tarief vast.
+                    && (
+                      (request.resource.data.geschonken == true
+                       && isBekende()
+                       && request.resource.data.servicekosten == 0)
+                      || (request.resource.data.geschonken == false
+                          && request.resource.data.servicekosten == 200)
+                    )
                     && !request.resource.data.keys().hasAny(
                          ['tikkieBedrag', 'tikkieLink', 'tikkieVerstuurdOp', 'verwerktOp',
                           'opgehaaldOp', 'jayceId', 'itemsWerkelijk',
@@ -181,6 +210,40 @@ service cloud.firestore {
                             && request.resource.data.uid == uid
                             && request.resource.data.rol == rol();
       allow delete: if isEigenaar(uid) || isAdmin();
+    }
+
+    /* ---------------- instellingen ---------------- */
+    // Het werkgebied bepaalt waar Jayce mag rijden. Iedereen mag het lezen, want
+    // de app moet bij het aanmelden kunnen controleren of een adres erbinnen valt.
+
+    match /instellingen/{document} {
+      allow read: if isSignedIn();
+      allow write: if isAdmin();
+    }
+
+    /* ---------------- gevaarlijkePlekken ---------------- */
+    // Aangewezen door mama, gebruikt door de routeplanner van Jayce.
+
+    match /gevaarlijkePlekken/{plekId} {
+      allow read: if isBegeleiding();
+      allow create: if (isMoeder() || isAdmin())
+                    && request.resource.data.lat is number
+                    && request.resource.data.lon is number
+                    && request.resource.data.aangemaaktDoor == request.auth.uid;
+      allow update, delete: if isMoeder() || isAdmin();
+    }
+
+    /* ---------------- suggesties ---------------- */
+    // Ideeën van mama voor de beheerder.
+
+    match /suggesties/{suggestieId} {
+      allow read: if isMoeder() || isAdmin();
+      allow create: if (isMoeder() || isAdmin())
+                    && request.resource.data.vanUid == request.auth.uid
+                    && request.resource.data.status == 'nieuw';
+      // Alleen de beheerder vinkt een idee af.
+      allow update: if isAdmin() && alleenVelden(['status']);
+      allow delete: if isAdmin();
     }
 
     // Alles wat hierboven niet expliciet is toegestaan, is verboden.

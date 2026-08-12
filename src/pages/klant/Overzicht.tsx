@@ -7,7 +7,7 @@ import React, { useEffect, useMemo } from 'react';
 import { Link } from 'react-router-dom';
 import { format } from 'date-fns';
 import { nl } from 'date-fns/locale';
-import { AlertCircle, ArrowRight, Package, Recycle, Wine } from 'lucide-react';
+import { AlertCircle, ArrowRight, MapPin, Package, Recycle, Wine } from 'lucide-react';
 import AppLayout from '../../components/layout/AppLayout';
 import { KLANT_NAV } from '../../components/layout/navItems';
 import Loading from '../../components/shared/Loading';
@@ -17,6 +17,7 @@ import { useAuth } from '../../hooks/useAuth';
 import { useCustomerStore } from '../../store/customerStore';
 import { useGlasStore } from '../../store/glasStore';
 import { useStatiegeldStore } from '../../store/statiegeldStore';
+import { useInstellingenStore, postcodeInGebied } from '../../store/instellingenStore';
 import { formatCenten, GLAS_PRIJS_CENTEN } from '../../utils/constants';
 
 const datum = (iso: string) => format(new Date(iso), 'd MMM yyyy', { locale: nl });
@@ -33,13 +34,19 @@ const Overzicht: React.FC = () => {
   const { customer, loadCustomer } = useCustomerStore();
   const { orders, loading: glasLaadt, loadVoorKlant: loadGlas } = useGlasStore();
   const { logs, loading: statLaadt, loadVoorKlant: loadStatiegeld } = useStatiegeldStore();
+  const { werkgebied, loadWerkgebied } = useInstellingenStore();
 
   useEffect(() => {
     if (!user) return;
     loadCustomer(user.uid);
     loadGlas(user.uid);
     loadStatiegeld(user.uid);
-  }, [user, loadCustomer, loadGlas, loadStatiegeld]);
+    loadWerkgebied();
+  }, [user, loadCustomer, loadGlas, loadStatiegeld, loadWerkgebied]);
+
+  // Buiten de ronde van Jayce kan alleen een bekende nog aanvragen.
+  const magAanvragen =
+    !customer || !!customer.isBekende || postcodeInGebied(customer.postcode, werkgebied);
 
   /** Wat er van de klant wordt verwacht. Dit staat bovenaan de pagina. */
   const acties = useMemo<Actie[]>(() => {
@@ -101,7 +108,18 @@ const Overzicht: React.FC = () => {
         </section>
       )}
 
-      <div className="grid sm:grid-cols-2 gap-4 mb-8">
+      {!magAanvragen && (
+        <div className="cmt-alert cmt-alert-warning mb-8">
+          <MapPin className="w-5 h-5 flex-shrink-0" />
+          <span>
+            Jayce rijdt op zijn skelter en blijft in de eigen buurt. Jouw adres ligt daar net
+            buiten, dus we kunnen hier voorlopig niet ophalen. Klopt je adres niet? Pas het aan
+            bij <Link to="/profiel">je gegevens</Link>.
+          </span>
+        </div>
+      )}
+
+      <div className={`grid sm:grid-cols-2 gap-4 mb-8 ${magAanvragen ? '' : 'opacity-50 pointer-events-none'}`}>
         <Link to="/glas" className="cmt-flow-glas cmt-card cmt-card-tint cmt-animate-in block">
           <Wine className="w-7 h-7 mb-2" style={{ color: 'var(--cmt-glas)' }} />
           <h2 className="font-bold mb-1">Glas laten ophalen</h2>

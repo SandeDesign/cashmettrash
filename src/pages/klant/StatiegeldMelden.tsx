@@ -6,13 +6,15 @@
 
 import React, { useEffect, useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { AlertCircle, ArrowLeft, Recycle } from 'lucide-react';
+import { AlertCircle, ArrowLeft, Heart, Recycle } from 'lucide-react';
 import AppLayout from '../../components/layout/AppLayout';
 import { KLANT_NAV } from '../../components/layout/navItems';
 import Loading from '../../components/shared/Loading';
+import BuitenWerkgebied from '../../components/klant/BuitenWerkgebied';
 import { useAuth } from '../../hooks/useAuth';
 import { useCustomerStore } from '../../store/customerStore';
 import { useStatiegeldStore } from '../../store/statiegeldStore';
+import { useInstellingenStore, postcodeInGebied } from '../../store/instellingenStore';
 import { formatCenten, STATIEGELD_SERVICE_CENTEN } from '../../utils/constants';
 import { stuurPushNaarRol } from '../../utils/push';
 
@@ -44,16 +46,22 @@ const StatiegeldMelden: React.FC = () => {
   const { user } = useAuth();
   const { customer, loading, loadCustomer } = useCustomerStore();
   const maakMelding = useStatiegeldStore((s) => s.maakMelding);
+  const { werkgebied, loadWerkgebied } = useInstellingenStore();
 
   const [plastic, setPlastic] = useState(0);
   const [blik, setBlik] = useState(0);
   const [opmerking, setOpmerking] = useState('');
+  const [schenken, setSchenken] = useState(false);
   const [fout, setFout] = useState<string | null>(null);
   const [bezig, setBezig] = useState(false);
 
   useEffect(() => {
     if (user) loadCustomer(user.uid);
-  }, [user, loadCustomer]);
+    loadWerkgebied();
+  }, [user, loadCustomer, loadWerkgebied]);
+
+  const isBekende = !!customer?.isBekende;
+  const mag = !customer || isBekende || postcodeInGebied(customer.postcode, werkgebied);
 
   const verstuur = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -68,7 +76,12 @@ const StatiegeldMelden: React.FC = () => {
     setBezig(true);
 
     try {
-      await maakMelding(customer, { plastic, blik }, opmerking.trim() || undefined);
+      await maakMelding(
+        customer,
+        { plastic, blik },
+        opmerking.trim() || undefined,
+        isBekende && schenken
+      );
       void stuurPushNaarRol('jayce', {
         titel: 'Nieuwe ophaaltaak',
         tekst: `Er staat statiegeld klaar bij ${customer.naam}.`,
@@ -104,6 +117,8 @@ const StatiegeldMelden: React.FC = () => {
             <AlertCircle className="w-5 h-5 flex-shrink-0" />
             <span>We konden je gegevens niet laden. Probeer het later opnieuw.</span>
           </div>
+        ) : !mag ? (
+          <BuitenWerkgebied postcode={customer.postcode} plaats={customer.plaats} />
         ) : (
           <form onSubmit={verstuur} className="cmt-card cmt-animate-in">
             <Recycle className="w-8 h-8 mb-3" style={{ color: 'var(--cmt-stat)' }} />
@@ -147,14 +162,46 @@ const StatiegeldMelden: React.FC = () => {
               />
             </div>
 
+            {isBekende && (
+              <label className="cmt-card cmt-card-tint !p-4 mb-5 flex items-start gap-3 cursor-pointer">
+                <input
+                  type="checkbox"
+                  className="mt-1 flex-shrink-0"
+                  checked={schenken}
+                  onChange={(e) => setSchenken(e.target.checked)}
+                />
+                <span>
+                  <span className="font-semibold text-sm flex items-center gap-1.5">
+                    <Heart className="w-4 h-4" style={{ color: 'var(--cmt-stat)' }} />
+                    Ik schenk dit statiegeld aan Jayce
+                  </span>
+                  <span
+                    className="block text-xs mt-1"
+                    style={{ color: 'var(--cmt-ink-soft)' }}
+                  >
+                    Je krijgt dan geen Tikkie terug, en je betaalt ook geen ophaalkosten.
+                  </span>
+                </span>
+              </label>
+            )}
+
             <button type="submit" className="cmt-btn-primary cmt-btn-block cmt-btn-lg" disabled={bezig}>
               {bezig ? 'Bezig...' : 'Aanmelden'}
             </button>
 
             <p className="mt-3 text-center text-xs" style={{ color: 'var(--cmt-ink-muted)' }}>
-              Aanmelden is gratis. Zodra het is ingeleverd krijg je het volledige
-              statiegeld terug via een Tikkie, en betaal je{' '}
-              {formatCenten(STATIEGELD_SERVICE_CENTEN)} ophaalkosten.
+              {schenken ? (
+                <>
+                  Aanmelden is gratis. Wat het statiegeld oplevert gaat naar het potje van Jayce,
+                  en ophaalkosten rekenen we niet.
+                </>
+              ) : (
+                <>
+                  Aanmelden is gratis. Zodra het is ingeleverd krijg je het volledige statiegeld
+                  terug via een Tikkie, en betaal je {formatCenten(STATIEGELD_SERVICE_CENTEN)}{' '}
+                  ophaalkosten.
+                </>
+              )}
             </p>
           </form>
         )}

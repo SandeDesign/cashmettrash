@@ -4,7 +4,7 @@
 // ze af van wat er te doen is.
 
 import React, { useEffect, useMemo, useState } from 'react';
-import { Euro, Recycle, TrendingUp, Wine } from 'lucide-react';
+import { Euro, PiggyBank, Recycle, TrendingUp, Wine } from 'lucide-react';
 import AppLayout from '../../components/layout/AppLayout';
 import { ADMIN_NAV } from '../../components/layout/navItems';
 import Loading from '../../components/shared/Loading';
@@ -66,8 +66,17 @@ const Cijfers: React.FC = () => {
       flesjes: opgehaaldeLogs.reduce((som, l) => som + (l.itemsWerkelijk?.plastic ?? 0), 0),
       blikjes: opgehaaldeLogs.reduce((som, l) => som + (l.itemsWerkelijk?.blik ?? 0), 0),
       uitbetaald: logs
-        .filter((l) => binnen(l.tikkieVerstuurdOp))
+        .filter((l) => !l.geschonken && binnen(l.tikkieVerstuurdOp))
         .reduce((som, l) => som + (l.tikkieBedrag ?? 0), 0),
+      // Het potje van Jayce staat los van de omzet: dit is geld dat bekenden aan
+      // hem hebben geschonken en dat binnen Buddy BV voor hem apart blijft.
+      potje: logs
+        .filter((l) => l.geschonken && binnen(l.tikkieVerstuurdOp))
+        .reduce((som, l) => som + (l.tikkieBedrag ?? 0), 0),
+      potjeTotaal: logs
+        .filter((l) => l.geschonken)
+        .reduce((som, l) => som + (l.tikkieBedrag ?? 0), 0),
+      giften: logs.filter((l) => l.geschonken).length,
       kostenOmzet: betaaldeKosten.reduce((som, l) => som + l.servicekosten, 0),
       kostenOpen: logs
         .filter((l) => l.servicekostenStatus === 'openstaand')
@@ -140,6 +149,19 @@ const Cijfers: React.FC = () => {
           waarde={formatCenten(cijfers.kostenOpen)}
           toelichting="nog niet betaald door klanten"
         />
+      </div>
+
+      <div className="cmt-card cmt-flow-stat cmt-card-tint mb-6">
+        <div className="flex items-center gap-2 mb-1" style={{ color: 'var(--cmt-stat)' }}>
+          <PiggyBank className="w-5 h-5" />
+          <span className="text-sm font-semibold">Potje van Jayce</span>
+        </div>
+        <p className="text-2xl font-bold">{formatCenten(cijfers.potjeTotaal)}</p>
+        <p className="text-sm mt-1" style={{ color: 'var(--cmt-ink-muted)' }}>
+          {formatCenten(cijfers.potje)} in deze periode, uit {cijfers.giften}{' '}
+          {cijfers.giften === 1 ? 'gift' : 'giften'} van bekenden. Dit staat los van de omzet en
+          wordt binnen Buddy BV apart gehouden.
+        </p>
       </div>
 
       <p className="text-xs" style={{ color: 'var(--cmt-ink-muted)' }}>

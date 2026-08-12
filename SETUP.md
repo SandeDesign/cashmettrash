@@ -164,11 +164,24 @@ van Apple, en de app legt het uit.
    VITE_FIREBASE_VAPID_KEY
    ```
 
+   En voor de routeplanner:
+
+   ```
+   VITE_ORS_API_KEY
+   ```
+
+   Die sleutel haal je gratis op bij [openrouteservice.org](https://openrouteservice.org):
+   maak een account, ga naar **Dashboard > Request a token**, kies het profiel
+   *Standaard* en geef de token een naam. Het gratis tarief is ruim voldoende voor
+   een ronde per dag. Zonder sleutel blijft de kaart gewoon werken, maar tekent de
+   app geen route.
+
    Optioneel, alleen als je naar een andere proxy-map wilt wijzen:
 
    ```
    VITE_CHECKOUT_URL
    VITE_STRIPE_PROXY_URL
+   VITE_PUSH_URL
    ```
 
    Laat je die leeg, dan gebruikt de app `https://internedata.nl/uploads/cashmettrash/…`.
@@ -184,18 +197,35 @@ van Apple, en de app legt het uit.
 ## 5. Rollen instellen
 
 Iedereen die zich registreert krijgt de rol `klant`. De security rules staan niet
-toe dat een gebruiker zijn eigen rol wijzigt, dus `jayce` en `admin` zet je
-handmatig:
+toe dat een gebruiker zijn eigen rol wijzigt, dus `jayce`, `moeder` en `admin` zet
+je handmatig:
 
-1. Laat Jayce en jezelf normaal registreren via `/registreren`.
+1. Laat Jayce, zijn moeder en jezelf normaal registreren via `/registreren`.
 2. Open in de Firebase Console **Firestore > `users`**.
 3. Zoek het document met de juiste `email` en wijzig het veld `rol`:
    - jouw account → `admin`
    - Jayce → `jayce`
-4. Uitloggen en opnieuw inloggen; je komt nu op `/admin` respectievelijk `/jayce`.
+   - zijn moeder → `moeder`
+4. Uitloggen en opnieuw inloggen; je komt nu op `/admin`, `/jayce` of `/mama`.
 
 Het bijbehorende `customers`-document mag blijven staan; het wordt voor deze
 rollen simpelweg niet gebruikt.
+
+### Bekenden aanwijzen
+
+Een bekende is een klant die dicht bij Jayce staat. Die vlag zet je in de app zelf
+op **/admin/klanten**, met het vinkje *Bekende van Jayce*. Een bekende mag buiten
+het werkgebied wonen en kan zijn statiegeld aan Jayce schenken.
+
+### Werkgebied instellen
+
+Op **/admin/instellingen** stel je in:
+
+- de **postcodes** waar we ophalen. Wie daarbuiten woont kan niets aanvragen,
+  tenzij hij bekende is. Laat je het leeg, dan mag iedereen aanvragen
+- het **startpunt** van de ronde en de **straal** waarbinnen Jayce alleen mag
+- het **aantal stuks** vanaf wanneer mama mee moet. Dat geldt pas als het adres
+  óók buiten de straal ligt
 
 ---
 

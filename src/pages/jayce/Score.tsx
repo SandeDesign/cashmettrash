@@ -4,13 +4,14 @@
 // gedaan, niet wat het opbrengt. Taal en opbouw zijn voor een tienjarige.
 
 import React, { useEffect, useMemo } from 'react';
-import { Award, Flame, Recycle, Trophy, Wine } from 'lucide-react';
+import { Award, Flame, PiggyBank, Recycle, Trophy, Wine } from 'lucide-react';
 import AppLayout from '../../components/layout/AppLayout';
 import { JAYCE_NAV } from '../../components/layout/navItems';
 import Loading from '../../components/shared/Loading';
 import { useAuth } from '../../hooks/useAuth';
 import { useGlasStore } from '../../store/glasStore';
 import { useStatiegeldStore } from '../../store/statiegeldStore';
+import { formatCenten } from '../../utils/constants';
 
 const WEEK_MS = 7 * 24 * 60 * 60 * 1000;
 
@@ -63,6 +64,11 @@ const Score: React.FC = () => {
       [...mijnGlas, ...mijnStat].map((x) => new Date(x.opgehaaldOp!).toDateString())
     );
 
+    // Het enige bedrag dat Jayce te zien krijgt: zijn eigen potje. Dat zijn de
+    // keren dat iemand zijn statiegeld aan hem heeft geschonken.
+    const geschonkenLogs = logs.filter((l) => l.geschonken && l.tikkieBedrag);
+    const potje = geschonkenLogs.reduce((som, l) => som + (l.tikkieBedrag ?? 0), 0);
+
     return {
       totaal: mijnGlas.length + mijnStat.length,
       dezeWeek,
@@ -70,6 +76,8 @@ const Score: React.FC = () => {
       flesjes,
       blikjes,
       dagen: dagen.size,
+      potje,
+      giften: geschonkenLogs.length,
     };
   }, [orders, logs, user]);
 
@@ -123,6 +131,19 @@ const Score: React.FC = () => {
           waarde={score.flesjes + score.blikjes}
           label="flesjes en blikjes geteld"
         />
+      </div>
+
+      <div className="cmt-card cmt-flow-stat cmt-card-flow mb-6">
+        <PiggyBank className="w-8 h-8 mb-2" style={{ color: 'var(--cmt-stat)' }} />
+        <p className="text-4xl font-bold" style={{ color: 'var(--cmt-stat)' }}>
+          {formatCenten(score.potje)}
+        </p>
+        <p className="text-base font-semibold">zit er in jouw potje</p>
+        <p className="text-sm mt-1" style={{ color: 'var(--cmt-ink-soft)' }}>
+          {score.giften === 0
+            ? 'Nog niemand heeft zijn statiegeld aan jou gegeven. Dat kan later nog komen.'
+            : `${score.giften === 1 ? 'Eén keer heeft' : `${score.giften} keer hebben`} mensen hun statiegeld aan jou gegeven. Papa bewaart het voor je.`}
+        </p>
       </div>
 
       {score.flesjes + score.blikjes > 0 && (

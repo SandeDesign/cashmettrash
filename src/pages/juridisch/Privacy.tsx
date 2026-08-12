@@ -152,13 +152,28 @@ const Privacy: React.FC = () => (
             Alleen als Jayce op de navigatieknop drukt, gaat het ophaaladres mee naar Maps
           </td>
         </tr>
+        <tr>
+          <td>OpenStreetMap</td>
+          <td>
+            Levert de kaartbeelden. Die worden pas opgehaald op de schermen met een kaart, en
+            alleen Jayce, zijn moeder en de beheerder krijgen die te zien
+          </td>
+        </tr>
+        <tr>
+          <td>OpenRouteService</td>
+          <td>
+            Berekent de veiligste fietsroute. Daarvoor gaan de coördinaten van de ophaaladressen
+            mee, zonder naam of e-mailadres. Ook je adres wordt hier eenmalig omgezet naar
+            coördinaten zodra je het invult of wijzigt
+          </td>
+        </tr>
       </tbody>
     </table>
     <p>
       Wat wij <strong>niet</strong> doen: we gebruiken geen analyseprogramma's, geen
       advertentienetwerken en geen trackers. Ook het lettertype van deze site staat op onze
-      eigen server, zodat er bij het openen van de pagina niets naar een derde partij gaat.
-      Zie ook ons <Link to="/cookies">cookiebeleid</Link>.
+      eigen server, zodat er bij het openen van de landingspagina en de juridische pagina's
+      niets naar een derde partij gaat. Zie ook ons <Link to="/cookies">cookiebeleid</Link>.
     </p>
 
     <h2>Kinderen</h2>

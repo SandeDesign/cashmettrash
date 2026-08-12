@@ -12,6 +12,8 @@ interface ImportMetaEnv {
   readonly VITE_PUSH_URL?: string;
   /** Web Push-certificaat uit Firebase, nodig om meldingen te kunnen ontvangen. */
   readonly VITE_FIREBASE_VAPID_KEY?: string;
+  /** Gratis sleutel van openrouteservice.org. Zonder sleutel geen routeplanner. */
+  readonly VITE_ORS_API_KEY?: string;
 }
 
 interface ImportMeta {

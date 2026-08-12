@@ -1,6 +1,6 @@
 // public/service-worker.js
 // Verhoog CACHE_VERSION bij elke deploy om caches te verversen.
-const CACHE_VERSION = 'v1.3.0';
+const CACHE_VERSION = 'v1.4.0';
 const STATIC_CACHE = `cashmettrash-static-${CACHE_VERSION}`;
 const DYNAMIC_CACHE = `cashmettrash-dynamic-${CACHE_VERSION}`;
 
@@ -46,7 +46,11 @@ self.addEventListener('fetch', (event) => {
     url.hostname.includes('firebaseapp.com') ||
     url.hostname.includes('googleapis.com') ||
     url.hostname.includes('internedata.nl') ||
-    url.hostname.includes('stripe.com')
+    url.hostname.includes('stripe.com') ||
+    // Kaarttegels en routes niet bewaren: dat zijn er te veel en ze horen niet
+    // in de offline-cache van de app thuis.
+    url.hostname.includes('openstreetmap.org') ||
+    url.hostname.includes('openrouteservice.org')
   ) {
     return;
   }
