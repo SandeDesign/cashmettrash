@@ -1,0 +1,102 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Upload Test - Vlottr</title>
+    <style>
+        body { font-family: Arial; padding: 20px; }
+        .log { background: #f0f0f0; padding: 10px; margin: 10px 0; border-radius: 5px; }
+        .success { color: green; }
+        .error { color: red; }
+    </style>
+</head>
+<body>
+    <h1>Direct Upload Test</h1>
+
+    <div>
+        <label>Kenteken: <input type="text" id="kenteken" value="TEST-01"></label><br><br>
+        <label>Foto: <input type="file" id="file" accept="image/*"></label><br><br>
+        <button onclick="uploadTest()">UPLOAD TEST</button>
+    </div>
+
+    <div id="logs"></div>
+
+    <script>
+        const PROXY_URL = 'https://internedata.nl/uploads/vlottr/proxy/proxyvlottr.php';
+
+        function log(msg, type = 'log') {
+            const div = document.createElement('div');
+            div.className = 'log ' + type;
+            div.textContent = msg;
+            document.getElementById('logs').appendChild(div);
+            console.log(msg);
+        }
+
+        async function uploadTest() {
+            const kenteken = document.getElementById('kenteken').value;
+            const fileInput = document.getElementById('file');
+            const file = fileInput.files[0];
+
+            if (!file) {
+                log('Selecteer eerst een foto!', 'error');
+                return;
+            }
+
+            if (!kenteken) {
+                log('Vul kenteken in!', 'error');
+                return;
+            }
+
+            document.getElementById('logs').innerHTML = '';
+            log('Start upload test...');
+
+            const folder = `vlottr/autos/${kenteken}`;
+            const filename = file.name.replace(/[^a-zA-Z0-9_\-\.]/g, '');
+
+            log(`Folder: ${folder}`);
+            log(`Filename: ${filename}`);
+            log(`File size: ${file.size} bytes`);
+            log(`File type: ${file.type}`);
+
+            const formData = new FormData();
+            formData.append('file', file);
+            formData.append('folder', folder);
+            formData.append('filename', filename);
+
+            log('Uploading naar: ' + PROXY_URL);
+
+            try {
+                const response = await fetch(PROXY_URL, {
+                    method: 'POST',
+                    body: formData
+                });
+
+                log(`Response status: ${response.status}`);
+
+                const data = await response.json();
+                log('Response data: ' + JSON.stringify(data, null, 2));
+
+                if (data.success && data.url) {
+                    log('✅ SUCCESS! URL: ' + data.url, 'success');
+                    log('Test of afbeelding laadt...');
+
+                    // Test of image laadt
+                    const img = new Image();
+                    img.onload = () => {
+                        log('✅ AFBEELDING LAADT! Alles werkt!', 'success');
+                        document.body.appendChild(img);
+                        img.style.maxWidth = '300px';
+                    };
+                    img.onerror = () => {
+                        log('❌ AFBEELDING LAADT NIET! URL is verkeerd of bestand bestaat niet', 'error');
+                    };
+                    img.src = data.url;
+                } else {
+                    log('❌ Upload gefaald: ' + JSON.stringify(data), 'error');
+                }
+            } catch (err) {
+                log('❌ FETCH ERROR: ' + err.message, 'error');
+            }
+        }
+    </script>
+</body>
+</html>

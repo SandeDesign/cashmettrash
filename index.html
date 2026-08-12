@@ -1,0 +1,92 @@
+<!doctype html>
+<html lang="nl">
+  <head>
+    <meta charset="UTF-8" />
+    <link rel="icon" type="image/png" href="/192x192x2.png" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" />
+    <meta name="theme-color" content="#22c55e" />
+    <meta name="description" content="Huur premium auto's per week. Flexibel, betrouwbaar en altijd scherp geprijsd." />
+
+    <!-- PWA Manifest -->
+    <link rel="manifest" href="/manifest.json" />
+
+    <!-- iOS PWA Support -->
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+    <meta name="apple-mobile-web-app-title" content="Vlottr" />
+    <link rel="apple-touch-icon" href="/192x192x2.png" />
+
+    <!-- Android PWA Support -->
+    <meta name="mobile-web-app-capable" content="yes" />
+
+    <title>Vlottr - Premium Auto Verhuur</title>
+
+    <!-- Social Media Meta Tags -->
+    <meta property="og:title" content="Vlottr - Premium Auto Verhuur" />
+    <meta property="og:description" content="Huur premium auto's per week. Flexibel, betrouwbaar en altijd scherp geprijsd." />
+    <meta property="og:image" content="/512x512x2.png" />
+    <meta property="og:type" content="website" />
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:image" content="/512x512x2.png" />
+  </head>
+  <body>
+    <div id="root"></div>
+    <script type="module" src="/src/main.tsx"></script>
+
+    <!-- Service Worker Registration with Update Detection -->
+    <script>
+      if ('serviceWorker' in navigator) {
+        let refreshing = false;
+
+        // Detect when new service worker is waiting and reload page
+        navigator.serviceWorker.addEventListener('controllerchange', () => {
+          if (refreshing) return;
+          refreshing = true;
+          console.log('[App] New version available, reloading...');
+          window.location.reload();
+        });
+
+        window.addEventListener('load', () => {
+          navigator.serviceWorker.register('/service-worker.js')
+            .then((registration) => {
+              console.log('[App] Service Worker registered:', registration.scope);
+
+              // Listen for updates
+              registration.addEventListener('updatefound', () => {
+                const newWorker = registration.installing;
+                console.log('[App] New Service Worker found, installing...');
+
+                newWorker.addEventListener('statechange', () => {
+                  if (newWorker.state === 'installed' && navigator.serviceWorker.controller) {
+                    // New version available
+                    console.log('[App] New version installed, activating...');
+
+                    // Show a subtle notification
+                    if (window.confirm('Er is een nieuwe versie beschikbaar! Klik OK om te vernieuwen.')) {
+                      newWorker.postMessage({ type: 'SKIP_WAITING' });
+                    }
+                  }
+                });
+              });
+
+              // Check for updates every 30 minutes
+              setInterval(() => {
+                console.log('[App] Checking for updates...');
+                registration.update();
+              }, 30 * 60 * 1000);
+
+              // Also check for updates when page becomes visible
+              document.addEventListener('visibilitychange', () => {
+                if (!document.hidden) {
+                  registration.update();
+                }
+              });
+            })
+            .catch((error) => {
+              console.error('[App] Service Worker registration failed:', error);
+            });
+        });
+      }
+    </script>
+  </body>
+</html>
