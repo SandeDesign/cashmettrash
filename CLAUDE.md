@@ -138,6 +138,10 @@ Endpoints zijn overschrijfbaar via `VITE_CHECKOUT_URL` / `VITE_STRIPE_PROXY_URL`
 - TypeScript strict; vermijd `any`
 - Tailwind-utilities + `cmt-*` classes; `style` alleen voor dynamische waarden en
   CSS-variabelen
+- **Cascade-valkuil:** `cmt-theme.css` wordt ná Tailwind geladen, dus een
+  `cmt-*`-klasse wint bij gelijke specificiteit. De `cmt-btn-*`-klassen zetten zelf
+  `display: inline-flex`, waardoor Tailwinds `hidden` er geen effect op heeft. Zet
+  responsive verbergen daarom op een wrapper-element, niet op de knop zelf
 - Zustand voor data-state
 - Firestore voor alle data; geen eigen backend
 - Alle UI-tekst in het Nederlands

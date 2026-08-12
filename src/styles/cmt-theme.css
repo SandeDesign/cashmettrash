@@ -462,3 +462,128 @@ h1, h2, h3, h4 {
 ::-webkit-scrollbar-thumb:hover {
   background: var(--cmt-ink-muted);
 }
+
+/* ================================================================
+   Landingspagina
+   Alleen gebruikt door de publieke pagina op /.
+   ================================================================ */
+
+.cmt-hero {
+  position: relative;
+  overflow: hidden;
+  background:
+    radial-gradient(70rem 40rem at 78% -12%, var(--cmt-glas-bg), transparent 62%),
+    radial-gradient(52rem 34rem at 4% 8%, var(--cmt-stat-bg), transparent 58%),
+    var(--cmt-paper);
+}
+
+/* Subtiel golfje onderaan de hero, zodat de secties niet hard afbreken. */
+.cmt-hero::after {
+  content: '';
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: -1px;
+  height: 3.5rem;
+  background: var(--cmt-surface);
+  clip-path: ellipse(72% 100% at 50% 100%);
+}
+
+.cmt-eyebrow {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: 0.8125rem;
+  font-weight: 600;
+  color: var(--cmt-glas-dark);
+  background: var(--cmt-surface);
+  border: 1px solid var(--cmt-glas-border);
+  border-radius: var(--cmt-radius-full);
+  padding: 0.375rem 0.875rem;
+  box-shadow: var(--cmt-shadow-card);
+}
+
+.cmt-display {
+  font-size: clamp(2.25rem, 7vw, 3.75rem);
+  line-height: 1.05;
+  font-weight: 700;
+  letter-spacing: -0.03em;
+}
+
+.cmt-lead {
+  font-size: clamp(1rem, 2.4vw, 1.1875rem);
+  line-height: 1.6;
+  color: var(--cmt-ink-soft);
+}
+
+.cmt-section {
+  padding: clamp(3rem, 8vw, 5.5rem) 0;
+}
+
+.cmt-section-alt {
+  background: var(--cmt-surface);
+}
+
+.cmt-section-title {
+  font-size: clamp(1.5rem, 4vw, 2.125rem);
+  line-height: 1.15;
+  font-weight: 700;
+  letter-spacing: -0.02em;
+}
+
+/* Genummerde stap in "Hoe het werkt". */
+.cmt-step-nummer {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 2.5rem;
+  height: 2.5rem;
+  flex-shrink: 0;
+  border-radius: var(--cmt-radius-full);
+  background: var(--cmt-accent);
+  color: #ffffff;
+  font-weight: 700;
+  font-size: 1rem;
+}
+
+/* Prijskaart in de glas-sectie. */
+.cmt-prijs {
+  font-size: clamp(2.5rem, 8vw, 3.25rem);
+  font-weight: 700;
+  letter-spacing: -0.03em;
+  line-height: 1;
+  color: var(--cmt-accent);
+}
+
+.cmt-lijst {
+  display: grid;
+  gap: 0.625rem;
+}
+
+.cmt-lijst li {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.625rem;
+  font-size: 0.9375rem;
+  color: var(--cmt-ink-soft);
+}
+
+.cmt-lijst svg {
+  flex-shrink: 0;
+  margin-top: 0.1875rem;
+  color: var(--cmt-accent);
+}
+
+.cmt-footer {
+  background: var(--cmt-ink);
+  color: #ffffff;
+}
+
+.cmt-footer a {
+  color: rgba(255, 255, 255, 0.72);
+  transition: color 0.15s ease;
+}
+
+.cmt-footer a:hover {
+  color: #ffffff;
+}
