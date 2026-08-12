@@ -756,3 +756,46 @@ h1, h2, h3, h4 {
   z-index: 9998;
   transition: width 0.2s ease, opacity 0.3s ease;
 }
+
+/* ================================================================
+   Cookiemelding. Bewust speels: de app wordt ook door kinderen gebruikt.
+   ================================================================ */
+
+.cmt-koekje-kaart {
+  position: relative;
+  background: var(--cmt-surface);
+  border: 2px solid var(--cmt-glas);
+  border-radius: 22px;
+  padding: 1.125rem 1.25rem;
+  box-shadow: 0 6px 0 rgba(14, 143, 108, 0.18), var(--cmt-shadow-lift);
+}
+
+/* Tekstballonpuntje aan de onderkant, zodat het karakter lijkt te praten. */
+.cmt-koekje-kaart::after {
+  content: '';
+  position: absolute;
+  left: 2.75rem;
+  bottom: -11px;
+  width: 18px;
+  height: 18px;
+  background: var(--cmt-surface);
+  border-right: 2px solid var(--cmt-glas);
+  border-bottom: 2px solid var(--cmt-glas);
+  transform: rotate(45deg);
+  border-bottom-right-radius: 4px;
+}
+
+.cmt-koekje-mascotte {
+  animation: cmt-koekje-wip 2.8s ease-in-out infinite;
+  transform-origin: bottom center;
+}
+
+@keyframes cmt-koekje-wip {
+  0%, 88%, 100% { transform: rotate(0deg) translateY(0); }
+  92% { transform: rotate(-7deg) translateY(-3px); }
+  96% { transform: rotate(7deg) translateY(-3px); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .cmt-koekje-mascotte { animation: none; }
+}

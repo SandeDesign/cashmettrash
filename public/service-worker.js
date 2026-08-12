@@ -1,10 +1,10 @@
 // public/service-worker.js
 // Verhoog CACHE_VERSION bij elke deploy om caches te verversen.
-const CACHE_VERSION = 'v1.1.0';
+const CACHE_VERSION = 'v1.2.0';
 const STATIC_CACHE = `cashmettrash-static-${CACHE_VERSION}`;
 const DYNAMIC_CACHE = `cashmettrash-dynamic-${CACHE_VERSION}`;
 
-const STATIC_ASSETS = ['/', '/index.html', '/manifest.json', '/logo.svg'];
+const STATIC_ASSETS = ['/', '/index.html', '/manifest.json', '/logo.svg?v=2'];
 
 self.addEventListener('message', (event) => {
   if (event.data && event.data.type === 'SKIP_WAITING') {
