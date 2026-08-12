@@ -14,7 +14,7 @@ import BuitenWerkgebied from '../../components/klant/BuitenWerkgebied';
 import { useAuth } from '../../hooks/useAuth';
 import { useCustomerStore } from '../../store/customerStore';
 import { useStatiegeldStore } from '../../store/statiegeldStore';
-import { useInstellingenStore, postcodeInGebied } from '../../store/instellingenStore';
+import { useWerkgebiedToets } from '../../hooks/useWerkgebiedToets';
 import { formatCenten, STATIEGELD_SERVICE_CENTEN } from '../../utils/constants';
 import { stuurPushNaarRol } from '../../utils/push';
 
@@ -46,7 +46,7 @@ const StatiegeldMelden: React.FC = () => {
   const { user } = useAuth();
   const { customer, loading, loadCustomer } = useCustomerStore();
   const maakMelding = useStatiegeldStore((s) => s.maakMelding);
-  const { werkgebied, loadWerkgebied } = useInstellingenStore();
+  const { bezig: toetsBezig, oordeel } = useWerkgebiedToets(customer);
 
   const [plastic, setPlastic] = useState(0);
   const [blik, setBlik] = useState(0);
@@ -57,11 +57,10 @@ const StatiegeldMelden: React.FC = () => {
 
   useEffect(() => {
     if (user) loadCustomer(user.uid);
-    loadWerkgebied();
-  }, [user, loadCustomer, loadWerkgebied]);
+  }, [user, loadCustomer]);
 
   const isBekende = !!customer?.isBekende;
-  const mag = !customer || isBekende || postcodeInGebied(customer.postcode, werkgebied);
+  const mag = !oordeel || oordeel.mag;
 
   const verstuur = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -110,7 +109,7 @@ const StatiegeldMelden: React.FC = () => {
           <ArrowLeft className="w-4 h-4" /> Terug
         </Link>
 
-        {loading && !customer ? (
+        {(loading && !customer) || toetsBezig ? (
           <Loading />
         ) : !customer ? (
           <div className="cmt-alert cmt-alert-error">
@@ -118,7 +117,11 @@ const StatiegeldMelden: React.FC = () => {
             <span>We konden je gegevens niet laden. Probeer het later opnieuw.</span>
           </div>
         ) : !mag ? (
-          <BuitenWerkgebied postcode={customer.postcode} plaats={customer.plaats} />
+          <BuitenWerkgebied
+            postcode={customer.postcode}
+            plaats={customer.plaats}
+            afstand={oordeel && !oordeel.mag ? oordeel.afstandMeters : undefined}
+          />
         ) : (
           <form onSubmit={verstuur} className="cmt-card cmt-animate-in">
             <Recycle className="w-8 h-8 mb-3" style={{ color: 'var(--cmt-stat)' }} />

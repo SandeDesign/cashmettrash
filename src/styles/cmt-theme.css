@@ -475,6 +475,47 @@ h1, h2, h3, h4 {
   padding: 1.5rem;
 }
 
+/* ---------- Tijdsloten ---------- */
+/* Grote, rustige knoppen: Jayce kiest hiermee wanneer hij langskomt. */
+
+.cmt-tijdslot {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0.9rem 1rem;
+  border-radius: var(--cmt-radius-md);
+  border: 1px solid var(--cmt-border);
+  background: var(--cmt-surface);
+  color: var(--cmt-ink);
+  transition: border-color 0.15s ease, background 0.15s ease, transform 0.1s ease;
+}
+
+.cmt-tijdslot:hover:not(:disabled) {
+  border-color: var(--cmt-accent-border);
+  background: var(--cmt-accent-bg);
+}
+
+.cmt-tijdslot:active:not(:disabled) {
+  transform: scale(0.98);
+}
+
+.cmt-tijdslot:disabled {
+  opacity: 0.6;
+}
+
+.cmt-tijdslot-icoon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 2.5rem;
+  height: 2.5rem;
+  flex-shrink: 0;
+  border-radius: 0.9rem;
+  background: var(--cmt-accent-bg);
+  color: var(--cmt-accent);
+}
+
 /* ---------- Mobiel menu ---------- */
 /* Eén ronde knop rechtsonder in plaats van een rij knopjes. Het paneel dat
    daaruit opent groepeert de pagina's, zodat er ook bij de beheerder met negen

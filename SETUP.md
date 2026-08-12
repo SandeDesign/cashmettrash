@@ -228,10 +228,27 @@ werkgebied wonen en kan zijn statiegeld aan Jayce schenken.
 Op **/admin/instellingen** stel je in:
 
 - de **postcodes** waar we ophalen. Wie daarbuiten woont kan niets aanvragen,
-  tenzij hij bekende is. Laat je het leeg, dan mag iedereen aanvragen
-- het **startpunt** van de ronde en de **straal** waarbinnen Jayce alleen mag
+  tenzij hij bekende is. Laat je het leeg, dan blokkeert deze regel niets
+- het **startpunt** van de ronde
+- de **groene cirkel**: zo ver mag Jayce alleen op pad
+- de **blauwe cirkel**: hier houdt de ronde op. Wie daarbuiten woont kan niets
+  aanvragen, ook niet met mama erbij. Alleen een bekende mag hier overheen
 - het **aantal stuks** vanaf wanneer mama mee moet. Dat geldt pas als het adres
-  óók buiten de straal ligt
+  óók buiten de groene cirkel ligt
+
+> Let op: de controle op afstand werkt alleen met `VITE_ORS_API_KEY` ingesteld,
+> want de app moet het adres eerst kunnen omzetten naar coördinaten. Zonder die
+> sleutel blokkeren alleen de postcodes. De pagina waarschuwt daar zelf over.
+
+### Ophaaltijden instellen
+
+Jayce kan een aanvraag pas bevestigen als er tijden klaarstaan. Zet ze neer op
+**/admin/tijden** (of laat zijn moeder dat doen op **/mama/tijden**, het is
+dezelfde lijst): kies een dag en een begin- en eindtijd, bijvoorbeeld woensdag
+16:00 tot 17:30. Een tijd herhaalt zich elke week.
+
+Zet een tijd tijdelijk op *uit* als het een week niet uitkomt. Hij blijft dan
+bewaard, maar Jayce kan hem niet kiezen.
 
 ---
 

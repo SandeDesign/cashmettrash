@@ -1,30 +1,42 @@
 // src/pages/jayce/Taken.tsx
 //
-// De pagina van Jayce. Twee dingen zijn hier leidend:
+// De pagina van Jayce. Drie dingen zijn hier leidend:
 //
 // 1. De taal is voor een tienjarige. Korte zinnen, "je" en "jij", geen woorden
 //    als melding, verwerken of status. Foutmeldingen uit Firebase worden nooit
 //    rauw getoond, want die zijn onleesbaar.
 // 2. Nergens een bedrag, niet bij glas en niet bij statiegeld. Dat voorkomt
 //    verwarring over wie wat krijgt, en de security rules dwingen hetzelfde af.
+// 3. Elke taak gaat in twee stappen: eerst zeggen wanneer je komt, daarna
+//    afvinken dat je het hebt opgehaald. Zo weet de klant waar hij aan toe is.
 
 import React, { useEffect, useState } from 'react';
-import { format, isToday } from 'date-fns';
+import { format, isToday, isTomorrow } from 'date-fns';
 import { nl } from 'date-fns/locale';
-import { Check, MapPin, PartyPopper, Recycle, Wine } from 'lucide-react';
+import { CalendarClock, Check, MapPin, PartyPopper, Recycle, Wine } from 'lucide-react';
 import AppLayout from '../../components/layout/AppLayout';
 import { JAYCE_NAV } from '../../components/layout/navItems';
 import Loading from '../../components/shared/Loading';
 import MeldingenKaart from '../../components/common/MeldingenKaart';
+import TijdslotKiezer from '../../components/jayce/TijdslotKiezer';
 import { useAuth } from '../../hooks/useAuth';
 import { useGlasStore } from '../../store/glasStore';
 import { useStatiegeldStore } from '../../store/statiegeldStore';
+import { useInstellingenStore } from '../../store/instellingenStore';
 import { mapsLink } from '../../utils/constants';
-import { stuurPushNaarRol } from '../../utils/push';
-import type { GlasOrder, StatiegeldItems, StatiegeldLog } from '../../types';
+import { stuurPushNaarKlant, stuurPushNaarRol } from '../../utils/push';
+import type { GlasOrder, StatiegeldItems, StatiegeldLog, Tijdslot } from '../../types';
 
 const wanneer = (iso: string) =>
   isToday(new Date(iso)) ? 'vandaag' : format(new Date(iso), 'd MMM', { locale: nl });
+
+/** "vandaag", "morgen" of "woensdag 20 augustus". */
+function dagInWoorden(iso: string): string {
+  const datum = new Date(iso);
+  if (isToday(datum)) return 'vandaag';
+  if (isTomorrow(datum)) return 'morgen';
+  return format(datum, 'EEEE d MMMM', { locale: nl });
+}
 
 const AdresKaartje: React.FC<{
   naam: string;
@@ -50,39 +62,58 @@ const AdresKaartje: React.FC<{
   </>
 );
 
-const GlasTaak: React.FC<{ order: GlasOrder; onKlaar: () => Promise<void> }> = ({
-  order,
-  onKlaar,
-}) => {
+/** Het balkje dat laat zien wanneer je hebt gezegd dat je komt. */
+const AfspraakBalk: React.FC<{ van: string; tot: string }> = ({ van, tot }) => (
+  <p className="mt-3 cmt-card cmt-card-tint !p-3 flex items-start gap-2 text-base">
+    <CalendarClock className="w-5 h-5 flex-shrink-0 mt-0.5" />
+    <span>
+      Je gaat <strong className="capitalize">{dagInWoorden(van)}</strong> tussen{' '}
+      {format(new Date(van), 'HH:mm')} en {format(new Date(tot), 'HH:mm')}.
+    </span>
+  </p>
+);
+
+/**
+ * De twee knoppen onder een taak. Staat de taak nog op aangemeld, dan kies je
+ * eerst een tijd; daarna verschijnt de knop om af te vinken.
+ */
+const TaakKnoppen: React.FC<{
+  ingepland: boolean;
+  sloten: Tijdslot[];
+  onInplannen: (slot: Tijdslot, van: Date, tot: Date) => Promise<void>;
+  onKlaar: () => Promise<void>;
+}> = ({ ingepland, sloten, onInplannen, onKlaar }) => {
+  const [kiezen, setKiezen] = useState(false);
   const [bezig, setBezig] = useState(false);
 
-  return (
-    <li className="cmt-card cmt-card-flow cmt-animate-in">
-      <div className="flex items-start justify-between gap-3 mb-2">
-        <span className="cmt-badge cmt-badge-glas">
-          <Wine className="w-3.5 h-3.5" /> Flessen van glas
-        </span>
-        <span className="text-xs" style={{ color: 'var(--cmt-ink-muted)' }}>
-          {wanneer(order.aangemaaktOp)}
-        </span>
-      </div>
-
-      <AdresKaartje
-        naam={order.customerNaam}
-        adres={order.adres}
-        postcode={order.postcode}
-        plaats={order.plaats}
+  if (kiezen) {
+    return (
+      <TijdslotKiezer
+        sloten={sloten}
+        onKiezen={async (slot, van, tot) => {
+          await onInplannen(slot, van, tot);
+          setKiezen(false);
+        }}
+        onAnnuleren={() => setKiezen(false)}
       />
+    );
+  }
 
-      {order.opmerking && (
-        <p className="mt-3 text-base cmt-card cmt-card-tint !p-3">
-          <span className="font-semibold">Berichtje: </span>
-          {order.opmerking}
-        </p>
-      )}
-
+  if (!ingepland) {
+    return (
       <button
         className="cmt-btn-primary cmt-btn-block cmt-btn-lg mt-4"
+        onClick={() => setKiezen(true)}
+      >
+        <CalendarClock className="w-5 h-5" /> Ik ga het halen
+      </button>
+    );
+  }
+
+  return (
+    <div className="mt-4 flex flex-col gap-2">
+      <button
+        className="cmt-btn-primary cmt-btn-block cmt-btn-lg"
         disabled={bezig}
         onClick={async () => {
           setBezig(true);
@@ -95,17 +126,65 @@ const GlasTaak: React.FC<{ order: GlasOrder; onKlaar: () => Promise<void> }> = (
       >
         <Check className="w-5 h-5" /> {bezig ? 'Momentje...' : 'Ik heb het opgehaald'}
       </button>
-    </li>
+      <button className="cmt-btn-ghost" onClick={() => setKiezen(true)} disabled={bezig}>
+        Toch een andere tijd
+      </button>
+    </div>
   );
 };
 
+const GlasTaak: React.FC<{
+  order: GlasOrder;
+  sloten: Tijdslot[];
+  onInplannen: (slot: Tijdslot, van: Date, tot: Date) => Promise<void>;
+  onKlaar: () => Promise<void>;
+}> = ({ order, sloten, onInplannen, onKlaar }) => (
+  <li className="cmt-card cmt-card-flow cmt-animate-in">
+    <div className="flex items-start justify-between gap-3 mb-2">
+      <span className="cmt-badge cmt-badge-glas">
+        <Wine className="w-3.5 h-3.5" /> Flessen van glas
+      </span>
+      <span className="text-xs" style={{ color: 'var(--cmt-ink-muted)' }}>
+        {wanneer(order.aangemaaktOp)}
+      </span>
+    </div>
+
+    <AdresKaartje
+      naam={order.customerNaam}
+      adres={order.adres}
+      postcode={order.postcode}
+      plaats={order.plaats}
+    />
+
+    {order.opmerking && (
+      <p className="mt-3 text-base cmt-card cmt-card-tint !p-3">
+        <span className="font-semibold">Berichtje: </span>
+        {order.opmerking}
+      </p>
+    )}
+
+    {order.geplandVan && order.geplandTot && (
+      <AfspraakBalk van={order.geplandVan} tot={order.geplandTot} />
+    )}
+
+    <TaakKnoppen
+      ingepland={order.status === 'ingepland'}
+      sloten={sloten}
+      onInplannen={onInplannen}
+      onKlaar={onKlaar}
+    />
+  </li>
+);
+
 const StatiegeldTaak: React.FC<{
   log: StatiegeldLog;
+  sloten: Tijdslot[];
+  onInplannen: (slot: Tijdslot, van: Date, tot: Date) => Promise<void>;
   onKlaar: (items: StatiegeldItems) => Promise<void>;
-}> = ({ log, onKlaar }) => {
+}> = ({ log, sloten, onInplannen, onKlaar }) => {
   const [plastic, setPlastic] = useState(log.items.plastic);
   const [blik, setBlik] = useState(log.items.blik);
-  const [bezig, setBezig] = useState(false);
+  const ingepland = log.status === 'ingepland';
 
   return (
     <li className="cmt-card cmt-card-flow cmt-animate-in">
@@ -132,59 +211,65 @@ const StatiegeldTaak: React.FC<{
         </p>
       )}
 
-      <p className="mt-4 mb-1 text-base font-semibold">Hoeveel heb je meegenomen?</p>
-      <p className="text-sm mb-3" style={{ color: 'var(--cmt-ink-muted)' }}>
-        Ze dachten zelf {log.items.plastic} flesjes en {log.items.blik} blikjes. Tel maar na en
-        pas het aan als het anders is.
-      </p>
+      {log.geplandVan && log.geplandTot && (
+        <AfspraakBalk van={log.geplandVan} tot={log.geplandTot} />
+      )}
 
-      <div className="grid grid-cols-2 gap-3">
-        <div>
-          <label className="cmt-label" htmlFor={`plastic-${log.id}`}>
-            Flesjes
-          </label>
-          <input
-            id={`plastic-${log.id}`}
-            type="number"
-            inputMode="numeric"
-            min={0}
-            max={999}
-            className="cmt-input !text-lg"
-            value={plastic}
-            onChange={(e) => setPlastic(Math.max(0, Math.min(999, Number(e.target.value) || 0)))}
-          />
-        </div>
-        <div>
-          <label className="cmt-label" htmlFor={`blik-${log.id}`}>
-            Blikjes
-          </label>
-          <input
-            id={`blik-${log.id}`}
-            type="number"
-            inputMode="numeric"
-            min={0}
-            max={999}
-            className="cmt-input !text-lg"
-            value={blik}
-            onChange={(e) => setBlik(Math.max(0, Math.min(999, Number(e.target.value) || 0)))}
-          />
-        </div>
-      </div>
+      {!ingepland ? (
+        <p className="mt-3 text-base" style={{ color: 'var(--cmt-ink-soft)' }}>
+          Ze hebben ongeveer {log.items.plastic} flesjes en {log.items.blik} blikjes klaarstaan.
+        </p>
+      ) : (
+        <>
+          <p className="mt-4 mb-1 text-base font-semibold">Hoeveel heb je meegenomen?</p>
+          <p className="text-sm mb-3" style={{ color: 'var(--cmt-ink-muted)' }}>
+            Ze dachten zelf {log.items.plastic} flesjes en {log.items.blik} blikjes. Tel maar na
+            en pas het aan als het anders is.
+          </p>
 
-      <button
-        className="cmt-btn-primary cmt-btn-block cmt-btn-lg mt-4"
-        disabled={bezig}
-        onClick={async () => {
-          setBezig(true);
-          try {
-            await onKlaar({ plastic, blik });
-          } finally {
-            setBezig(false);
-          }
-        }}
-      >
-        <Check className="w-5 h-5" /> {bezig ? 'Momentje...' : 'Ik heb het opgehaald'}
-      </button>
+          <div className="grid grid-cols-2 gap-3">
+            <div>
+              <label className="cmt-label" htmlFor={`plastic-${log.id}`}>
+                Flesjes
+              </label>
+              <input
+                id={`plastic-${log.id}`}
+                type="number"
+                inputMode="numeric"
+                min={0}
+                max={999}
+                className="cmt-input !text-lg"
+                value={plastic}
+                onChange={(e) =>
+                  setPlastic(Math.max(0, Math.min(999, Number(e.target.value) || 0)))
+                }
+              />
+            </div>
+            <div>
+              <label className="cmt-label" htmlFor={`blik-${log.id}`}>
+                Blikjes
+              </label>
+              <input
+                id={`blik-${log.id}`}
+                type="number"
+                inputMode="numeric"
+                min={0}
+                max={999}
+                className="cmt-input !text-lg"
+                value={blik}
+                onChange={(e) => setBlik(Math.max(0, Math.min(999, Number(e.target.value) || 0)))}
+              />
+            </div>
+          </div>
+        </>
+      )}
+
+      <TaakKnoppen
+        ingepland={ingepland}
+        sloten={sloten}
+        onInplannen={onInplannen}
+        onKlaar={() => onKlaar({ plastic, blik })}
+      />
     </li>
   );
 };
@@ -197,6 +282,7 @@ const Taken: React.FC = () => {
     error: glasFout,
     loadOpenstaand: loadGlas,
     markeerOpgehaald: glasOpgehaald,
+    markeerIngepland: glasIngepland,
   } = useGlasStore();
   const {
     logs,
@@ -204,20 +290,33 @@ const Taken: React.FC = () => {
     error: statFout,
     loadOpenstaand: loadStatiegeld,
     markeerOpgehaald: statiegeldOpgehaald,
+    markeerIngepland: statiegeldIngepland,
   } = useStatiegeldStore();
+  const { tijdsloten, loadTijdsloten } = useInstellingenStore();
 
-  const [gevierd, setGevierd] = useState(false);
+  const [gevierd, setGevierd] = useState<string | null>(null);
 
   useEffect(() => {
     loadGlas();
     loadStatiegeld();
-  }, [loadGlas, loadStatiegeld]);
+    loadTijdsloten();
+  }, [loadGlas, loadStatiegeld, loadTijdsloten]);
 
   const openGlas = orders.filter((o) => o.status !== 'opgehaald');
-  const openStatiegeld = logs.filter((l) => l.status === 'aangemeld');
+  const openStatiegeld = logs.filter(
+    (l) => l.status === 'aangemeld' || l.status === 'ingepland'
+  );
   const totaal = openGlas.length + openStatiegeld.length;
+  const teBevestigen =
+    openGlas.filter((o) => o.status !== 'ingepland').length +
+    openStatiegeld.filter((l) => l.status !== 'ingepland').length;
   const laadt = glasLaadt || statLaadt;
   const nietsMeer = !laadt && totaal === 0;
+
+  const vier = (tekst: string) => {
+    setGevierd(tekst);
+    window.setTimeout(() => setGevierd(null), 2500);
+  };
 
   /** Vertelt de beheerder dat er iets is opgehaald, en viert het even. */
   const meldOpgehaald = (wat: string) => {
@@ -226,8 +325,23 @@ const Taken: React.FC = () => {
       tekst: wat,
       url: '/admin',
     });
-    setGevierd(true);
-    window.setTimeout(() => setGevierd(false), 2500);
+    vier('Top, afgevinkt!');
+  };
+
+  /** Laat de klant weten wanneer Jayce komt. */
+  const meldAfspraak = (customerId: string, naam: string, van: Date) => {
+    const moment = `${dagInWoorden(van.toISOString())} rond ${format(van, 'HH:mm')}`;
+    void stuurPushNaarKlant(customerId, {
+      titel: 'Jayce komt langs',
+      tekst: `Hij komt ${moment} bij je langs.`,
+      url: '/mijn',
+    });
+    void stuurPushNaarRol('admin', {
+      titel: 'Jayce heeft een tijd gekozen',
+      tekst: `${naam}: ${moment}.`,
+      url: '/admin',
+    });
+    vier('Gelukt, ze weten nu wanneer je komt!');
   };
 
   return (
@@ -242,7 +356,7 @@ const Taken: React.FC = () => {
       {gevierd && (
         <div className="cmt-alert cmt-alert-success mb-4 cmt-animate-in">
           <PartyPopper className="w-5 h-5 flex-shrink-0" />
-          <span>Top, afgevinkt!</span>
+          <span>{gevierd}</span>
         </div>
       )}
 
@@ -251,7 +365,13 @@ const Taken: React.FC = () => {
       {totaal > 0 && (
         <p className="text-base mb-5" style={{ color: 'var(--cmt-ink-soft)' }}>
           Je hebt nog <strong>{totaal}</strong> {totaal === 1 ? 'adres' : 'adressen'} te gaan.
-          Veel plezier op je ronde!
+          {teBevestigen > 0 && (
+            <>
+              {' '}
+              Bij <strong>{teBevestigen}</strong> {teBevestigen === 1 ? 'ervan' : 'ervan'} moet je
+              nog zeggen wanneer je komt.
+            </>
+          )}
         </p>
       )}
 
@@ -279,6 +399,17 @@ const Taken: React.FC = () => {
               <GlasTaak
                 key={order.id}
                 order={order}
+                sloten={tijdsloten}
+                onInplannen={async (slot, van, tot) => {
+                  await glasIngepland(
+                    order.id,
+                    user!.uid,
+                    slot.id,
+                    van.toISOString(),
+                    tot.toISOString()
+                  );
+                  meldAfspraak(order.customerId, order.customerNaam, van);
+                }}
                 onKlaar={async () => {
                   await glasOpgehaald(order.id, user!.uid);
                   meldOpgehaald(`Glas opgehaald bij ${order.customerNaam}.`);
@@ -301,6 +432,17 @@ const Taken: React.FC = () => {
               <StatiegeldTaak
                 key={log.id}
                 log={log}
+                sloten={tijdsloten}
+                onInplannen={async (slot, van, tot) => {
+                  await statiegeldIngepland(
+                    log.id,
+                    user!.uid,
+                    slot.id,
+                    van.toISOString(),
+                    tot.toISOString()
+                  );
+                  meldAfspraak(log.customerId, log.customerNaam, van);
+                }}
                 onKlaar={async (items) => {
                   await statiegeldOpgehaald(log.id, user!.uid, items);
                   meldOpgehaald(

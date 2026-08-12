@@ -17,7 +17,13 @@ import {
   updateDoc,
 } from 'firebase/firestore';
 import { db } from '../lib/firebase';
-import type { GevaarlijkePlek, Suggestie, SuggestieStatus, Werkgebied } from '../types';
+import type {
+  GevaarlijkePlek,
+  Suggestie,
+  SuggestieStatus,
+  Tijdslot,
+  Werkgebied,
+} from '../types';
 
 /** Waarden waarmee de app werkt zolang er nog niets is ingesteld. */
 export const STANDAARD_WERKGEBIED: Werkgebied = {
@@ -26,6 +32,7 @@ export const STANDAARD_WERKGEBIED: Werkgebied = {
   middelpuntLat: 51.5606,
   middelpuntLon: 5.0919,
   straalAlleenMeters: 1200,
+  maxAfstandMeters: 3000,
   maxItemsAlleen: 30,
   bijgewerktOp: '',
 };
@@ -34,6 +41,7 @@ interface InstellingenStore {
   werkgebied: Werkgebied;
   plekken: GevaarlijkePlek[];
   suggesties: Suggestie[];
+  tijdsloten: Tijdslot[];
   loading: boolean;
   error: string | null;
 
@@ -47,6 +55,17 @@ interface InstellingenStore {
   loadSuggesties: () => Promise<void>;
   voegSuggestieToe: (tekst: string, vanUid: string, vanNaam: string) => Promise<void>;
   setSuggestieStatus: (id: string, status: SuggestieStatus) => Promise<void>;
+
+  loadTijdsloten: () => Promise<void>;
+  voegTijdslotToe: (slot: Omit<Tijdslot, 'id' | 'aangemaaktOp'>) => Promise<void>;
+  zetTijdslotActief: (id: string, actief: boolean) => Promise<void>;
+  verwijderTijdslot: (id: string) => Promise<void>;
+}
+
+/** Vaste volgorde: maandag eerst, zondag achteraan. */
+function slotVolgorde(slot: Tijdslot): number {
+  const dag = slot.dagVanDeWeek === 0 ? 7 : slot.dagVanDeWeek;
+  return dag * 10000 + Number(slot.van.replace(':', ''));
 }
 
 const WERKGEBIED_DOC = doc(db, 'instellingen', 'werkgebied');
@@ -55,6 +74,7 @@ export const useInstellingenStore = create<InstellingenStore>((set, get) => ({
   werkgebied: STANDAARD_WERKGEBIED,
   plekken: [],
   suggesties: [],
+  tijdsloten: [],
   loading: false,
   error: null,
 
@@ -145,11 +165,35 @@ export const useInstellingenStore = create<InstellingenStore>((set, get) => ({
     await updateDoc(doc(db, 'suggesties', id), { status });
     set({ suggesties: get().suggesties.map((s) => (s.id === id ? { ...s, status } : s)) });
   },
-}));
 
-/** Valt deze postcode binnen het werkgebied? Lege lijst betekent overal. */
-export function postcodeInGebied(postcode: string, werkgebied: Werkgebied): boolean {
-  if (werkgebied.postcodes.length === 0) return true;
-  const schoon = postcode.replace(/\s/g, '').toUpperCase();
-  return werkgebied.postcodes.some((p) => schoon.startsWith(p.replace(/\s/g, '').toUpperCase()));
-}
+  loadTijdsloten: async () => {
+    try {
+      set({ loading: true, error: null });
+      const snapshot = await getDocs(collection(db, 'tijdsloten'));
+      const sloten = snapshot.docs.map((d) => ({ ...d.data(), id: d.id }) as Tijdslot);
+      set({ tijdsloten: sloten.sort((a, b) => slotVolgorde(a) - slotVolgorde(b)), loading: false });
+    } catch (error: unknown) {
+      set({
+        loading: false,
+        error: error instanceof Error ? error.message : 'Kon de tijden niet laden',
+      });
+    }
+  },
+
+  voegTijdslotToe: async (slot) => {
+    const nieuw = { ...slot, aangemaaktOp: new Date().toISOString() };
+    const ref = await addDoc(collection(db, 'tijdsloten'), nieuw);
+    const sloten = [...get().tijdsloten, { ...nieuw, id: ref.id }];
+    set({ tijdsloten: sloten.sort((a, b) => slotVolgorde(a) - slotVolgorde(b)) });
+  },
+
+  zetTijdslotActief: async (id, actief) => {
+    await updateDoc(doc(db, 'tijdsloten', id), { actief });
+    set({ tijdsloten: get().tijdsloten.map((s) => (s.id === id ? { ...s, actief } : s)) });
+  },
+
+  verwijderTijdslot: async (id) => {
+    await deleteDoc(doc(db, 'tijdsloten', id));
+    set({ tijdsloten: get().tijdsloten.filter((s) => s.id !== id) });
+  },
+}));

@@ -44,6 +44,7 @@ const JayceBekenden = lazy(() => import('./pages/jayce/Bekenden'));
 const MoederOverzicht = lazy(() => import('./pages/moeder/Overzicht'));
 const MoederPlekken = lazy(() => import('./pages/moeder/Plekken'));
 const MoederIdeeen = lazy(() => import('./pages/moeder/Ideeen'));
+const MoederTijden = lazy(() => import('./pages/moeder/Tijden'));
 
 const AdminOverzicht = lazy(() => import('./pages/admin/Overzicht'));
 const AdminGlasOrders = lazy(() => import('./pages/admin/GlasOrders'));
@@ -55,6 +56,7 @@ const AdminKlanten = lazy(() => import('./pages/admin/Klanten'));
 const AdminInstellingen = lazy(() => import('./pages/admin/Instellingen'));
 const AdminDagoverzicht = lazy(() => import('./pages/admin/Dagoverzicht'));
 const AdminIdeeen = lazy(() => import('./pages/admin/Ideeen'));
+const AdminTijden = lazy(() => import('./pages/admin/Tijden'));
 
 /** Stuurt een ingelogde gebruiker naar het dashboard van zijn rol. */
 const NaarDashboard: React.FC = () => {
@@ -219,6 +221,14 @@ const AppRoutes: React.FC = () => {
           }
         />
         <Route
+          path="/mama/tijden"
+          element={
+            <RoleGuard allowedRoles={['moeder']}>
+              <MoederTijden />
+            </RoleGuard>
+          }
+        />
+        <Route
           path="/mama/ideeen"
           element={
             <RoleGuard allowedRoles={['moeder']}>
@@ -282,6 +292,14 @@ const AppRoutes: React.FC = () => {
           element={
             <RoleGuard allowedRoles={['admin']}>
               <AdminKlanten />
+            </RoleGuard>
+          }
+        />
+        <Route
+          path="/admin/tijden"
+          element={
+            <RoleGuard allowedRoles={['admin']}>
+              <AdminTijden />
             </RoleGuard>
           }
         />

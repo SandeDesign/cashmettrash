@@ -12,7 +12,8 @@ import Loading from '../../components/shared/Loading';
 import { useAuth } from '../../hooks/useAuth';
 import { useCustomerStore } from '../../store/customerStore';
 import { useGebruikersStore } from '../../store/gebruikersStore';
-import { useInstellingenStore, postcodeInGebied } from '../../store/instellingenStore';
+import { useInstellingenStore } from '../../store/instellingenStore';
+import { toetsWerkgebied } from '../../utils/werkgebied';
 import type { Customer, Rol } from '../../types';
 
 const ROLLEN: { waarde: Rol; label: string; uitleg: string }[] = [
@@ -120,7 +121,12 @@ const Klanten: React.FC = () => {
       ) : (
         <ul className="space-y-2">
           {zichtbaar.map(({ account, klant }) => {
-            const binnen = klant ? postcodeInGebied(klant.postcode, werkgebied) : true;
+            // Voor de beheerder tellen we de bekende-vlag even niet mee, anders
+            // zie je nooit meer dat iemand eigenlijk buiten het gebied woont.
+            const oordeel = klant
+              ? toetsWerkgebied({ ...klant, isBekende: false }, werkgebied)
+              : null;
+            const binnen = !oordeel || oordeel.mag;
             const isIkzelf = account.uid === user?.uid;
             const bezig = bezigMet === account.uid;
 

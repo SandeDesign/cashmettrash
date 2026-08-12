@@ -121,6 +121,11 @@ service cloud.firestore {
                     || (isJayce()
                         && alleenVelden(['status', 'opgehaaldOp', 'jayceId'])
                         && request.resource.data.status == 'opgehaald'
+                        && request.resource.data.jayceId == request.auth.uid)
+                    // Jayce bevestigt en kiest een tijdslot.
+                    || (isJayce()
+                        && alleenVelden(['status', 'tijdslotId', 'geplandVan', 'geplandTot', 'jayceId'])
+                        && request.resource.data.status == 'ingepland'
                         && request.resource.data.jayceId == request.auth.uid);
 
       allow delete: if isAdmin();
@@ -162,6 +167,11 @@ service cloud.firestore {
                         && request.resource.data.jayceId == request.auth.uid
                         && request.resource.data.itemsWerkelijk.plastic is int
                         && request.resource.data.itemsWerkelijk.blik is int)
+                    // Jayce bevestigt en kiest een tijdslot.
+                    || (isJayce()
+                        && alleenVelden(['status', 'tijdslotId', 'geplandVan', 'geplandTot', 'jayceId'])
+                        && request.resource.data.status == 'ingepland'
+                        && request.resource.data.jayceId == request.auth.uid)
                     // Klant rondt alleen de eigen ophaalkosten af. Het bedrag
                     // ligt vast en de Tikkie-velden blijven onaangeroerd.
                     || (isEigenaar(resource.data.customerId)
@@ -229,6 +239,23 @@ service cloud.firestore {
       allow create: if (isMoeder() || isAdmin())
                     && request.resource.data.lat is number
                     && request.resource.data.lon is number
+                    && request.resource.data.aangemaaktDoor == request.auth.uid;
+      allow update, delete: if isMoeder() || isAdmin();
+    }
+
+    /* ---------------- tijdsloten ---------------- */
+    // De momenten waarop Jayce langs mag komen. Mama en de beheerder zetten ze
+    // klaar; Jayce leest ze en kiest er eentje. De klant leest ze ook, want die
+    // ziet in zijn overzicht wanneer Jayce komt.
+
+    match /tijdsloten/{slotId} {
+      allow read: if isSignedIn();
+      allow create: if (isMoeder() || isAdmin())
+                    && request.resource.data.dagVanDeWeek is int
+                    && request.resource.data.dagVanDeWeek >= 0
+                    && request.resource.data.dagVanDeWeek <= 6
+                    && request.resource.data.van is string
+                    && request.resource.data.tot is string
                     && request.resource.data.aangemaaktDoor == request.auth.uid;
       allow update, delete: if isMoeder() || isAdmin();
     }

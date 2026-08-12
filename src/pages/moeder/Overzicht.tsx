@@ -66,7 +66,7 @@ const Overzicht: React.FC = () => {
       });
 
     const statiegeld = logs
-      .filter((l) => l.status === 'aangemeld')
+      .filter((l) => l.status === 'aangemeld' || l.status === 'ingepland')
       .map((l) => {
         const punt = coordVan(l.customerId);
         const items = l.items.plastic + l.items.blik;

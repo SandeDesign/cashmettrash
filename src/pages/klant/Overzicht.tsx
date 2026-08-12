@@ -5,9 +5,17 @@
 
 import React, { useEffect, useMemo } from 'react';
 import { Link } from 'react-router-dom';
-import { format } from 'date-fns';
+import { format, isToday, isTomorrow } from 'date-fns';
 import { nl } from 'date-fns/locale';
-import { AlertCircle, ArrowRight, MapPin, Package, Recycle, Wine } from 'lucide-react';
+import {
+  AlertCircle,
+  ArrowRight,
+  CalendarClock,
+  MapPin,
+  Package,
+  Recycle,
+  Wine,
+} from 'lucide-react';
 import AppLayout from '../../components/layout/AppLayout';
 import { KLANT_NAV } from '../../components/layout/navItems';
 import Loading from '../../components/shared/Loading';
@@ -17,10 +25,21 @@ import { useAuth } from '../../hooks/useAuth';
 import { useCustomerStore } from '../../store/customerStore';
 import { useGlasStore } from '../../store/glasStore';
 import { useStatiegeldStore } from '../../store/statiegeldStore';
-import { useInstellingenStore, postcodeInGebied } from '../../store/instellingenStore';
+import { useWerkgebiedToets } from '../../hooks/useWerkgebiedToets';
 import { formatCenten, GLAS_PRIJS_CENTEN } from '../../utils/constants';
 
 const datum = (iso: string) => format(new Date(iso), 'd MMM yyyy', { locale: nl });
+
+/** "vandaag tussen 16:00 en 17:30" of "woensdag 20 aug tussen 16:00 en 17:30". */
+const afspraak = (van: string, tot: string) => {
+  const start = new Date(van);
+  const dag = isToday(start)
+    ? 'vandaag'
+    : isTomorrow(start)
+      ? 'morgen'
+      : format(start, 'EEEE d MMM', { locale: nl });
+  return `${dag} tussen ${format(start, 'HH:mm')} en ${format(new Date(tot), 'HH:mm')}`;
+};
 
 interface Actie {
   id: string;
@@ -34,19 +53,17 @@ const Overzicht: React.FC = () => {
   const { customer, loadCustomer } = useCustomerStore();
   const { orders, loading: glasLaadt, loadVoorKlant: loadGlas } = useGlasStore();
   const { logs, loading: statLaadt, loadVoorKlant: loadStatiegeld } = useStatiegeldStore();
-  const { werkgebied, loadWerkgebied } = useInstellingenStore();
+  const { oordeel } = useWerkgebiedToets(customer);
 
   useEffect(() => {
     if (!user) return;
     loadCustomer(user.uid);
     loadGlas(user.uid);
     loadStatiegeld(user.uid);
-    loadWerkgebied();
-  }, [user, loadCustomer, loadGlas, loadStatiegeld, loadWerkgebied]);
+  }, [user, loadCustomer, loadGlas, loadStatiegeld]);
 
   // Buiten de ronde van Jayce kan alleen een bekende nog aanvragen.
-  const magAanvragen =
-    !customer || !!customer.isBekende || postcodeInGebied(customer.postcode, werkgebied);
+  const magAanvragen = !oordeel || oordeel.mag;
 
   /** Wat er van de klant wordt verwacht. Dit staat bovenaan de pagina. */
   const acties = useMemo<Actie[]>(() => {
@@ -166,6 +183,12 @@ const Overzicht: React.FC = () => {
                   <p className="text-xs" style={{ color: 'var(--cmt-ink-muted)' }}>
                     Aangemeld op {datum(order.aangemaaktOp)} · {formatCenten(order.bedrag)}
                   </p>
+                  {order.geplandVan && order.geplandTot && order.status === 'ingepland' && (
+                    <p className="text-xs mt-0.5 font-medium" style={{ color: 'var(--cmt-glas)' }}>
+                      <CalendarClock className="w-3.5 h-3.5 inline mr-1 -mt-0.5" />
+                      Jayce komt {afspraak(order.geplandVan, order.geplandTot)}
+                    </p>
+                  )}
                 </div>
                 <GlasStatusBadge status={order.status} />
               </li>
@@ -203,6 +226,12 @@ const Overzicht: React.FC = () => {
                       Aangemeld op {datum(log.aangemaaktOp)}
                       {log.tikkieBedrag != null && ` · Tikkie ${formatCenten(log.tikkieBedrag)}`}
                     </p>
+                    {log.geplandVan && log.geplandTot && log.status === 'ingepland' && (
+                      <p className="text-xs mt-0.5 font-medium" style={{ color: 'var(--cmt-stat)' }}>
+                        <CalendarClock className="w-3.5 h-3.5 inline mr-1 -mt-0.5" />
+                        Jayce komt {afspraak(log.geplandVan, log.geplandTot)}
+                      </p>
+                    )}
                     {log.servicekostenStatus === 'openstaand' && (
                       <p className="text-xs mt-0.5" style={{ color: 'var(--cmt-warning)' }}>
                         {formatCenten(log.servicekosten)} ophaalkosten open

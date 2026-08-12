@@ -81,7 +81,7 @@ const Route: React.FC = () => {
       });
 
     const uitStatiegeld: Stop[] = logs
-      .filter((l) => l.status === 'aangemeld')
+      .filter((l) => l.status === 'aangemeld' || l.status === 'ingepland')
       .map((l) => {
         const punt = coordVan(l.customerId);
         const items = l.items.plastic + l.items.blik;

@@ -14,6 +14,7 @@ const GLAS_VARIANT: Record<GlasStatus, string> = {
 
 const STATIEGELD_VARIANT: Record<StatiegeldStatus, string> = {
   aangemeld: 'cmt-badge-warning',
+  ingepland: 'cmt-badge-stat',
   opgehaald: 'cmt-badge-stat',
   verwerktBijViatim: 'cmt-badge-stat',
   tikkieVerstuurd: 'cmt-badge-done',

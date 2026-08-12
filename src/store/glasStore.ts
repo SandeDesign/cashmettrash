@@ -31,6 +31,14 @@ interface GlasStore {
   setStatus: (orderId: string, status: GlasStatus) => Promise<void>;
   markeerBetaald: (orderId: string, stripeSessionId: string, stripeStatus: string) => Promise<void>;
   markeerOpgehaald: (orderId: string, jayceId: string) => Promise<void>;
+  /** Jayce bevestigt en kiest een tijdslot waarop hij langskomt. */
+  markeerIngepland: (
+    orderId: string,
+    jayceId: string,
+    tijdslotId: string,
+    geplandVan: string,
+    geplandTot: string
+  ) => Promise<void>;
 }
 
 function mapOrders(docs: { id: string; data: () => Record<string, unknown> }[]): GlasOrder[] {
@@ -131,6 +139,18 @@ export const useGlasStore = create<GlasStore>((set, get) => ({
     set({
       orders: get().orders.map((o) => (o.id === orderId ? { ...o, ...updates } : o)),
     });
+  },
+
+  markeerIngepland: async (orderId, jayceId, tijdslotId, geplandVan, geplandTot) => {
+    const updates = {
+      status: 'ingepland' as GlasStatus,
+      tijdslotId,
+      geplandVan,
+      geplandTot,
+      jayceId,
+    };
+    await updateDoc(doc(db, COLLECTIE, orderId), updates);
+    set({ orders: get().orders.map((o) => (o.id === orderId ? { ...o, ...updates } : o)) });
   },
 
   markeerOpgehaald: async (orderId, jayceId) => {

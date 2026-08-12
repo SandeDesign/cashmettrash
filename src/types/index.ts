@@ -59,6 +59,12 @@ export interface GlasOrder {
   betaaldOp?: string;
   opgehaaldOp?: string;
   jayceId?: string;
+
+  /* Wanneer Jayce heeft gezegd dat hij langskomt. Hij kiest een tijdslot dat
+     mama of de beheerder heeft klaargezet; de app rekent daar een datum bij. */
+  tijdslotId?: string;
+  geplandVan?: string;
+  geplandTot?: string;
 }
 
 /* ------------------------------------------------------------------ */
@@ -67,7 +73,12 @@ export interface GlasOrder {
 /* stuurt zelf een Tikkie naar de klant.                               */
 /* ------------------------------------------------------------------ */
 
-export type StatiegeldStatus = 'aangemeld' | 'opgehaald' | 'verwerktBijViatim' | 'tikkieVerstuurd';
+export type StatiegeldStatus =
+  | 'aangemeld'
+  | 'ingepland'
+  | 'opgehaald'
+  | 'verwerktBijViatim'
+  | 'tikkieVerstuurd';
 
 /**
  * Ophaalkosten voor statiegeld. Dit is nadrukkelijk niet het statiegeld zelf:
@@ -99,6 +110,11 @@ export interface StatiegeldLog {
   opgehaaldOp?: string;
   verwerktOp?: string;
   jayceId?: string;
+
+  /* Het tijdslot dat Jayce bij het bevestigen heeft gekozen. */
+  tijdslotId?: string;
+  geplandVan?: string;
+  geplandTot?: string;
 
   /* Tikkie uit Viatim. Het bedrag is puur registratie: de betaling zelf loopt
      buiten de app om en kan niet worden aangepast. */
@@ -179,9 +195,33 @@ export interface Werkgebied {
   middelpuntLon: number;
   /** Tot hier mag Jayce alleen op pad, in meters. */
   straalAlleenMeters: number;
+  /**
+   * De buitengrens van de ronde, in meters. Daarbuiten kan niemand een aanvraag
+   * doen, ook niet met mama erbij. Alleen een bekende mag hier overheen.
+   * Ligt altijd op of buiten `straalAlleenMeters`.
+   */
+  maxAfstandMeters: number;
   /** Vanaf dit aantal flessen en blikjes samen is het te zwaar om alleen te doen. */
   maxItemsAlleen: number;
   bijgewerktOp: string;
+}
+
+/**
+ * tijdsloten/{id}: de momenten waarop Jayce langs mag komen. Mama en de
+ * beheerder zetten ze klaar; Jayce kiest er eentje bij het bevestigen. Een
+ * tijdslot herhaalt zich wekelijks, dus we bewaren alleen de dag en de tijden.
+ */
+export interface Tijdslot {
+  id: string;
+  /** 0 is zondag, 1 maandag, tot en met 6 zaterdag. Zoals `Date.getDay()`. */
+  dagVanDeWeek: number;
+  /** Begintijd als "16:00". */
+  van: string;
+  /** Eindtijd als "17:30". */
+  tot: string;
+  actief: boolean;
+  aangemaaktDoor: string;
+  aangemaaktOp: string;
 }
 
 /** gevaarlijkePlekken/{id}, aangewezen door mama. */

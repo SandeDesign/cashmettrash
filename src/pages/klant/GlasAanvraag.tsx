@@ -9,7 +9,7 @@ import BuitenWerkgebied from '../../components/klant/BuitenWerkgebied';
 import { useAuth } from '../../hooks/useAuth';
 import { useCustomerStore } from '../../store/customerStore';
 import { useGlasStore } from '../../store/glasStore';
-import { useInstellingenStore, postcodeInGebied } from '../../store/instellingenStore';
+import { useWerkgebiedToets } from '../../hooks/useWerkgebiedToets';
 import { createCheckoutSession } from '../../utils/stripe';
 import { formatCenten, GLAS_PRIJS_CENTEN } from '../../utils/constants';
 
@@ -17,7 +17,7 @@ const GlasAanvraag: React.FC = () => {
   const { user } = useAuth();
   const { customer, loading, loadCustomer } = useCustomerStore();
   const maakOrder = useGlasStore((s) => s.maakOrder);
-  const { werkgebied, loadWerkgebied } = useInstellingenStore();
+  const { bezig: toetsBezig, oordeel } = useWerkgebiedToets(customer);
 
   const [opmerking, setOpmerking] = useState('');
   const [akkoordDirect, setAkkoordDirect] = useState(false);
@@ -26,12 +26,10 @@ const GlasAanvraag: React.FC = () => {
 
   useEffect(() => {
     if (user) loadCustomer(user.uid);
-    loadWerkgebied();
-  }, [user, loadCustomer, loadWerkgebied]);
+  }, [user, loadCustomer]);
 
   // Buiten het werkgebied kan alleen een bekende nog aanvragen.
-  const mag =
-    !customer || !!customer.isBekende || postcodeInGebied(customer.postcode, werkgebied);
+  const mag = !oordeel || oordeel.mag;
 
   const verstuur = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -80,7 +78,7 @@ const GlasAanvraag: React.FC = () => {
           <ArrowLeft className="w-4 h-4" /> Terug
         </Link>
 
-        {loading && !customer ? (
+        {(loading && !customer) || toetsBezig ? (
           <Loading />
         ) : !customer ? (
           <div className="cmt-alert cmt-alert-error">
@@ -88,7 +86,11 @@ const GlasAanvraag: React.FC = () => {
             <span>We konden je gegevens niet laden. Probeer het later opnieuw.</span>
           </div>
         ) : !mag ? (
-          <BuitenWerkgebied postcode={customer.postcode} plaats={customer.plaats} />
+          <BuitenWerkgebied
+            postcode={customer.postcode}
+            plaats={customer.plaats}
+            afstand={oordeel && !oordeel.mag ? oordeel.afstandMeters : undefined}
+          />
         ) : (
           <form onSubmit={verstuur} className="cmt-card cmt-animate-in">
             <Wine className="w-8 h-8 mb-3" style={{ color: 'var(--cmt-glas)' }} />

@@ -11,7 +11,7 @@ import { ADMIN_NAV } from '../../components/layout/navItems';
 import Loading from '../../components/shared/Loading';
 import Kaart from '../../components/kaart/Kaart';
 import { useInstellingenStore } from '../../store/instellingenStore';
-import type { Punt } from '../../utils/geo';
+import { routeplannerBeschikbaar, type Punt } from '../../utils/geo';
 
 const Instellingen: React.FC = () => {
   const { werkgebied, loading, error, loadWerkgebied, bewaarWerkgebied } = useInstellingenStore();
@@ -19,6 +19,7 @@ const Instellingen: React.FC = () => {
   const [postcodes, setPostcodes] = useState('');
   const [middelpunt, setMiddelpunt] = useState<Punt | null>(null);
   const [straal, setStraal] = useState(1200);
+  const [maxAfstand, setMaxAfstand] = useState(3000);
   const [maxItems, setMaxItems] = useState(30);
   const [bezig, setBezig] = useState(false);
   const [opgeslagen, setOpgeslagen] = useState(false);
@@ -31,6 +32,7 @@ const Instellingen: React.FC = () => {
     setPostcodes(werkgebied.postcodes.join(', '));
     setMiddelpunt({ lat: werkgebied.middelpuntLat, lon: werkgebied.middelpuntLon });
     setStraal(werkgebied.straalAlleenMeters);
+    setMaxAfstand(werkgebied.maxAfstandMeters);
     setMaxItems(werkgebied.maxItemsAlleen);
   }, [werkgebied]);
 
@@ -49,6 +51,8 @@ const Instellingen: React.FC = () => {
         middelpuntLat: middelpunt.lat,
         middelpuntLon: middelpunt.lon,
         straalAlleenMeters: straal,
+        // De buitengrens kan nooit binnen de straal liggen waar hij alleen mag.
+        maxAfstandMeters: Math.max(straal, maxAfstand),
         maxItemsAlleen: maxItems,
       });
       setOpgeslagen(true);
@@ -72,6 +76,17 @@ const Instellingen: React.FC = () => {
           <div className="cmt-alert cmt-alert-error mb-4">
             <AlertCircle className="w-5 h-5 flex-shrink-0" />
             <span>{error}</span>
+          </div>
+        )}
+
+        {!routeplannerBeschikbaar && (
+          <div className="cmt-alert cmt-alert-warning mb-4">
+            <AlertCircle className="w-5 h-5 flex-shrink-0" />
+            <span>
+              Er is nog geen kaartsleutel ingesteld (VITE_ORS_API_KEY). Zonder die sleutel kan de
+              app adressen niet omzetten naar coördinaten, en dus ook niet op afstand
+              controleren. Alleen de postcodes hieronder blokkeren dan nog.
+            </span>
           </div>
         )}
 
@@ -110,14 +125,17 @@ const Instellingen: React.FC = () => {
               midden={middelpunt}
               onKlik={setMiddelpunt}
               markeringen={[{ punt: middelpunt, label: 'T', kleur: '#14181F' }]}
-              cirkels={[{ punt: middelpunt, straalMeters: straal, kleur: '#0E8F6C' }]}
+              cirkels={[
+                { punt: middelpunt, straalMeters: straal, kleur: '#0E8F6C' },
+                { punt: middelpunt, straalMeters: Math.max(straal, maxAfstand), kleur: '#0B4A9E' },
+              ]}
               hoogte="20rem"
             />
           )}
 
           <div className="mt-4">
             <label className="cmt-label" htmlFor="straal">
-              Zo ver mag Jayce alleen: {(straal / 1000).toFixed(1)} km
+              Groene cirkel, zo ver mag Jayce alleen: {(straal / 1000).toFixed(1)} km
             </label>
             <input
               id="straal"
@@ -129,6 +147,27 @@ const Instellingen: React.FC = () => {
               onChange={(e) => setStraal(Number(e.target.value))}
               className="w-full"
             />
+          </div>
+
+          <div className="mt-4">
+            <label className="cmt-label" htmlFor="maxafstand">
+              Blauwe cirkel, hier houdt de ronde op:{' '}
+              {(Math.max(straal, maxAfstand) / 1000).toFixed(1)} km
+            </label>
+            <input
+              id="maxafstand"
+              type="range"
+              min={200}
+              max={15000}
+              step={100}
+              value={Math.max(straal, maxAfstand)}
+              onChange={(e) => setMaxAfstand(Number(e.target.value))}
+              className="w-full"
+            />
+            <p className="text-sm mt-1" style={{ color: 'var(--cmt-ink-soft)' }}>
+              Wie hierbuiten woont kan niets aanvragen, ook niet met mama erbij. Alleen een
+              bekende mag hier overheen.
+            </p>
           </div>
         </section>
 

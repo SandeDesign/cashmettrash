@@ -7,6 +7,7 @@
 import {
   BarChart3,
   CalendarCheck,
+  CalendarClock,
   ClipboardList,
   Heart,
   Lightbulb,
@@ -79,10 +80,16 @@ export const MOEDER_NAV: NavItem[] = [
     groep: 'Meekijken',
   },
   {
+    to: '/mama/tijden',
+    label: 'Tijden',
+    icon: <CalendarClock className="w-5 h-5" />,
+    groep: 'Instellen',
+  },
+  {
     to: '/mama/plekken',
     label: 'Plekken',
     icon: <ShieldAlert className="w-5 h-5" />,
-    groep: 'Doorgeven',
+    groep: 'Instellen',
   },
   {
     to: '/mama/ideeen',
@@ -120,6 +127,12 @@ export const ADMIN_NAV: NavItem[] = [
     groep: 'Ophalen',
   },
   { to: '/admin/klanten', label: 'Mensen', icon: <Users className="w-5 h-5" />, groep: 'Beheer' },
+  {
+    to: '/admin/tijden',
+    label: 'Tijden',
+    icon: <CalendarClock className="w-5 h-5" />,
+    groep: 'Beheer',
+  },
   {
     to: '/admin/instellingen',
     label: 'Werkgebied',

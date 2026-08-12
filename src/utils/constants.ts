@@ -38,6 +38,7 @@ export const GLAS_STATUS_LABEL: Record<GlasStatus, string> = {
 
 export const STATIEGELD_STATUS_LABEL: Record<StatiegeldStatus, string> = {
   aangemeld: 'Aangemeld',
+  ingepland: 'Ingepland',
   opgehaald: 'Opgehaald',
   verwerktBijViatim: 'Verwerkt bij Viatim',
   tikkieVerstuurd: 'Tikkie verstuurd',

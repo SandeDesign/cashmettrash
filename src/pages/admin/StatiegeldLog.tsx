@@ -34,6 +34,7 @@ const datum = (iso: string) => format(new Date(iso), 'd MMM', { locale: nl });
 /** Wat er voor deze melding als eerstvolgende moet gebeuren. */
 function volgendeStap(log: StatiegeldLogType): string | null {
   if (log.status === 'aangemeld') return 'Wacht op Jayce';
+  if (log.status === 'ingepland') return 'Jayce komt langs';
   if (log.status === 'opgehaald') return 'Afrekenen';
   if (log.status === 'verwerktBijViatim') return 'Afrekenen';
   if (log.servicekostenStatus === 'openstaand') return 'Wacht op betaling';

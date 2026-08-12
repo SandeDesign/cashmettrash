@@ -49,9 +49,9 @@ niet in het datamodel, niet in de UI, niet in de security rules.
 | Rol | Route | Rechten |
 |---|---|---|
 | `klant` | `/mijn` | Glas aanvragen + betalen, statiegeld aanmelden, ophaalkosten betalen, chatten met de beheerder, eigen gegevens |
-| `jayce` | `/jayce`, `/jayce/route`, `/jayce/bekenden`, `/jayce/score` | Openstaande taken zien en afvinken, statiegeld tellen, de route bekijken, bekenden zien, eigen score. **Geen toegang tot de chat.** Het enige bedrag dat hij ziet is zijn eigen potje |
-| `moeder` | `/mama`, `/mama/plekken`, `/mama/ideeen` | Meekijken met de ronde en zien bij welke ritten ze mee moet, gevaarlijke plekken markeren, ideeën doorgeven. Geen orders, geen chat |
-| `admin` | `/admin` | Takenlijst, orders, statiegeld afrekenen, chatten met klanten, rollen toewijzen en klanten als bekende aanwijzen (`/admin/klanten`), werkgebied (`/admin/instellingen`), dagoverzicht (`/admin/dagoverzicht`), ideeën (`/admin/ideeen`), cijfers (`/admin/cijfers`), CSV-export |
+| `jayce` | `/jayce`, `/jayce/route`, `/jayce/bekenden`, `/jayce/score` | Aanvragen bevestigen met een tijdslot en daarna afvinken, statiegeld tellen, de route bekijken, bekenden zien, eigen score. **Geen toegang tot de chat.** Het enige bedrag dat hij ziet is zijn eigen potje |
+| `moeder` | `/mama`, `/mama/tijden`, `/mama/plekken`, `/mama/ideeen` | Meekijken met de ronde en zien bij welke ritten ze mee moet, de ophaaltijden instellen, gevaarlijke plekken markeren, ideeën doorgeven. Geen orders, geen chat |
+| `admin` | `/admin` | Takenlijst, orders, statiegeld afrekenen, chatten met klanten, rollen toewijzen en klanten als bekende aanwijzen (`/admin/klanten`), ophaaltijden (`/admin/tijden`), werkgebied (`/admin/instellingen`), dagoverzicht (`/admin/dagoverzicht`), ideeën (`/admin/ideeen`), cijfers (`/admin/cijfers`), CSV-export |
 
 **Dashboards tonen acties, geen cijfers.** `/admin` en `/mijn` beantwoorden de
 vraag "wat moet ik nu doen". Getallen horen op `/admin/cijfers` en `/jayce/score`.
@@ -86,10 +86,31 @@ die alleen de beheerder via `/admin/klanten` kan zetten. Een bekende:
 `instellingen/werkgebied` bepaalt waar we ophalen. Twee dingen los van elkaar:
 
 - **postcodes**: wie daarbuiten woont kan niets aanvragen, tenzij hij bekende is.
-  Een lege lijst betekent: iedereen mag. Gecontroleerd met `postcodeInGebied`
-- **straal + maxItems**: Jayce mag alleen op pad binnen `straalAlleenMeters`.
-  Mama moet mee als het adres daarbuiten ligt **én** er minstens `maxItemsAlleen`
-  (standaard 30) stuks klaarstaan. Allebei, niet één van beide
+  Een lege lijst betekent: iedereen mag
+- **maxAfstandMeters**: de buitengrens van de ronde. Verder weg kan niemand iets
+  aanvragen, ook niet met mama erbij. Alleen een bekende mag hier overheen
+- **straalAlleenMeters + maxItemsAlleen**: Jayce mag alleen op pad binnen de
+  straal. Mama moet mee als het adres daarbuiten ligt **én** er minstens
+  `maxItemsAlleen` (standaard 30) stuks klaarstaan. Allebei, niet één van beide
+
+De hele toets zit in `src/utils/werkgebied.ts` (`toetsWerkgebied`) en wordt door
+de klantpagina's aangeroepen via `useWerkgebiedToets`. Die hook zoekt ontbrekende
+coördinaten eenmalig op en bewaart ze meteen, zodat de straalcontrole ook werkt
+voor accounts van voor de routeplanner. Zonder `VITE_ORS_API_KEY` kan de app geen
+coördinaten opzoeken en blokkeren alleen de postcodes nog; de beheerder ziet daar
+een waarschuwing over op `/admin/instellingen`.
+
+### Ophalen inplannen
+
+Aanvragen gaan in twee stappen. Jayce ziet een nieuwe aanvraag in zijn lijst,
+drukt op **Ik ga het halen** en kiest een tijdslot. De aanvraag krijgt dan status
+`ingepland` met `geplandVan` en `geplandTot`, de klant krijgt een melding en ziet
+het moment in zijn overzicht. Pas daarna verschijnt de knop om af te vinken.
+
+De tijdsloten staan in `tijdsloten/{id}` en herhalen zich wekelijks: een dag plus
+een begin- en eindtijd. Mama beheert ze op `/mama/tijden`, de beheerder op
+`/admin/tijden`; het is dezelfde lijst en hetzelfde component. Zijn er geen
+actieve tijdsloten, dan kan Jayce niets bevestigen en zegt de app dat ook.
 
 ### Route
 
@@ -134,13 +155,15 @@ glasOrders/{orderId}
   bedrag: 499                      // vast, in centen, per ophaalbeurt
   stripeSessionId?, stripePaymentIntentId?, stripeStatus?
   aangemaaktOp, betaaldOp?, opgehaaldOp?, jayceId?
+  tijdslotId?, geplandVan?, geplandTot?   // gezet door Jayce bij bevestigen
 
 statiegeldLogs/{logId}
   customerId, customerNaam, adres, postcode, plaats
   items: { plastic, blik }            // schatting door klant
   itemsWerkelijk?: { plastic, blik }  // telling door Jayce
-  status: 'aangemeld' | 'opgehaald' | 'verwerktBijViatim' | 'tikkieVerstuurd'
+  status: 'aangemeld' | 'ingepland' | 'opgehaald' | 'verwerktBijViatim' | 'tikkieVerstuurd'
   aangemaaktOp, opgehaaldOp?, verwerktOp?, jayceId?
+  tijdslotId?, geplandVan?, geplandTot?   // gezet door Jayce bij bevestigen
   tikkieVerstuurdOp?, tikkieBedrag?, tikkieLink?   // registratie, niet aanpasbaar
   geschonken: boolean                              // alleen een bekende mag dit
   servicekosten: 200 | 0                           // 0 bij een schenking
@@ -162,8 +185,14 @@ instellingen/werkgebied
   postcodes: string[]               // leeg = overal
   middelpuntLat, middelpuntLon
   straalAlleenMeters                // zo ver mag Jayce alleen
+  maxAfstandMeters                  // hier houdt de ronde op; buiten dit: geblokkeerd
   maxItemsAlleen                    // vanaf dit aantal moet mama mee
   bijgewerktOp
+
+tijdsloten/{slotId}
+  dagVanDeWeek: 0-6                 // zoals Date.getDay(), 0 is zondag
+  van: "16:00", tot: "17:30"        // herhaalt zich wekelijks
+  actief, aangemaaktDoor, aangemaaktOp
 
 gevaarlijkePlekken/{plekId}
   lat, lon, straalMeters, omschrijving, aangemaaktDoor, aangemaaktOp

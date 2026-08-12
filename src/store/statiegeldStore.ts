@@ -40,6 +40,14 @@ interface StatiegeldStore {
     opmerking?: string,
     geschonken?: boolean
   ) => Promise<string>;
+  /** Jayce bevestigt en kiest een tijdslot waarop hij langskomt. */
+  markeerIngepland: (
+    logId: string,
+    jayceId: string,
+    tijdslotId: string,
+    geplandVan: string,
+    geplandTot: string
+  ) => Promise<void>;
   /** Jayce: telling corrigeren en afvinken. */
   markeerOpgehaald: (logId: string, jayceId: string, itemsWerkelijk: StatiegeldItems) => Promise<void>;
   /** Admin: ingescand bij Viatim. Losse stap, voor als je nog geen Tikkie hebt. */
@@ -97,7 +105,7 @@ export const useStatiegeldStore = create<StatiegeldStore>((set, get) => ({
       const snapshot = await getDocs(
         query(
           collection(db, COLLECTIE),
-          where('status', '==', 'aangemeld'),
+          where('status', 'in', ['aangemeld', 'ingepland']),
           orderBy('aangemaaktOp', 'asc')
         )
       );
@@ -148,6 +156,18 @@ export const useStatiegeldStore = create<StatiegeldStore>((set, get) => ({
     const ref = await addDoc(collection(db, COLLECTIE), log);
     set({ logs: [{ ...log, id: ref.id }, ...get().logs] });
     return ref.id;
+  },
+
+  markeerIngepland: async (logId, jayceId, tijdslotId, geplandVan, geplandTot) => {
+    const updates = {
+      status: 'ingepland' as StatiegeldStatus,
+      tijdslotId,
+      geplandVan,
+      geplandTot,
+      jayceId,
+    };
+    await updateDoc(doc(db, COLLECTIE, logId), updates);
+    set({ logs: get().logs.map((l) => (l.id === logId ? { ...l, ...updates } : l)) });
   },
 
   markeerOpgehaald: async (logId, jayceId, itemsWerkelijk) => {
