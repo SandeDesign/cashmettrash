@@ -72,6 +72,9 @@ src/
 ├── lib/                        firebase, configCheck
 ├── pages/
 │   ├── Landing.tsx             publieke landingspagina op /
+│   ├── Installeren.tsx         PWA-installatie-uitleg
+│   ├── juridisch/              Voorwaarden, Privacy, Cookies,
+│   │                           Herroeping, Disclaimer
 │   ├── Login.tsx · Registreren.tsx · GeenToegang.tsx
 │   ├── klant/                  Overzicht, GlasAanvraag, StatiegeldMelden,
 │   │                           BetalingGelukt, BetalingGeannuleerd, Chat, Profiel
@@ -104,3 +107,5 @@ op een container; alle `cmt-*`-componenten daarbinnen volgen automatisch.
 - Betalingen uitsluitend via de PHP-proxy, nooit de Stripe SDK client-side
 - Bedragen altijd in centen, één keer geformatteerd met `formatCenten`
 - Geen em-streepjes in teksten; gebruik gewone interpunctie
+- Geen analytics, trackers of externe fonts. De juridische pagina's beweren dat er
+  niets naar derden gaat, en dat moet waar blijven

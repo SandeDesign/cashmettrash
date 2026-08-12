@@ -8,10 +8,10 @@
 
 import React from 'react';
 import { Link } from 'react-router-dom';
-import { ArrowRight, Check, Coins, Heart, MapPin, Recycle, Wine } from 'lucide-react';
+import { ArrowRight, Check, Heart, MapPin, Recycle, Wine } from 'lucide-react';
 import PublicHeader from '../components/layout/PublicHeader';
+import PublicFooter from '../components/layout/PublicFooter';
 import HeroIllustratie from '../components/landing/HeroIllustratie';
-import Logo from '../components/shared/Logo';
 import LogoLockup from '../components/shared/LogoLockup';
 import CollapsibleSection from '../components/common/CollapsibleSection';
 import {
@@ -279,34 +279,7 @@ const Landing: React.FC = () => (
       </div>
     </section>
 
-    {/* ---------------- Footer ---------------- */}
-    <footer className="cmt-footer safe-area-bottom">
-      <div className="max-w-5xl mx-auto px-4 py-10">
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-6">
-          <div>
-            <Logo size="sm" showText={false} className="mb-3" />
-            <p className="font-bold">CashMetTrash</p>
-            <p className="text-sm" style={{ color: 'rgba(255,255,255,0.55)' }}>
-              Glas en statiegeld ophalen in Tilburg.
-            </p>
-          </div>
-
-          <nav className="flex flex-col gap-2 text-sm">
-            <Link to="/login">Inloggen</Link>
-            <Link to="/registreren">Aanmelden</Link>
-            <a href="#hoe-het-werkt">Hoe het werkt</a>
-          </nav>
-        </div>
-
-        <p
-          className="mt-8 pt-6 text-xs flex items-center gap-1.5"
-          style={{ borderTop: '1px solid rgba(255,255,255,0.12)', color: 'rgba(255,255,255,0.45)' }}
-        >
-          <Coins className="w-3.5 h-3.5" />
-          Statiegeld is en blijft van jou.
-        </p>
-      </div>
-    </footer>
+    <PublicFooter />
   </div>
 );
 

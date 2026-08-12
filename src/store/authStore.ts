@@ -10,6 +10,7 @@ import { doc, getDoc, setDoc } from 'firebase/firestore';
 import { auth, db } from '../lib/firebase';
 import type { AuthState, Customer, RegisterData, User } from '../types';
 import { formatPostcode, getFirebaseErrorMessage } from '../utils/validation';
+import { clearErrorLogs } from '../utils/errorLogger';
 
 interface AuthStore extends AuthState {
   login: (email: string, wachtwoord: string) => Promise<void>;
@@ -100,6 +101,8 @@ export const useAuthStore = create<AuthStore>((set) => ({
 
   logout: async () => {
     await signOut(auth);
+    // Het lokale foutenlogboek hoort bij deze gebruiker; bij uitloggen weg.
+    clearErrorLogs();
     set({ user: null, loading: false, error: null });
   },
 

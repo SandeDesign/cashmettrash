@@ -1,14 +1,21 @@
 # CashMetTrash
-# De app is volledig afgeschermd achter login; alleen login en registratie zijn publiek.
+# De app zelf zit achter een login. Alleen de publieke pagina's zijn te indexeren.
 
 User-agent: *
 Allow: /$
 Allow: /login
 Allow: /registreren
+Allow: /installeren
+Allow: /voorwaarden
+Allow: /privacy
+Allow: /cookies
+Allow: /herroeping
+Allow: /disclaimer
 Disallow: /mijn
 Disallow: /glas
 Disallow: /statiegeld
 Disallow: /profiel
+Disallow: /chat
 Disallow: /betaling/
 Disallow: /jayce
 Disallow: /admin

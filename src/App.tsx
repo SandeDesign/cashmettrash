@@ -1,34 +1,48 @@
 // src/App.tsx
-import React, { useEffect } from 'react';
+import React, { lazy, Suspense, useEffect } from 'react';
 import { BrowserRouter as Router, Navigate, Route, Routes } from 'react-router-dom';
 
 import ErrorBoundary from './components/shared/ErrorBoundary';
 import ScrollToTop from './components/shared/ScrollToTop';
 import Loading from './components/shared/Loading';
+import RouteProgress from './components/shared/RouteProgress';
+import CookieBanner from './components/common/CookieBanner';
 import RoleGuard from './components/guards/RoleGuard';
 import { useAuth } from './hooks/useAuth';
+import { usePwaInstall } from './hooks/usePwaInstall';
 import { setupGlobalErrorHandlers } from './utils/errorLogger';
 
+// De landingspagina en de inlogpagina zijn het eerste dat een bezoeker ziet en
+// blijven daarom in de hoofdbundle. De rest wordt lazy geladen, zodat een klant
+// de admin- en Jayce-schermen niet hoeft te downloaden.
 import Landing from './pages/Landing';
 import Login from './pages/Login';
-import Registreren from './pages/Registreren';
-import GeenToegang from './pages/GeenToegang';
 
-import KlantOverzicht from './pages/klant/Overzicht';
-import GlasAanvraag from './pages/klant/GlasAanvraag';
-import StatiegeldMelden from './pages/klant/StatiegeldMelden';
-import BetalingGelukt from './pages/klant/BetalingGelukt';
-import BetalingGeannuleerd from './pages/klant/BetalingGeannuleerd';
-import Profiel from './pages/klant/Profiel';
-import KlantChat from './pages/klant/Chat';
+const Registreren = lazy(() => import('./pages/Registreren'));
+const GeenToegang = lazy(() => import('./pages/GeenToegang'));
+const Installeren = lazy(() => import('./pages/Installeren'));
 
-import JayceTaken from './pages/jayce/Taken';
+const Voorwaarden = lazy(() => import('./pages/juridisch/Voorwaarden'));
+const Privacy = lazy(() => import('./pages/juridisch/Privacy'));
+const Cookies = lazy(() => import('./pages/juridisch/Cookies'));
+const Herroeping = lazy(() => import('./pages/juridisch/Herroeping'));
+const Disclaimer = lazy(() => import('./pages/juridisch/Disclaimer'));
 
-import AdminOverzicht from './pages/admin/Overzicht';
-import AdminGlasOrders from './pages/admin/GlasOrders';
-import AdminStatiegeldLog from './pages/admin/StatiegeldLog';
-import AdminGesprekken from './pages/admin/Gesprekken';
-import AdminGesprek from './pages/admin/Gesprek';
+const KlantOverzicht = lazy(() => import('./pages/klant/Overzicht'));
+const GlasAanvraag = lazy(() => import('./pages/klant/GlasAanvraag'));
+const StatiegeldMelden = lazy(() => import('./pages/klant/StatiegeldMelden'));
+const BetalingGelukt = lazy(() => import('./pages/klant/BetalingGelukt'));
+const BetalingGeannuleerd = lazy(() => import('./pages/klant/BetalingGeannuleerd'));
+const Profiel = lazy(() => import('./pages/klant/Profiel'));
+const KlantChat = lazy(() => import('./pages/klant/Chat'));
+
+const JayceTaken = lazy(() => import('./pages/jayce/Taken'));
+
+const AdminOverzicht = lazy(() => import('./pages/admin/Overzicht'));
+const AdminGlasOrders = lazy(() => import('./pages/admin/GlasOrders'));
+const AdminStatiegeldLog = lazy(() => import('./pages/admin/StatiegeldLog'));
+const AdminGesprekken = lazy(() => import('./pages/admin/Gesprekken'));
+const AdminGesprek = lazy(() => import('./pages/admin/Gesprek'));
 
 /** Stuurt een ingelogde gebruiker naar het dashboard van zijn rol. */
 const NaarDashboard: React.FC = () => {
@@ -64,128 +78,137 @@ const AppRoutes: React.FC = () => {
   }
 
   return (
-    <Routes>
-      <Route path="/" element={isAuthenticated ? <NaarDashboard /> : <Landing />} />
-      <Route path="/login" element={isAuthenticated ? <NaarDashboard /> : <Login />} />
-      <Route
-        path="/registreren"
-        element={isAuthenticated ? <NaarDashboard /> : <Registreren />}
-      />
-      <Route path="/geen-toegang" element={<GeenToegang />} />
+    <Suspense fallback={<RouteProgress />}>
+      <Routes>
+        <Route path="/" element={isAuthenticated ? <NaarDashboard /> : <Landing />} />
+        <Route path="/login" element={isAuthenticated ? <NaarDashboard /> : <Login />} />
+        <Route
+          path="/registreren"
+          element={isAuthenticated ? <NaarDashboard /> : <Registreren />}
+        />
+        <Route path="/geen-toegang" element={<GeenToegang />} />
 
-      {/* Klant */}
-      <Route
-        path="/mijn"
-        element={
-          <RoleGuard allowedRoles={['klant']}>
-            <KlantOverzicht />
-          </RoleGuard>
-        }
-      />
-      <Route
-        path="/glas"
-        element={
-          <RoleGuard allowedRoles={['klant']}>
-            <GlasAanvraag />
-          </RoleGuard>
-        }
-      />
-      <Route
-        path="/statiegeld"
-        element={
-          <RoleGuard allowedRoles={['klant']}>
-            <StatiegeldMelden />
-          </RoleGuard>
-        }
-      />
-      <Route
-        path="/profiel"
-        element={
-          <RoleGuard allowedRoles={['klant']}>
-            <Profiel />
-          </RoleGuard>
-        }
-      />
-      <Route
-        path="/chat"
-        element={
-          <RoleGuard allowedRoles={['klant']}>
-            <KlantChat />
-          </RoleGuard>
-        }
-      />
-      <Route
-        path="/betaling/gelukt"
-        element={
-          <RoleGuard allowedRoles={['klant']}>
-            <BetalingGelukt />
-          </RoleGuard>
-        }
-      />
-      <Route
-        path="/betaling/geannuleerd"
-        element={
-          <RoleGuard allowedRoles={['klant']}>
-            <BetalingGeannuleerd />
-          </RoleGuard>
-        }
-      />
+        {/* Publiek toegankelijk, ook zonder account */}
+        <Route path="/installeren" element={<Installeren />} />
+        <Route path="/voorwaarden" element={<Voorwaarden />} />
+        <Route path="/privacy" element={<Privacy />} />
+        <Route path="/cookies" element={<Cookies />} />
+        <Route path="/herroeping" element={<Herroeping />} />
+        <Route path="/disclaimer" element={<Disclaimer />} />
 
-      {/* Jayce */}
-      <Route
-        path="/jayce"
-        element={
-          <RoleGuard allowedRoles={['jayce']}>
-            <JayceTaken />
-          </RoleGuard>
-        }
-      />
+        {/* Klant */}
+        <Route
+          path="/mijn"
+          element={
+            <RoleGuard allowedRoles={['klant']}>
+              <KlantOverzicht />
+            </RoleGuard>
+          }
+        />
+        <Route
+          path="/glas"
+          element={
+            <RoleGuard allowedRoles={['klant']}>
+              <GlasAanvraag />
+            </RoleGuard>
+          }
+        />
+        <Route
+          path="/statiegeld"
+          element={
+            <RoleGuard allowedRoles={['klant']}>
+              <StatiegeldMelden />
+            </RoleGuard>
+          }
+        />
+        <Route
+          path="/profiel"
+          element={
+            <RoleGuard allowedRoles={['klant']}>
+              <Profiel />
+            </RoleGuard>
+          }
+        />
+        <Route
+          path="/chat"
+          element={
+            <RoleGuard allowedRoles={['klant']}>
+              <KlantChat />
+            </RoleGuard>
+          }
+        />
+        <Route
+          path="/betaling/gelukt"
+          element={
+            <RoleGuard allowedRoles={['klant']}>
+              <BetalingGelukt />
+            </RoleGuard>
+          }
+        />
+        <Route
+          path="/betaling/geannuleerd"
+          element={
+            <RoleGuard allowedRoles={['klant']}>
+              <BetalingGeannuleerd />
+            </RoleGuard>
+          }
+        />
 
-      {/* Admin */}
-      <Route
-        path="/admin"
-        element={
-          <RoleGuard allowedRoles={['admin']}>
-            <AdminOverzicht />
-          </RoleGuard>
-        }
-      />
-      <Route
-        path="/admin/glas"
-        element={
-          <RoleGuard allowedRoles={['admin']}>
-            <AdminGlasOrders />
-          </RoleGuard>
-        }
-      />
-      <Route
-        path="/admin/statiegeld"
-        element={
-          <RoleGuard allowedRoles={['admin']}>
-            <AdminStatiegeldLog />
-          </RoleGuard>
-        }
-      />
+        {/* Jayce */}
+        <Route
+          path="/jayce"
+          element={
+            <RoleGuard allowedRoles={['jayce']}>
+              <JayceTaken />
+            </RoleGuard>
+          }
+        />
 
-      <Route
-        path="/admin/berichten"
-        element={
-          <RoleGuard allowedRoles={['admin']}>
-            <AdminGesprekken />
-          </RoleGuard>
-        }
-      />
-      <Route
-        path="/admin/berichten/:customerId"
-        element={
-          <RoleGuard allowedRoles={['admin']}>
-            <AdminGesprek />
-          </RoleGuard>
-        }
-      />
+        {/* Admin */}
+        <Route
+          path="/admin"
+          element={
+            <RoleGuard allowedRoles={['admin']}>
+              <AdminOverzicht />
+            </RoleGuard>
+          }
+        />
+        <Route
+          path="/admin/glas"
+          element={
+            <RoleGuard allowedRoles={['admin']}>
+              <AdminGlasOrders />
+            </RoleGuard>
+          }
+        />
+        <Route
+          path="/admin/statiegeld"
+          element={
+            <RoleGuard allowedRoles={['admin']}>
+              <AdminStatiegeldLog />
+            </RoleGuard>
+          }
+        />
+        <Route
+          path="/admin/berichten"
+          element={
+            <RoleGuard allowedRoles={['admin']}>
+              <AdminGesprekken />
+            </RoleGuard>
+          }
+        />
+        <Route
+          path="/admin/berichten/:customerId"
+          element={
+            <RoleGuard allowedRoles={['admin']}>
+              <AdminGesprek />
+            </RoleGuard>
+          }
+        />
 
-      <Route path="*" element={<Navigate to="/" replace />} />
-    </Routes>
+        <Route path="*" element={<Navigate to="/" replace />} />
+      </Routes>
+    </Suspense>
   );
 };
 
@@ -194,11 +217,15 @@ const App: React.FC = () => {
     setupGlobalErrorHandlers();
   }, []);
 
+  // Vroeg monteren, zodat het installatie-event van de browser niet gemist wordt.
+  usePwaInstall();
+
   return (
     <ErrorBoundary>
       <Router>
         <ScrollToTop />
         <AppRoutes />
+        <CookieBanner />
       </Router>
     </ErrorBoundary>
   );

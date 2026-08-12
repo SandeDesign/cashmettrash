@@ -1,6 +1,6 @@
 # CashMetTrash opzetten
 
-Vier stappen: Firebase, PHP-proxy, Vercel, rollen.
+Vijf stappen: Firebase, PHP-proxy, Vercel, rollen, bedrijfsgegevens.
 
 ---
 
@@ -156,7 +156,32 @@ rollen simpelweg niet gebruikt.
 
 ---
 
-## 5. Logo-assets
+## 5. Bedrijfsgegevens invullen
+
+De juridische pagina's staan er, maar zijn nog niet compleet: de gegevens van de
+rechtspersoon ontbreken. Zolang dat zo is tonen alle juridische pagina's zichtbaar
+een waarschuwing, zodat het niet ongemerkt live gaat.
+
+Vul ze in op één plek, in `src/utils/bedrijf.ts`:
+
+| Veld | Wat |
+|---|---|
+| `kvk` | KvK-nummer van Buddy BV |
+| `btw` | Btw-identificatienummer, mag leeg blijven als je geen btw factureert |
+| `adres` | Straat en huisnummer van de vestiging |
+| `postcode` | Postcode van de vestiging |
+| `email` | Adres waar privacyverzoeken en klachten binnenkomen |
+| `telefoon` | Optioneel |
+
+Werk daarna ook `laatstBijgewerkt` bij. Die datum staat onderaan elke juridische
+pagina.
+
+Loop de teksten zelf een keer door voordat de app publiek gaat. Ze zijn geschreven
+op basis van wat de app feitelijk doet, maar een jurist heeft er niet naar gekeken.
+
+---
+
+## 6. Logo-assets
 
 De definitieve assets staan in `public/` en hoeven niet meer vervangen te worden:
 

@@ -67,6 +67,8 @@ gezet; `firestore.rules` blokkeert rol-escalatie.
 - Firebase Auth (email/wachtwoord) + Firestore
 - Stripe via PHP-proxy op internedata.nl (`/uploads/cashmettrash/`)
 - lucide-react (iconen), date-fns (datums)
+- Poppins wordt zelf gehost vanuit `public/fonts/`; geen Google Fonts
+- Routes worden lazy geladen met `React.lazy`, met een voortgangsbalk als fallback
 - Vercel hosting
 
 ---
@@ -176,6 +178,9 @@ Endpoints zijn overschrijfbaar via `VITE_CHECKOUT_URL` / `VITE_STRIPE_PROXY_URL`
 - **Nooit** het statiegeldbedrag zelf als betaling behandelen. Dat komt uit Viatim,
   is niet aanpasbaar en gaat volledig naar de klant. De `servicekosten` staan daar los van
 - **Nooit** bedragen tonen in het Jayce-dashboard, en Jayce nooit toegang tot de chat geven
+- Geen analytics, trackers of third-party scripts. De juridische pagina's beweren
+  dat er niets naar derden gaat; dat moet waar blijven
+- Geen externe fonts of CDN's toevoegen, om dezelfde reden
 
 ### Naamgeving
 - Componenten en pagina's: PascalCase
@@ -208,7 +213,29 @@ fallbacks meer in `src/lib/firebase.ts`.
 
 ---
 
-## 10. Openstaand / TODO
+## 10. Publieke pagina's
+
+Naast de landingspagina zijn deze routes publiek en lazy geladen:
+
+| Route | Inhoud |
+|---|---|
+| `/installeren` | PWA-installatie-uitleg, herkent het platform en vangt `beforeinstallprompt` op |
+| `/voorwaarden` | Algemene voorwaarden |
+| `/privacy` | Privacyverklaring |
+| `/cookies` | Cookiebeleid, bewust in kindvriendelijke taal |
+| `/herroeping` | Herroepingsrecht, hoort bij het verplichte vinkje in `GlasAanvraag` |
+| `/disclaimer` | Disclaimer |
+
+Bedrijfsgegevens staan op één plek: `src/utils/bedrijf.ts`. Zolang die niet zijn
+ingevuld tonen de juridische pagina's een waarschuwing.
+
+Het opstartscherm staat inline in `index.html` en wordt door `src/main.tsx`
+verwijderd. Dat moet daar blijven staan: in React zou het te laat komen en zie je
+alsnog een witte flits.
+
+---
+
+## 11. Openstaand / TODO
 
 - [ ] Geen e-mailnotificaties in v1, bevestigingsmails zijn bewust uitgesteld
 - [ ] Tikkie-koppeling is handmatig: je plakt bedrag en link uit Viatim, de app
@@ -221,7 +248,7 @@ fallbacks meer in `src/lib/firebase.ts`.
 
 ---
 
-## 11. Commando's
+## 12. Commando's
 
 ```bash
 npm run dev          # dev-server op poort 5173

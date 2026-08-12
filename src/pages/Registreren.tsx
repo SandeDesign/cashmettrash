@@ -193,6 +193,18 @@ const Registreren: React.FC = () => {
           {bezig ? 'Bezig...' : 'Account aanmaken'}
         </button>
 
+        <p className="mt-3 text-center text-xs" style={{ color: 'var(--cmt-ink-muted)' }}>
+          Door een account aan te maken ga je akkoord met onze{' '}
+          <Link to="/voorwaarden" style={{ color: 'var(--cmt-glas-dark)' }}>
+            algemene voorwaarden
+          </Link>{' '}
+          en de{' '}
+          <Link to="/privacy" style={{ color: 'var(--cmt-glas-dark)' }}>
+            privacyverklaring
+          </Link>
+          .
+        </p>
+
         <p className="mt-5 text-center text-sm" style={{ color: 'var(--cmt-ink-muted)' }}>
           Heb je al een account?{' '}
           <Link to="/login" className="font-semibold" style={{ color: 'var(--cmt-glas)' }}>

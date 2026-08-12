@@ -17,6 +17,7 @@ const GlasAanvraag: React.FC = () => {
   const maakOrder = useGlasStore((s) => s.maakOrder);
 
   const [opmerking, setOpmerking] = useState('');
+  const [akkoordDirect, setAkkoordDirect] = useState(false);
   const [fout, setFout] = useState<string | null>(null);
   const [bezig, setBezig] = useState(false);
 
@@ -27,6 +28,11 @@ const GlasAanvraag: React.FC = () => {
   const verstuur = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!customer || !user) return;
+
+    if (!akkoordDirect) {
+      setFout('Zet een vinkje bij de laatste regel om verder te kunnen.');
+      return;
+    }
 
     setFout(null);
     setBezig(true);
@@ -123,7 +129,29 @@ const GlasAanvraag: React.FC = () => {
               <span className="text-xl font-bold">{formatCenten(GLAS_PRIJS_CENTEN)}</span>
             </div>
 
-            <button type="submit" className="cmt-btn-primary cmt-btn-block cmt-btn-lg" disabled={bezig}>
+            {/* Zonder deze instemming blijft de wettelijke bedenktijd van veertien
+                dagen staan en kan de ophaalbeurt niet meteen worden ingepland. */}
+            <label className="flex items-start gap-2.5 mb-5 text-sm cursor-pointer">
+              <input
+                type="checkbox"
+                className="mt-0.5 flex-shrink-0"
+                checked={akkoordDirect}
+                onChange={(e) => setAkkoordDirect(e.target.checked)}
+              />
+              <span style={{ color: 'var(--cmt-ink-soft)' }}>
+                Ja, plan de ophaalbeurt meteen in. Ik begrijp dat mijn{' '}
+                <Link to="/herroeping" target="_blank" style={{ color: 'var(--cmt-glas-dark)' }}>
+                  herroepingsrecht
+                </Link>{' '}
+                vervalt zodra het glas is opgehaald.
+              </span>
+            </label>
+
+            <button
+              type="submit"
+              className="cmt-btn-primary cmt-btn-block cmt-btn-lg"
+              disabled={bezig || !akkoordDirect}
+            >
               {bezig ? 'Bezig...' : 'Naar betalen'}
             </button>
 

@@ -2,7 +2,72 @@
 /* CashMetTrash Design System
    Licht, vriendelijk, buurtservice. Groen = glas, blauw = statiegeld. */
 
-@import url('https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap');
+/* Poppins wordt zelf gehost: zo gaat er bij het laden van de site niets naar
+   een derde partij, en klopt wat het cookiebeleid daarover beweert. */
+@font-face {
+  font-family: 'Poppins';
+  font-style: normal;
+  font-weight: 400;
+  font-display: swap;
+  src: url('/fonts/poppins-400-latin.woff2') format('woff2');
+  unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
+}
+@font-face {
+  font-family: 'Poppins';
+  font-style: normal;
+  font-weight: 400;
+  font-display: swap;
+  src: url('/fonts/poppins-400-latin-ext.woff2') format('woff2');
+  unicode-range: U+0100-02BA, U+02BD-02C5, U+02C7-02CC, U+02CE-02D7, U+02DD-02FF, U+0304, U+0308, U+0329, U+1D00-1DBF, U+1E00-1E9F, U+1EF2-1EFF, U+2020, U+20A0-20AB, U+20AD-20C0, U+2113, U+2C60-2C7F, U+A720-A7FF;
+}
+@font-face {
+  font-family: 'Poppins';
+  font-style: normal;
+  font-weight: 500;
+  font-display: swap;
+  src: url('/fonts/poppins-500-latin.woff2') format('woff2');
+  unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
+}
+@font-face {
+  font-family: 'Poppins';
+  font-style: normal;
+  font-weight: 500;
+  font-display: swap;
+  src: url('/fonts/poppins-500-latin-ext.woff2') format('woff2');
+  unicode-range: U+0100-02BA, U+02BD-02C5, U+02C7-02CC, U+02CE-02D7, U+02DD-02FF, U+0304, U+0308, U+0329, U+1D00-1DBF, U+1E00-1E9F, U+1EF2-1EFF, U+2020, U+20A0-20AB, U+20AD-20C0, U+2113, U+2C60-2C7F, U+A720-A7FF;
+}
+@font-face {
+  font-family: 'Poppins';
+  font-style: normal;
+  font-weight: 600;
+  font-display: swap;
+  src: url('/fonts/poppins-600-latin.woff2') format('woff2');
+  unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
+}
+@font-face {
+  font-family: 'Poppins';
+  font-style: normal;
+  font-weight: 600;
+  font-display: swap;
+  src: url('/fonts/poppins-600-latin-ext.woff2') format('woff2');
+  unicode-range: U+0100-02BA, U+02BD-02C5, U+02C7-02CC, U+02CE-02D7, U+02DD-02FF, U+0304, U+0308, U+0329, U+1D00-1DBF, U+1E00-1E9F, U+1EF2-1EFF, U+2020, U+20A0-20AB, U+20AD-20C0, U+2113, U+2C60-2C7F, U+A720-A7FF;
+}
+@font-face {
+  font-family: 'Poppins';
+  font-style: normal;
+  font-weight: 700;
+  font-display: swap;
+  src: url('/fonts/poppins-700-latin.woff2') format('woff2');
+  unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
+}
+@font-face {
+  font-family: 'Poppins';
+  font-style: normal;
+  font-weight: 700;
+  font-display: swap;
+  src: url('/fonts/poppins-700-latin-ext.woff2') format('woff2');
+  unicode-range: U+0100-02BA, U+02BD-02C5, U+02C7-02CC, U+02CE-02D7, U+02DD-02FF, U+0304, U+0308, U+0329, U+1D00-1DBF, U+1E00-1E9F, U+1EF2-1EFF, U+2020, U+20A0-20AB, U+20AD-20C0, U+2113, U+2C60-2C7F, U+A720-A7FF;
+}
 
 :root {
   /* Glas-flow (groen) */
@@ -586,4 +651,108 @@ h1, h2, h3, h4 {
 
 .cmt-footer a:hover {
   color: #ffffff;
+}
+
+/* ================================================================
+   Leestypografie voor de juridische pagina's.
+   Bewust geen Tailwind typography-plugin: dat is een extra dependency
+   voor een handvol pagina's.
+   ================================================================ */
+
+.cmt-prose {
+  color: var(--cmt-ink-soft);
+  font-size: 0.9375rem;
+  line-height: 1.7;
+}
+
+.cmt-prose > * + * {
+  margin-top: 1rem;
+}
+
+.cmt-prose h2 {
+  font-size: 1.25rem;
+  font-weight: 700;
+  color: var(--cmt-ink);
+  margin-top: 2.25rem;
+  letter-spacing: -0.01em;
+}
+
+.cmt-prose h3 {
+  font-size: 1rem;
+  font-weight: 600;
+  color: var(--cmt-ink);
+  margin-top: 1.75rem;
+}
+
+.cmt-prose ul,
+.cmt-prose ol {
+  padding-left: 1.5rem;
+}
+
+/* Geen display:grid met gap hier: dat blokkeert de opsommingstekens
+   en de nummering. */
+.cmt-prose li + li {
+  margin-top: 0.5rem;
+}
+
+.cmt-prose ul { list-style: disc; }
+.cmt-prose ol { list-style: decimal; }
+
+.cmt-prose li::marker {
+  color: var(--cmt-accent);
+}
+
+.cmt-prose strong {
+  color: var(--cmt-ink);
+  font-weight: 600;
+}
+
+.cmt-prose a {
+  color: var(--cmt-glas-dark);
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}
+
+.cmt-prose a:hover {
+  color: var(--cmt-glas);
+}
+
+.cmt-prose table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.875rem;
+}
+
+.cmt-prose th,
+.cmt-prose td {
+  text-align: left;
+  padding: 0.625rem 0.75rem;
+  border-bottom: 1px solid var(--cmt-border);
+  vertical-align: top;
+}
+
+.cmt-prose th {
+  color: var(--cmt-ink);
+  font-weight: 600;
+}
+
+/* Uitgelicht kader binnen lopende tekst, bijvoorbeeld een kernpunt. */
+.cmt-prose .cmt-kader {
+  background: var(--cmt-accent-bg);
+  border: 1px solid var(--cmt-accent-border);
+  border-radius: var(--cmt-radius-md);
+  padding: 1rem 1.125rem;
+  color: var(--cmt-ink);
+}
+
+/* Voortgangsbalk bij het laden van een pagina. */
+.cmt-route-balk {
+  position: fixed;
+  top: 0;
+  left: 0;
+  height: 3px;
+  background: var(--cmt-glas);
+  box-shadow: 0 0 8px rgba(14, 143, 108, 0.5);
+  z-index: 9998;
+  transition: width 0.2s ease, opacity 0.3s ease;
 }

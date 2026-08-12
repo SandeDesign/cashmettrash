@@ -23,7 +23,9 @@ export const logError = (error: Error | string, context?: string) => {
       message: typeof error === 'string' ? error : `${context ? context + ': ' : ''}${error.message}`,
       stack: typeof error === 'object' ? error.stack : undefined,
       userAgent: navigator.userAgent,
-      url: window.location.href,
+      // Bewust alleen het pad, niet de volledige URL: die kan klant-id's
+      // bevatten zoals /admin/berichten/{customerId}.
+      url: window.location.pathname,
     };
 
     logs.unshift(errorLog);
