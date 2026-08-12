@@ -73,6 +73,14 @@ const AfspraakBalk: React.FC<{ van: string; tot: string }> = ({ van, tot }) => (
   </p>
 );
 
+/** Wat de klant zelf het handigst vond. Jayce mag er van afwijken. */
+const VoorkeurBalk: React.FC<{ van: string }> = ({ van }) => (
+  <p className="mt-3 text-base" style={{ color: 'var(--cmt-ink-soft)' }}>
+    Ze zouden het fijn vinden als je <strong className="capitalize">{dagInWoorden(van)}</strong>{' '}
+    komt. Kan dat niet? Kies dan gewoon iets anders.
+  </p>
+);
+
 /**
  * De twee knoppen onder een taak. Staat de taak nog op aangemeld, dan kies je
  * eerst een tijd; daarna verschijnt de knop om af te vinken.
@@ -80,9 +88,10 @@ const AfspraakBalk: React.FC<{ van: string; tot: string }> = ({ van, tot }) => (
 const TaakKnoppen: React.FC<{
   ingepland: boolean;
   sloten: Tijdslot[];
+  voorkeurId?: string;
   onInplannen: (slot: Tijdslot, van: Date, tot: Date) => Promise<void>;
   onKlaar: () => Promise<void>;
-}> = ({ ingepland, sloten, onInplannen, onKlaar }) => {
+}> = ({ ingepland, sloten, voorkeurId, onInplannen, onKlaar }) => {
   const [kiezen, setKiezen] = useState(false);
   const [bezig, setBezig] = useState(false);
 
@@ -90,6 +99,7 @@ const TaakKnoppen: React.FC<{
     return (
       <TijdslotKiezer
         sloten={sloten}
+        voorkeurId={voorkeurId}
         onKiezen={async (slot, van, tot) => {
           await onInplannen(slot, van, tot);
           setKiezen(false);
@@ -163,13 +173,16 @@ const GlasTaak: React.FC<{
       </p>
     )}
 
-    {order.geplandVan && order.geplandTot && (
+    {order.geplandVan && order.geplandTot ? (
       <AfspraakBalk van={order.geplandVan} tot={order.geplandTot} />
+    ) : (
+      order.voorkeurVan && <VoorkeurBalk van={order.voorkeurVan} />
     )}
 
     <TaakKnoppen
       ingepland={order.status === 'ingepland'}
       sloten={sloten}
+      voorkeurId={order.voorkeurTijdslotId}
       onInplannen={onInplannen}
       onKlaar={onKlaar}
     />
@@ -211,8 +224,10 @@ const StatiegeldTaak: React.FC<{
         </p>
       )}
 
-      {log.geplandVan && log.geplandTot && (
+      {log.geplandVan && log.geplandTot ? (
         <AfspraakBalk van={log.geplandVan} tot={log.geplandTot} />
+      ) : (
+        log.voorkeurVan && <VoorkeurBalk van={log.voorkeurVan} />
       )}
 
       {!ingepland ? (
@@ -267,6 +282,7 @@ const StatiegeldTaak: React.FC<{
       <TaakKnoppen
         ingepland={ingepland}
         sloten={sloten}
+        voorkeurId={log.voorkeurTijdslotId}
         onInplannen={onInplannen}
         onKlaar={() => onKlaar({ plastic, blik })}
       />

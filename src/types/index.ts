@@ -65,6 +65,12 @@ export interface GlasOrder {
   tijdslotId?: string;
   geplandVan?: string;
   geplandTot?: string;
+
+  /* Het moment dat de klant zelf het handigst vond. Een wens, geen afspraak:
+     Jayce mag er gewoon van afwijken. */
+  voorkeurTijdslotId?: string;
+  voorkeurVan?: string;
+  voorkeurTot?: string;
 }
 
 /* ------------------------------------------------------------------ */
@@ -115,6 +121,11 @@ export interface StatiegeldLog {
   tijdslotId?: string;
   geplandVan?: string;
   geplandTot?: string;
+
+  /* De wens van de klant. Jayce mag er van afwijken. */
+  voorkeurTijdslotId?: string;
+  voorkeurVan?: string;
+  voorkeurTot?: string;
 
   /* Tikkie uit Viatim. Het bedrag is puur registratie: de betaling zelf loopt
      buiten de app om en kan niet worden aangepast. */

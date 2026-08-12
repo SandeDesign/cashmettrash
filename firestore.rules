@@ -108,7 +108,10 @@ service cloud.firestore {
                     && request.resource.data.bedrag == 499
                     && !request.resource.data.keys().hasAny(
                          ['stripeSessionId', 'stripePaymentIntentId', 'stripeStatus',
-                          'betaaldOp', 'opgehaaldOp', 'jayceId']);
+                          'betaaldOp', 'opgehaaldOp', 'jayceId',
+                          // Inplannen doet Jayce; de klant geeft hoogstens een
+                          // voorkeur door via de voorkeur*-velden.
+                          'tijdslotId', 'geplandVan', 'geplandTot']);
 
       allow update: if isAdmin()
                     // Klant mag alleen de eigen betaling afronden of annuleren.
@@ -156,7 +159,10 @@ service cloud.firestore {
                     && !request.resource.data.keys().hasAny(
                          ['tikkieBedrag', 'tikkieLink', 'tikkieVerstuurdOp', 'verwerktOp',
                           'opgehaaldOp', 'jayceId', 'itemsWerkelijk',
-                          'servicekostenBetaaldOp', 'serviceStripeSessionId']);
+                          'servicekostenBetaaldOp', 'serviceStripeSessionId',
+                          // Inplannen doet Jayce; de klant geeft hoogstens een
+                          // voorkeur door via de voorkeur*-velden.
+                          'tijdslotId', 'geplandVan', 'geplandTot']);
 
       allow update: if isAdmin()
                     // Jayce corrigeert de telling en vinkt af. Nooit Tikkie-velden

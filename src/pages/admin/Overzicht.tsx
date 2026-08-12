@@ -8,10 +8,10 @@ import React, { useEffect, useMemo } from 'react';
 import { Link } from 'react-router-dom';
 import {
   ArrowRight,
+  CalendarClock,
   CheckCircle,
   Clock,
   MessageSquare,
-  Recycle,
   Wallet,
   Wine,
 } from 'lucide-react';
@@ -150,19 +150,37 @@ const AdminOverzicht: React.FC = () => {
       });
     }
 
-    const wachtOpJayce =
-      orders.filter((o) => o.status === 'betaald' || o.status === 'ingepland').length +
+    // Twee aparte regels, want het is echt iets anders: bij de eerste moet Jayce
+    // nog zeggen wanneer hij komt, bij de tweede weet de klant dat al.
+    const teBevestigen =
+      orders.filter((o) => o.status === 'betaald').length +
       logs.filter((l) => l.status === 'aangemeld').length;
-    if (wachtOpJayce > 0) {
+    if (teBevestigen > 0) {
       lijst.push({
-        id: 'jayce',
-        icon: <Recycle className="w-5 h-5" />,
+        id: 'bevestigen',
+        icon: <Clock className="w-5 h-5" />,
+        flow: 'stat',
+        titel: 'Wacht op Jayce',
+        uitleg: 'Hij moet nog bevestigen wanneer hij langskomt.',
+        aantal: teBevestigen,
+        naar: '/admin/ophalen',
+        knop: 'Naar de ophaalronde',
+      });
+    }
+
+    const staatGepland =
+      orders.filter((o) => o.status === 'ingepland').length +
+      logs.filter((l) => l.status === 'ingepland').length;
+    if (staatGepland > 0) {
+      lijst.push({
+        id: 'ingepland',
+        icon: <CalendarClock className="w-5 h-5" />,
         flow: 'glas',
-        titel: 'Klaar voor Jayce',
-        uitleg: 'Deze adressen staan op zijn lijst. Hier hoef jij niets voor te doen.',
-        aantal: wachtOpJayce,
-        naar: '/admin/glas',
-        knop: 'Bekijken',
+        titel: 'Ingepland door Jayce',
+        uitleg: 'De klant weet wanneer hij komt. Hier hoef jij niets voor te doen.',
+        aantal: staatGepland,
+        naar: '/admin/ophalen',
+        knop: 'Naar de ophaalronde',
       });
     }
 

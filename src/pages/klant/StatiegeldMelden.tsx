@@ -11,6 +11,7 @@ import AppLayout from '../../components/layout/AppLayout';
 import { KLANT_NAV } from '../../components/layout/navItems';
 import Loading from '../../components/shared/Loading';
 import BuitenWerkgebied from '../../components/klant/BuitenWerkgebied';
+import VoorkeurKiezer, { type Voorkeur } from '../../components/klant/VoorkeurKiezer';
 import { useAuth } from '../../hooks/useAuth';
 import { useCustomerStore } from '../../store/customerStore';
 import { useStatiegeldStore } from '../../store/statiegeldStore';
@@ -52,6 +53,7 @@ const StatiegeldMelden: React.FC = () => {
   const [blik, setBlik] = useState(0);
   const [opmerking, setOpmerking] = useState('');
   const [schenken, setSchenken] = useState(false);
+  const [voorkeur, setVoorkeur] = useState<Voorkeur | null>(null);
   const [fout, setFout] = useState<string | null>(null);
   const [bezig, setBezig] = useState(false);
 
@@ -79,7 +81,8 @@ const StatiegeldMelden: React.FC = () => {
         customer,
         { plastic, blik },
         opmerking.trim() || undefined,
-        isBekende && schenken
+        isBekende && schenken,
+        voorkeur
       );
       void stuurPushNaarRol('jayce', {
         titel: 'Nieuwe ophaaltaak',
@@ -164,6 +167,8 @@ const StatiegeldMelden: React.FC = () => {
                 maxLength={280}
               />
             </div>
+
+            <VoorkeurKiezer waarde={voorkeur} onKies={setVoorkeur} />
 
             {isBekende && (
               <label className="cmt-card cmt-card-tint !p-4 mb-5 flex items-start gap-3 cursor-pointer">

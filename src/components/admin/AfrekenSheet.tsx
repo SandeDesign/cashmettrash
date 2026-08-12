@@ -9,6 +9,7 @@
 import React, { useEffect, useState } from 'react';
 import { AlertCircle, ExternalLink, Heart, Recycle, X } from 'lucide-react';
 import { formatCenten } from '../../utils/constants';
+import { isLink, normaliseerLink } from '../../utils/links';
 import type { StatiegeldLog } from '../../types';
 
 interface AfrekenSheetProps {
@@ -44,7 +45,7 @@ const AfrekenSheet: React.FC<AfrekenSheetProps> = ({ log, onSluiten, onAfrekenen
   // Bij een schenking gaat het bedrag naar het potje van Jayce, dus er is geen
   // Tikkie naar de klant en er zijn geen ophaalkosten.
   const schenking = !!log.geschonken;
-  const linkGeldig = schenking || /^https?:\/\/\S+$/.test(link.trim());
+  const linkGeldig = schenking || isLink(link);
 
   const verstuur = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -54,14 +55,14 @@ const AfrekenSheet: React.FC<AfrekenSheetProps> = ({ log, onSluiten, onAfrekenen
       return;
     }
     if (!linkGeldig) {
-      setFout('Plak de volledige Tikkie-link, die begint met https://');
+      setFout('Dat lijkt geen webadres. Plak de link uit Viatim, bijvoorbeeld tikkie.me/pay/iets.');
       return;
     }
 
     setFout(null);
     setBezig(true);
     try {
-      await onAfrekenen(centen, schenking ? '' : link.trim());
+      await onAfrekenen(centen, schenking ? '' : (normaliseerLink(link) ?? ''));
     } catch (error: unknown) {
       setFout(error instanceof Error ? error.message : 'Afrekenen mislukt');
       setBezig(false);

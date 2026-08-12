@@ -7,10 +7,13 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import { NavLink, useLocation } from 'react-router-dom';
 import { ChevronDown, Menu, X } from 'lucide-react';
+import NavTeller from './NavTeller';
 import type { NavItem } from './AppLayout';
 
 interface MobielMenuProps {
   nav: NavItem[];
+  /** Ongelezen berichten, voor het bolletje op de knop en op het chat-item. */
+  ongelezen?: number;
 }
 
 /** Hoort dit item bij het pad waar je nu bent? */
@@ -18,10 +21,11 @@ function isActief(item: NavItem, pad: string): boolean {
   return item.end ? pad === item.to : pad === item.to || pad.startsWith(`${item.to}/`);
 }
 
-const MobielMenu: React.FC<MobielMenuProps> = ({ nav }) => {
+const MobielMenu: React.FC<MobielMenuProps> = ({ nav, ongelezen = 0 }) => {
   const { pathname } = useLocation();
   const [open, setOpen] = useState(false);
-  const [uitgeklapt, setUitgeklapt] = useState<string | null>(null);
+  // Alles staat open zodra je het menu opent; inklappen doe je zelf.
+  const [ingeklapt, setIngeklapt] = useState<string[]>([]);
 
   // In volgorde van voorkomen, zodat de groepjes staan zoals ze bedoeld zijn.
   const groepen = useMemo(() => {
@@ -40,15 +44,10 @@ const MobielMenu: React.FC<MobielMenuProps> = ({ nav }) => {
     return volgorde.map((naam) => ({ naam, items: inhoud.get(naam)! }));
   }, [nav]);
 
-  const huidigeGroep = useMemo(() => {
-    const treffer = groepen.find((g) => g.items.some((item) => isActief(item, pathname)));
-    return treffer?.naam ?? groepen[0]?.naam ?? null;
-  }, [groepen, pathname]);
-
-  // Bij het openen begin je in het groepje waar je nu bent.
+  // Bij het openen staat alles weer open, ook als je vorige keer iets dichtklapte.
   useEffect(() => {
-    if (open) setUitgeklapt(huidigeGroep);
-  }, [open, huidigeGroep]);
+    if (open) setIngeklapt([]);
+  }, [open]);
 
   // Van pagina wisselen sluit het menu, en achter het paneel mag je niet scrollen.
   useEffect(() => setOpen(false), [pathname]);
@@ -96,14 +95,18 @@ const MobielMenu: React.FC<MobielMenuProps> = ({ nav }) => {
 
           <div className="space-y-2 overflow-y-auto" style={{ maxHeight: '60vh' }}>
             {groepen.map((groep) => {
-              const isUit = uitgeklapt === groep.naam;
+              const isUit = !ingeklapt.includes(groep.naam);
               return (
                 <section key={groep.naam} className="cmt-menu-groep">
                   <button
                     type="button"
                     className="cmt-menu-kop"
                     aria-expanded={isUit}
-                    onClick={() => setUitgeklapt(isUit ? null : groep.naam)}
+                    onClick={() =>
+                      setIngeklapt((lijst) =>
+                        isUit ? [...lijst, groep.naam] : lijst.filter((n) => n !== groep.naam)
+                      )
+                    }
                   >
                     <span>{groep.naam}</span>
                     <ChevronDown
@@ -123,7 +126,10 @@ const MobielMenu: React.FC<MobielMenuProps> = ({ nav }) => {
                           }
                           style={{ animationDelay: `${i * 30}ms` }}
                         >
-                          <span className="cmt-menu-tegel-icoon">{item.icon}</span>
+                          <span className="cmt-menu-tegel-icoon">
+                            {item.icon}
+                            {item.teller === 'chat' && <NavTeller aantal={ongelezen} zwevend />}
+                          </span>
                           <span className="text-sm font-semibold">{item.label}</span>
                         </NavLink>
                       ))}
@@ -145,6 +151,7 @@ const MobielMenu: React.FC<MobielMenuProps> = ({ nav }) => {
       >
         {open ? <X className="w-6 h-6" /> : <Menu className="w-6 h-6" />}
         {!open && actief && <span className="cmt-menu-knop-label">{actief.label}</span>}
+        {!open && <NavTeller aantal={ongelezen} zwevend />}
       </button>
     </div>
   );

@@ -27,7 +27,12 @@ interface GlasStore {
   /** Alle orders (admin). */
   loadAlle: () => Promise<void>;
   /** Maakt een order aan met status 'aangemeld' en geeft het nieuwe id terug. */
-  maakOrder: (customer: Customer, opmerking?: string) => Promise<string>;
+  maakOrder: (
+    customer: Customer,
+    opmerking?: string,
+    /** De wens van de klant over wanneer het uitkomt. Geen afspraak. */
+    voorkeur?: { voorkeurTijdslotId: string; voorkeurVan: string; voorkeurTot: string } | null
+  ) => Promise<string>;
   setStatus: (orderId: string, status: GlasStatus) => Promise<void>;
   markeerBetaald: (orderId: string, stripeSessionId: string, stripeStatus: string) => Promise<void>;
   markeerOpgehaald: (orderId: string, jayceId: string) => Promise<void>;
@@ -103,7 +108,7 @@ export const useGlasStore = create<GlasStore>((set, get) => ({
     }
   },
 
-  maakOrder: async (customer, opmerking) => {
+  maakOrder: async (customer, opmerking, voorkeur) => {
     const order: Omit<GlasOrder, 'id'> = {
       customerId: customer.id,
       customerNaam: customer.naam,
@@ -114,6 +119,7 @@ export const useGlasStore = create<GlasStore>((set, get) => ({
       bedrag: GLAS_PRIJS_CENTEN,
       aangemaaktOp: new Date().toISOString(),
       ...(opmerking ? { opmerking } : {}),
+      ...(voorkeur ?? {}),
     };
 
     const ref = await addDoc(collection(db, COLLECTIE), order);

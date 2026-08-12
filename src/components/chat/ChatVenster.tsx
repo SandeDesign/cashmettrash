@@ -6,8 +6,10 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { format, isSameDay } from 'date-fns';
 import { nl } from 'date-fns/locale';
-import { Link2, Send, X } from 'lucide-react';
+import { ExternalLink, Link2, Send, X } from 'lucide-react';
 import Loading from '../shared/Loading';
+import BerichtTekst from './BerichtTekst';
+import { isLink, normaliseerLink } from '../../utils/links';
 import type { ChatBericht } from '../../types';
 
 interface ChatVensterProps {
@@ -45,8 +47,9 @@ const ChatVenster: React.FC<ChatVensterProps> = ({
     onderkant.current?.scrollIntoView({ block: 'end' });
   }, [berichten.length]);
 
+  // We slaan het adres genormaliseerd op, zodat "tikkie.me/pay/x" ook werkt.
   const linkSchoon = tikkieLink.trim();
-  const linkGeldig = !tikkieOpen || linkSchoon === '' || /^https?:\/\/\S+$/.test(linkSchoon);
+  const linkGeldig = !tikkieOpen || linkSchoon === '' || isLink(linkSchoon);
 
   const verstuur = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -55,7 +58,7 @@ const ChatVenster: React.FC<ChatVensterProps> = ({
 
     setBezig(true);
     try {
-      await onVerstuur(schoon, linkSchoon || undefined);
+      await onVerstuur(schoon, normaliseerLink(linkSchoon) ?? undefined);
       setTekst('');
       setTikkieLink('');
       setTikkieOpen(false);
@@ -104,8 +107,21 @@ const ChatVenster: React.FC<ChatVensterProps> = ({
                       boxShadow: 'var(--cmt-shadow-card)',
                     }}
                   >
-                    {bericht.tekst}
+                    <BerichtTekst tekst={bericht.tekst} />
                   </div>
+
+                  {/* De Tikkie-knop hoort aan beide kanten zichtbaar te zijn: de
+                      beheerder moet kunnen nakijken of hij de goede link stuurde. */}
+                  {bericht.tikkieLink && (
+                    <a
+                      href={bericht.tikkieLink}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="cmt-flow-stat cmt-btn-primary !py-2 !text-sm mt-2"
+                    >
+                      <ExternalLink className="w-4 h-4" /> Open de Tikkie
+                    </a>
+                  )}
 
                   {renderExtra?.(bericht)}
 
@@ -158,7 +174,8 @@ const ChatVenster: React.FC<ChatVensterProps> = ({
 
         {!linkGeldig && (
           <p className="text-xs mb-2" style={{ color: 'var(--cmt-error)' }}>
-            Een Tikkie-link begint met https://
+            Dat lijkt geen webadres. Plak de link uit Viatim, bijvoorbeeld
+            tikkie.me/pay/iets.
           </p>
         )}
 

@@ -4,8 +4,10 @@ import { Link, NavLink } from 'react-router-dom';
 import { LogOut } from 'lucide-react';
 import Logo from '../shared/Logo';
 import MobielMenu from './MobielMenu';
+import NavTeller from './NavTeller';
 import { useAuthStore } from '../../store/authStore';
 import { useAuth } from '../../hooks/useAuth';
+import { useOngelezen } from '../../hooks/useOngelezen';
 
 export interface NavItem {
   to: string;
@@ -14,6 +16,8 @@ export interface NavItem {
   end?: boolean;
   /** Kopje waaronder dit item in het mobiele menu komt te staan. */
   groep?: string;
+  /** Zet hier 'chat' om het aantal ongelezen berichten als bolletje te tonen. */
+  teller?: 'chat';
 }
 
 interface AppLayoutProps {
@@ -26,6 +30,7 @@ interface AppLayoutProps {
 const AppLayout: React.FC<AppLayoutProps> = ({ children, nav = [], title }) => {
   const { user } = useAuth();
   const logout = useAuthStore((s) => s.logout);
+  const ongelezen = useOngelezen();
   const heeftNav = nav.length > 0;
 
   return (
@@ -75,6 +80,7 @@ const AppLayout: React.FC<AppLayoutProps> = ({ children, nav = [], title }) => {
                 >
                   {item.icon}
                   {item.label}
+                  {item.teller === 'chat' && <NavTeller aantal={ongelezen} />}
                 </NavLink>
               ))}
             </div>
@@ -91,7 +97,7 @@ const AppLayout: React.FC<AppLayoutProps> = ({ children, nav = [], title }) => {
         {children}
       </main>
 
-      {heeftNav && <MobielMenu nav={nav} />}
+      {heeftNav && <MobielMenu nav={nav} ongelezen={ongelezen} />}
     </div>
   );
 };

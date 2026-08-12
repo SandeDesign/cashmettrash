@@ -6,6 +6,7 @@
 
 import {
   BarChart3,
+  Bike,
   CalendarCheck,
   CalendarClock,
   ClipboardList,
@@ -43,6 +44,7 @@ export const KLANT_NAV: NavItem[] = [
     label: 'Berichten',
     icon: <MessageSquare className="w-5 h-5" />,
     groep: 'Van mij',
+    teller: 'chat',
   },
   { to: '/profiel', label: 'Gegevens', icon: <User className="w-5 h-5" />, groep: 'Van mij' },
 ];
@@ -112,12 +114,19 @@ export const ADMIN_NAV: NavItem[] = [
     label: 'Berichten',
     icon: <MessageSquare className="w-5 h-5" />,
     groep: 'Vandaag',
+    teller: 'chat',
   },
   {
     to: '/admin/dagoverzicht',
     label: 'Per dag',
     icon: <CalendarCheck className="w-5 h-5" />,
     groep: 'Vandaag',
+  },
+  {
+    to: '/admin/ophalen',
+    label: 'Ophaalronde',
+    icon: <Bike className="w-5 h-5" />,
+    groep: 'Ophalen',
   },
   { to: '/admin/glas', label: 'Glas', icon: <Wine className="w-5 h-5" />, groep: 'Ophalen' },
   {

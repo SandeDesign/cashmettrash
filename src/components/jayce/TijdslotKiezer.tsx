@@ -13,6 +13,8 @@ import type { Tijdslot } from '../../types';
 
 interface TijdslotKiezerProps {
   sloten: Tijdslot[];
+  /** Het moment dat de klant het handigst vond. Dat zetten we bovenaan. */
+  voorkeurId?: string;
   onKiezen: (slot: Tijdslot, van: Date, tot: Date) => Promise<void>;
   onAnnuleren: () => void;
 }
@@ -24,10 +26,18 @@ function dagInWoorden(datum: Date): string {
   return format(datum, 'EEEE d MMMM', { locale: nl });
 }
 
-const TijdslotKiezer: React.FC<TijdslotKiezerProps> = ({ sloten, onKiezen, onAnnuleren }) => {
+const TijdslotKiezer: React.FC<TijdslotKiezerProps> = ({
+  sloten,
+  voorkeurId,
+  onKiezen,
+  onAnnuleren,
+}) => {
   const [bezigMet, setBezigMet] = useState<string | null>(null);
 
-  const actief = sloten.filter((s) => s.actief);
+  // De wens van de klant bovenaan, de rest daaronder in de gewone volgorde.
+  const actief = sloten
+    .filter((s) => s.actief)
+    .sort((a, b) => Number(b.id === voorkeurId) - Number(a.id === voorkeurId));
 
   if (actief.length === 0) {
     return (
@@ -75,6 +85,9 @@ const TijdslotKiezer: React.FC<TijdslotKiezerProps> = ({ sloten, onKiezen, onAnn
                   <span className="block text-sm" style={{ color: 'var(--cmt-ink-soft)' }}>
                     van {slot.van} tot {slot.tot}
                   </span>
+                  {slot.id === voorkeurId && (
+                    <span className="cmt-badge cmt-badge-stat mt-1">Dit wil de klant graag</span>
+                  )}
                 </span>
                 {bezig ? (
                   <span className="cmt-spinner" aria-hidden="true" />

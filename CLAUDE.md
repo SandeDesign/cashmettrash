@@ -51,7 +51,7 @@ niet in het datamodel, niet in de UI, niet in de security rules.
 | `klant` | `/mijn` | Glas aanvragen + betalen, statiegeld aanmelden, ophaalkosten betalen, chatten met de beheerder, eigen gegevens |
 | `jayce` | `/jayce`, `/jayce/route`, `/jayce/bekenden`, `/jayce/score` | Aanvragen bevestigen met een tijdslot en daarna afvinken, statiegeld tellen, de route bekijken, bekenden zien, eigen score. **Geen toegang tot de chat.** Het enige bedrag dat hij ziet is zijn eigen potje |
 | `moeder` | `/mama`, `/mama/tijden`, `/mama/plekken`, `/mama/ideeen` | Meekijken met de ronde en zien bij welke ritten ze mee moet, de ophaaltijden instellen, gevaarlijke plekken markeren, ideeën doorgeven. Geen orders, geen chat |
-| `admin` | `/admin` | Takenlijst, orders, statiegeld afrekenen, chatten met klanten, rollen toewijzen en klanten als bekende aanwijzen (`/admin/klanten`), ophaaltijden (`/admin/tijden`), werkgebied (`/admin/instellingen`), dagoverzicht (`/admin/dagoverzicht`), ideeën (`/admin/ideeen`), cijfers (`/admin/cijfers`), CSV-export |
+| `admin` | `/admin` | Takenlijst, orders, statiegeld afrekenen, chatten met klanten, rollen toewijzen en klanten als bekende aanwijzen (`/admin/klanten`), ophaalronde (`/admin/ophalen`), ophaaltijden (`/admin/tijden`), werkgebied (`/admin/instellingen`), dagoverzicht (`/admin/dagoverzicht`), ideeën (`/admin/ideeen`), cijfers (`/admin/cijfers`), CSV-export |
 
 **Dashboards tonen acties, geen cijfers.** `/admin` en `/mijn` beantwoorden de
 vraag "wat moet ik nu doen". Getallen horen op `/admin/cijfers` en `/jayce/score`.
@@ -69,8 +69,10 @@ ongeluk verdwijnt.
 
 De navigatie per rol staat in `src/components/layout/navItems.tsx`. Op desktop is
 dat de balk onder de header; op mobiel opent `MobielMenu` rechtsonder een paneel
-waarin de items per `groep` bij elkaar staan, ingeklapt op het groepje na waar je
-nu bent. Houd een groep klein, anders wordt uitklappen alsnog een lange lijst.
+waarin de items per `groep` bij elkaar staan, allemaal uitgeklapt zodat je in één
+oogopslag alles ziet; inklappen doe je zelf. Een item met `teller: 'chat'` krijgt
+het rode bolletje met het aantal ongelezen berichten, dat ook op de menuknop zelf
+verschijnt (`useOngelezen`).
 
 ### Bekende
 
@@ -106,6 +108,17 @@ Aanvragen gaan in twee stappen. Jayce ziet een nieuwe aanvraag in zijn lijst,
 drukt op **Ik ga het halen** en kiest een tijdslot. De aanvraag krijgt dan status
 `ingepland` met `geplandVan` en `geplandTot`, de klant krijgt een melding en ziet
 het moment in zijn overzicht. Pas daarna verschijnt de knop om af te vinken.
+
+De klant mag bij het aanmelden een **voorkeur** meegeven (`voorkeurTijdslotId`,
+`voorkeurVan`, `voorkeurTot`). Dat is een wens, geen afspraak: Jayce ziet hem
+bovenaan in zijn kiezer met een label, maar mag gewoon iets anders kiezen. De
+security rules laten de klant alleen de `voorkeur*`-velden zetten, nooit de
+`gepland*`-velden.
+
+De beheerder volgt dit op `/admin/ophalen`: alles wat op de lijst van Jayce
+staat, glas en statiegeld door elkaar, gesplitst in "wacht op Jayce" en
+"ingepland". Dat is bewust een aparte pagina, want `/admin/glas` en
+`/admin/statiegeld` gaan over de administratie en niet over de ronde zelf.
 
 De tijdsloten staan in `tijdsloten/{id}` en herhalen zich wekelijks: een dag plus
 een begin- en eindtijd. Mama beheert ze op `/mama/tijden`, de beheerder op
@@ -156,6 +169,7 @@ glasOrders/{orderId}
   stripeSessionId?, stripePaymentIntentId?, stripeStatus?
   aangemaaktOp, betaaldOp?, opgehaaldOp?, jayceId?
   tijdslotId?, geplandVan?, geplandTot?   // gezet door Jayce bij bevestigen
+  voorkeurTijdslotId?, voorkeurVan?, voorkeurTot?   // wens van de klant
 
 statiegeldLogs/{logId}
   customerId, customerNaam, adres, postcode, plaats
@@ -164,6 +178,7 @@ statiegeldLogs/{logId}
   status: 'aangemeld' | 'ingepland' | 'opgehaald' | 'verwerktBijViatim' | 'tikkieVerstuurd'
   aangemaaktOp, opgehaaldOp?, verwerktOp?, jayceId?
   tijdslotId?, geplandVan?, geplandTot?   // gezet door Jayce bij bevestigen
+  voorkeurTijdslotId?, voorkeurVan?, voorkeurTot?   // wens van de klant
   tikkieVerstuurdOp?, tikkieBedrag?, tikkieLink?   // registratie, niet aanpasbaar
   geschonken: boolean                              // alleen een bekende mag dit
   servicekosten: 200 | 0                           // 0 bij een schenking

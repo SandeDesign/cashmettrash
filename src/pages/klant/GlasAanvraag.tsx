@@ -6,6 +6,7 @@ import AppLayout from '../../components/layout/AppLayout';
 import { KLANT_NAV } from '../../components/layout/navItems';
 import Loading from '../../components/shared/Loading';
 import BuitenWerkgebied from '../../components/klant/BuitenWerkgebied';
+import VoorkeurKiezer, { type Voorkeur } from '../../components/klant/VoorkeurKiezer';
 import { useAuth } from '../../hooks/useAuth';
 import { useCustomerStore } from '../../store/customerStore';
 import { useGlasStore } from '../../store/glasStore';
@@ -21,6 +22,7 @@ const GlasAanvraag: React.FC = () => {
 
   const [opmerking, setOpmerking] = useState('');
   const [akkoordDirect, setAkkoordDirect] = useState(false);
+  const [voorkeur, setVoorkeur] = useState<Voorkeur | null>(null);
   const [fout, setFout] = useState<string | null>(null);
   const [bezig, setBezig] = useState(false);
 
@@ -44,7 +46,7 @@ const GlasAanvraag: React.FC = () => {
     setBezig(true);
 
     try {
-      const orderId = await maakOrder(customer, opmerking.trim() || undefined);
+      const orderId = await maakOrder(customer, opmerking.trim() || undefined, voorkeur);
       const origin = window.location.origin;
 
       const sessie = await createCheckoutSession({
@@ -130,6 +132,8 @@ const GlasAanvraag: React.FC = () => {
                 maxLength={280}
               />
             </div>
+
+            <VoorkeurKiezer waarde={voorkeur} onKies={setVoorkeur} />
 
             <div
               className="flex items-baseline justify-between mb-5 pt-4"

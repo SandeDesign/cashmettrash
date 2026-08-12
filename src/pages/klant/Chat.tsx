@@ -4,7 +4,6 @@
 // met daaronder de knop om de ophaalkosten te betalen.
 
 import React, { useEffect, useState } from 'react';
-import { ExternalLink } from 'lucide-react';
 import AppLayout from '../../components/layout/AppLayout';
 import { KLANT_NAV } from '../../components/layout/navItems';
 import ChatVenster from '../../components/chat/ChatVenster';
@@ -74,7 +73,10 @@ const Chat: React.FC = () => {
     }
   };
 
-  /** Bij een Tikkie-bericht: link openen en, zolang nodig, de ophaalkosten betalen. */
+  /**
+   * De knop om de Tikkie te openen zit al in het gespreksvenster zelf. Hier komt
+   * alleen wat daarbovenop hoort: de ophaalkosten afrekenen.
+   */
   const extra = (bericht: ChatBericht) => {
     if (!bericht.tikkieLink) return null;
 
@@ -83,15 +85,6 @@ const Chat: React.FC = () => {
 
     return (
       <div className="mt-2 flex flex-col gap-2 items-start">
-        <a
-          href={bericht.tikkieLink}
-          target="_blank"
-          rel="noopener noreferrer"
-          className="cmt-flow-stat cmt-btn-primary !py-2 !text-sm"
-        >
-          <ExternalLink className="w-4 h-4" /> Open je Tikkie
-        </a>
-
         {moetBetalen && log && (
           <button
             className="cmt-btn-secondary !py-2 !text-sm"

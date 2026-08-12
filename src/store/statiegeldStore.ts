@@ -38,7 +38,9 @@ interface StatiegeldStore {
     customer: Customer,
     items: StatiegeldItems,
     opmerking?: string,
-    geschonken?: boolean
+    geschonken?: boolean,
+    /** De wens van de klant over wanneer het uitkomt. Geen afspraak. */
+    voorkeur?: { voorkeurTijdslotId: string; voorkeurVan: string; voorkeurTot: string } | null
   ) => Promise<string>;
   /** Jayce bevestigt en kiest een tijdslot waarop hij langskomt. */
   markeerIngepland: (
@@ -133,7 +135,7 @@ export const useStatiegeldStore = create<StatiegeldStore>((set, get) => ({
     }
   },
 
-  maakMelding: async (customer, items, opmerking, geschonken) => {
+  maakMelding: async (customer, items, opmerking, geschonken, voorkeur) => {
     // Schenken kan alleen een bekende, en dan brengen we geen ophaalkosten in
     // rekening: er komt bij deze melding immers niets bij de klant terug.
     const schenkt = !!geschonken && !!customer.isBekende;
@@ -151,6 +153,7 @@ export const useStatiegeldStore = create<StatiegeldStore>((set, get) => ({
       servicekostenStatus: 'nietVerschuldigd',
       aangemaaktOp: new Date().toISOString(),
       ...(opmerking ? { opmerking } : {}),
+      ...(voorkeur ?? {}),
     };
 
     const ref = await addDoc(collection(db, COLLECTIE), log);
