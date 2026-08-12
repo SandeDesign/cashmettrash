@@ -8,10 +8,11 @@
 
 import React from 'react';
 import { Link } from 'react-router-dom';
-import { ArrowRight, Check, Coins, Heart, MapPin, Recycle, Sparkles, Wine } from 'lucide-react';
+import { ArrowRight, Check, Coins, Heart, MapPin, Recycle, Wine } from 'lucide-react';
 import PublicHeader from '../components/layout/PublicHeader';
 import HeroIllustratie from '../components/landing/HeroIllustratie';
 import Logo from '../components/shared/Logo';
+import LogoLockup from '../components/shared/LogoLockup';
 import CollapsibleSection from '../components/common/CollapsibleSection';
 import {
   formatCenten,
@@ -259,12 +260,7 @@ const Landing: React.FC = () => (
     {/* ---------------- Slot-CTA ---------------- */}
     <section className="cmt-section cmt-section-alt">
       <div className="max-w-3xl mx-auto px-4 text-center">
-        <span
-          className="inline-flex items-center justify-center w-12 h-12 rounded-full mb-5"
-          style={{ background: 'var(--cmt-glas-bg)', color: 'var(--cmt-glas)' }}
-        >
-          <Sparkles className="w-6 h-6" />
-        </span>
+        <LogoLockup className="w-48 sm:w-56 mx-auto mb-6" />
 
         <h2 className="cmt-section-title mb-3">Klaar om je kratten kwijt te raken?</h2>
         <p className="cmt-lead mb-7 max-w-xl mx-auto">

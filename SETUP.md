@@ -156,18 +156,35 @@ rollen simpelweg niet gebruikt.
 
 ---
 
-## 5. Logo-assets vervangen
+## 5. Logo-assets
 
-In `public/` staan tijdelijke placeholders. Overschrijf deze bestanden met de
-definitieve assets. De bestandsnamen zijn al goed, er hoeft niets in de code te
-veranderen:
+De definitieve assets staan in `public/` en hoeven niet meer vervangen te worden:
 
-| Bestand | Formaat |
+| Bestand | Gebruik |
 |---|---|
-| `icon-192.png` | 192 × 192 PNG, maskable (houd het beeldmerk binnen de middelste 80%) |
-| `icon-512.png` | 512 × 512 PNG, maskable |
-| `favicon.png` | 64 × 64 PNG |
-| `logo.svg` | transparant, voor de header |
+| `logo.svg` | Beeldmerk in de header. Het karakter staat hier bewust groter in de ring dan in het volledige logo, want op 28 px is de originele verhouding niet meer te lezen |
+| `icon-192.png`, `icon-512.png` | App-icoon en og:image, `purpose: "any"` |
+| `icon-maskable-192.png`, `icon-maskable-512.png` | App-icoon voor Android, `purpose: "maskable"`. Zonder de blauwe ring, want die wordt door de cirkelcrop toch afgesneden |
+| `favicon.png` | Browsertab, 64 × 64 |
+
+Het volledige logo met wordmerk zit als React-component in
+`src/components/shared/LogoLockup.tsx` en staat op de landingspagina. Dat is
+bewust inline SVG en geen `<img>`: een SVG die via een img-tag wordt geladen haalt
+geen externe fonts op, waardoor het wordmerk in een verkeerd lettertype zou
+verschijnen.
+
+### PNG's opnieuw genereren
+
+Wijzigt `logo.svg` ooit, dan moeten de vier PNG's opnieuw worden gerenderd. Er zit
+geen build-stap voor in het project; het is een losse handeling met headless
+Chromium. Vraag Claude Code erom, of gebruik een tool naar keuze en houd deze
+formaten aan:
+
+- `icon-512.png`, `icon-192.png`, `favicon.png`: de badge uit `logo.svg`, met
+  transparante achtergrond
+- `icon-maskable-*.png`: hetzelfde karakter zonder badge-cirkel en zonder ring, op
+  een `#EAF6F1` vlak, op ongeveer 80% van het canvas zodat alles binnen de veilige
+  zone van de cirkelcrop blijft
 
 ---
 

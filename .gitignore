@@ -3,7 +3,7 @@ dist
 dist-ssr
 .vercel
 
-# Lokale omgeving — nooit committen
+# Lokale omgeving, nooit committen
 .env
 .env.local
 .env.*.local

@@ -1,6 +1,6 @@
 rules_version = '2';
 
-// CashMetTrash — Firestore security rules
+// CashMetTrash Firestore security rules
 //
 // Twee gescheiden geldstromen:
 //   glasOrders      klant betaalt EUR 4,99 via Stripe -> bedragen en Stripe-velden

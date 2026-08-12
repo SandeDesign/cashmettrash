@@ -1,6 +1,6 @@
 // public/service-worker.js
 // Verhoog CACHE_VERSION bij elke deploy om caches te verversen.
-const CACHE_VERSION = 'v1.0.0';
+const CACHE_VERSION = 'v1.1.0';
 const STATIC_CACHE = `cashmettrash-static-${CACHE_VERSION}`;
 const DYNAMIC_CACHE = `cashmettrash-dynamic-${CACHE_VERSION}`;
 
@@ -51,7 +51,7 @@ self.addEventListener('fetch', (event) => {
     return;
   }
 
-  // Gehashte build-assets altijd van het netwerk — voorkomt MIME-fouten na een deploy.
+  // Gehashte build-assets altijd van het netwerk, dat voorkomt MIME-fouten na een deploy.
   if (url.pathname.match(/\.(js|css)$/) && url.pathname.match(/-[a-zA-Z0-9_-]{8}\./)) {
     event.respondWith(fetch(request));
     return;

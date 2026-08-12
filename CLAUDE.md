@@ -210,7 +210,6 @@ fallbacks meer in `src/lib/firebase.ts`.
 
 ## 10. Openstaand / TODO
 
-- [ ] Definitieve logo-assets vervangen de placeholders in `public/`
 - [ ] Geen e-mailnotificaties in v1, bevestigingsmails zijn bewust uitgesteld
 - [ ] Tikkie-koppeling is handmatig: je plakt bedrag en link uit Viatim, de app
       deelt ze in de chat. Geen Viatim- of Tikkie-API in v1
