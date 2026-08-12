@@ -1,11 +1,23 @@
+// src/main.tsx
 import { StrictMode } from 'react';
 import { createRoot } from 'react-dom/client';
-import App from './App.tsx';
 import './index.css';
-import './styles/vlottr-theme.css';
+import './styles/cmt-theme.css';
+import { ontbrekendeConfig, toonConfigFout } from './lib/configCheck';
 
-createRoot(document.getElementById('root')!).render(
-  <StrictMode>
-    <App />
-  </StrictMode>
-);
+const root = document.getElementById('root')!;
+const ontbrekend = ontbrekendeConfig();
+
+if (ontbrekend.length > 0) {
+  // App.tsx bewust niet importeren: dat trekt lib/firebase.ts mee, dat zonder
+  // geldige config al bij het importeren gooit en zo een wit scherm oplevert.
+  toonConfigFout(ontbrekend, root);
+} else {
+  import('./App.tsx').then(({ default: App }) => {
+    createRoot(root).render(
+      <StrictMode>
+        <App />
+      </StrictMode>
+    );
+  });
+}

@@ -1,0 +1,25 @@
+node_modules
+dist
+dist-ssr
+.vercel
+
+# Lokale omgeving — nooit committen
+.env
+.env.local
+.env.*.local
+
+# Logs
+npm-debug.log*
+yarn-error.log*
+*.log
+
+# Editor / OS
+.vscode/*
+!.vscode/extensions.json
+.idea
+.DS_Store
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
+*.sw?

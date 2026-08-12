@@ -1,3 +1,4 @@
+// src/components/common/CollapsibleSection.tsx
 import React, { useState } from 'react';
 import { ChevronDown } from 'lucide-react';
 
@@ -14,32 +15,35 @@ const CollapsibleSection: React.FC<CollapsibleSectionProps> = ({
   icon,
   defaultOpen = true,
   children,
-  badge
+  badge,
 }) => {
   const [isOpen, setIsOpen] = useState(defaultOpen);
 
   return (
-    <div className="border border-white/[0.1] rounded-lg overflow-hidden">
+    <div
+      className="rounded-xl overflow-hidden"
+      style={{ border: '1px solid var(--cmt-border)', background: 'var(--cmt-surface)' }}
+    >
       <button
         onClick={() => setIsOpen(!isOpen)}
-        className="w-full flex items-center justify-between p-4 hover:bg-white/[0.03] transition-colors"
+        className="w-full flex items-center justify-between p-4 transition-colors hover:bg-black/[0.02]"
+        aria-expanded={isOpen}
       >
-        <div className="flex items-center gap-2">
-          {icon && <span className="text-green-400">{icon}</span>}
-          <span className="text-white font-semibold text-sm">{title}</span>
+        <span className="flex items-center gap-2">
+          {icon && <span style={{ color: 'var(--cmt-accent)' }}>{icon}</span>}
+          <span className="font-semibold text-sm" style={{ color: 'var(--cmt-ink)' }}>
+            {title}
+          </span>
           {badge}
-        </div>
+        </span>
         <ChevronDown
-          className={`w-4 h-4 text-neutral-500 transition-transform duration-200 ${
-            isOpen ? 'rotate-180' : ''
-          }`}
+          className={`w-4 h-4 transition-transform duration-200 ${isOpen ? 'rotate-180' : ''}`}
+          style={{ color: 'var(--cmt-ink-muted)' }}
         />
       </button>
       {isOpen && (
-        <div className="px-4 pb-4 border-t border-white/[0.05]">
-          <div className="pt-4">
-            {children}
-          </div>
+        <div className="px-4 pb-4 pt-4" style={{ borderTop: '1px solid var(--cmt-border)' }}>
+          {children}
         </div>
       )}
     </div>
