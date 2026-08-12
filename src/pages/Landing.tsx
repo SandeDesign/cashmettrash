@@ -1,9 +1,10 @@
 // src/pages/Landing.tsx
 //
 // Publieke landingspagina. Legt vooral de twee gescheiden geldstromen uit:
-// glas is een betaalde ophaaldienst, statiegeld levert de klant juist geld op.
-// Dat onderscheid is voor nieuwe bezoekers het makkelijkst te verwarren, dus het
-// staat hier centraal — met dezelfde kleurcodering als in de app.
+// bij glas betaal je voor het ophalen, bij statiegeld krijg je juist geld terug
+// en betaal je alleen de ophaalkosten. Dat onderscheid is voor nieuwe bezoekers
+// het makkelijkst te verwarren, dus het staat hier centraal, met dezelfde
+// kleurcodering als in de app.
 
 import React from 'react';
 import { Link } from 'react-router-dom';
@@ -12,12 +13,16 @@ import PublicHeader from '../components/layout/PublicHeader';
 import HeroIllustratie from '../components/landing/HeroIllustratie';
 import Logo from '../components/shared/Logo';
 import CollapsibleSection from '../components/common/CollapsibleSection';
-import { formatCenten, GLAS_PRIJS_CENTEN } from '../utils/constants';
+import {
+  formatCenten,
+  GLAS_PRIJS_CENTEN,
+  STATIEGELD_SERVICE_CENTEN,
+} from '../utils/constants';
 
 const STAPPEN = [
   {
     titel: 'Meld je aan',
-    tekst: 'Maak een account met je adres. Daarmee weet Jayce waar hij langs moet komen.',
+    tekst: 'Maak een account met je adres, zodat Jayce weet waar hij langs moet komen.',
   },
   {
     titel: 'Zet het klaar',
@@ -25,7 +30,7 @@ const STAPPEN = [
   },
   {
     titel: 'Jayce komt langs',
-    tekst: 'Hij haalt het op en vinkt het af. Je ziet de status terug in je overzicht.',
+    tekst: 'Hij komt met de skelter langs, haalt het op en vinkt het af. Je ziet de status terug in je overzicht.',
   },
 ];
 
@@ -33,16 +38,20 @@ const VRAGEN = [
   {
     vraag: 'Waarom betaal ik voor glas en krijg ik geld voor statiegeld?',
     antwoord:
-      'Op glazen flessen zit geen statiegeld — ze leveren niets op. Je betaalt dus voor de moeite van het ophalen en wegbrengen. Op plastic flessen en blikjes zit wél statiegeld, en dat is van jou. Dat krijg je terug via een Tikkie zodra alles is ingeleverd.',
+      'Op glazen flessen zit geen statiegeld, die leveren niets op. Je betaalt dus voor de moeite van het ophalen en wegbrengen. Op plastic flessen en blikjes zit wél statiegeld, en dat is van jou. Je krijgt het volledige bedrag terug via een Tikkie zodra alles is ingeleverd.',
   },
   {
     vraag: 'Hoeveel kost het ophalen van glas?',
-    antwoord: `${formatCenten(GLAS_PRIJS_CENTEN)} per ophaalbeurt — niet per fles. Of je nu vijf of vijftig flessen klaarzet, de prijs blijft hetzelfde.`,
+    antwoord: `${formatCenten(GLAS_PRIJS_CENTEN)} per ophaalbeurt, niet per fles. Of je nu vijf of vijftig flessen klaarzet, de prijs blijft hetzelfde.`,
+  },
+  {
+    vraag: 'Wat kost het ophalen van statiegeld?',
+    antwoord: `Het aanmelden is gratis. Als je statiegeld is ingeleverd krijg je het volledige bedrag terug via een Tikkie, en betaal je ${formatCenten(STATIEGELD_SERVICE_CENTEN)} ophaalkosten in de app. Je betaalt dus pas iets als het echt is opgehaald.`,
   },
   {
     vraag: 'Wanneer komt Jayce langs?',
     antwoord:
-      'Zodra het hem uitkomt, meestal binnen een paar dagen. Hij plant zijn eigen rondje; je hoeft geen tijdslot te kiezen en niet thuis te zijn. Zet het gewoon klaar op een plek die je in de opmerking doorgeeft.',
+      'Zodra het hem uitkomt, meestal binnen een paar dagen. Hij plant zijn eigen rondje met de skelter. Je hoeft geen tijdslot te kiezen en niet thuis te zijn: zet het klaar op een plek die je in de opmerking doorgeeft.',
   },
   {
     vraag: 'Moet ik precies tellen hoeveel flessen en blikjes ik heb?',
@@ -50,9 +59,9 @@ const VRAGEN = [
       'Nee, een schatting is genoeg. Jayce telt bij het ophalen na, en dat aantal is wat telt voor je Tikkie.',
   },
   {
-    vraag: 'Krijgt Jayce mijn geld?',
+    vraag: 'Krijgt Jayce mijn statiegeld?',
     antwoord:
-      'Nee. Het statiegeld is en blijft van jou; er loopt geen geld via Jayce. De betaling voor het ophalen van glas gaat naar het bedrijf, niet naar hem.',
+      'Nee. Het statiegeld is en blijft van jou, en er loopt geen geld via Jayce. Je krijgt het volledige bedrag dat uit de inleverautomaat komt terug via Tikkie. De ophaalkosten betaal je apart in de app.',
   },
 ];
 
@@ -66,7 +75,7 @@ const Landing: React.FC = () => (
         <div className="grid lg:grid-cols-2 gap-10 lg:gap-8 items-center">
           <div className="cmt-animate-in">
             <span className="cmt-eyebrow mb-5">
-              <MapPin className="w-4 h-4" /> Bij jou in de buurt
+              <MapPin className="w-4 h-4" /> Tilburg, rond de Magriethof
             </span>
 
             <h1 className="cmt-display mb-4">
@@ -77,7 +86,7 @@ const Landing: React.FC = () => (
 
             <p className="cmt-lead mb-7 max-w-lg">
               Geen kratten meer naar de supermarkt sjouwen. Zet het klaar, geef het door
-              in de app, en het staat er de volgende keer weer leeg.
+              in de app, en Jayce komt het met de skelter ophalen.
             </p>
 
             <div className="flex flex-col sm:flex-row gap-3">
@@ -90,7 +99,7 @@ const Landing: React.FC = () => (
             </div>
 
             <p className="mt-4 text-sm" style={{ color: 'var(--cmt-ink-muted)' }}>
-              Gratis account · geen abonnement · je betaalt alleen per ophaalbeurt glas
+              Gratis account · geen abonnement · je betaalt alleen per ophaalbeurt
             </p>
           </div>
 
@@ -135,7 +144,7 @@ const Landing: React.FC = () => (
                 <Check className="w-4 h-4" /> Je betaalt vooraf in de app, veilig via Stripe
               </li>
               <li>
-                <Check className="w-4 h-4" /> Geen abonnement — je vraagt het aan wanneer je wilt
+                <Check className="w-4 h-4" /> Geen abonnement, je vraagt het aan wanneer je wilt
               </li>
               <li>
                 <Check className="w-4 h-4" /> Op glas zit geen statiegeld, dus dit levert niets op
@@ -157,20 +166,20 @@ const Landing: React.FC = () => (
               Plastic flessen en blikjes met statiegeldlogo.
             </p>
 
-            <p className="cmt-prijs">Gratis</p>
+            <p className="cmt-prijs">{formatCenten(STATIEGELD_SERVICE_CENTEN)}</p>
             <p className="text-sm mb-5" style={{ color: 'var(--cmt-ink-muted)' }}>
-              en je krijgt je statiegeld terug via Tikkie
+              ophaalkosten, pas te betalen nadat het is opgehaald
             </p>
 
             <ul className="cmt-lijst">
               <li>
-                <Check className="w-4 h-4" /> Je betaalt hier niets voor — het levert jóu geld op
+                <Check className="w-4 h-4" /> Je statiegeld krijg je volledig terug via Tikkie
               </li>
               <li>
-                <Check className="w-4 h-4" /> Een schatting van de aantallen is genoeg
+                <Check className="w-4 h-4" /> Aanmelden is gratis, een schatting van de aantallen is genoeg
               </li>
               <li>
-                <Check className="w-4 h-4" /> Na het inleveren krijg je een Tikkie voor het bedrag
+                <Check className="w-4 h-4" /> Bij de meeste kratten hou je onder de streep geld over
               </li>
             </ul>
           </article>
@@ -216,13 +225,13 @@ const Landing: React.FC = () => (
             <div>
               <h2 className="cmt-section-title mb-3">Wie is Jayce?</h2>
               <p className="cmt-lead mb-4 max-w-2xl">
-                Jayce is een jongen uit de buurt die zijn eigen zakcentje verdient door
-                andermans glas en statiegeld op te halen. Hij fietst het rondje zelf,
-                telt zelf, en houdt zelf bij wat er nog moet gebeuren.
+                Jayce is een jongen uit Tilburg die zijn eigen zakcentje verdient door
+                bij de buren glas en statiegeld op te halen. Hij rijdt het rondje zelf
+                op zijn skelter, telt zelf, en houdt zelf bij wat er nog moet gebeuren.
               </p>
               <p className="text-sm max-w-2xl" style={{ color: 'var(--cmt-ink-soft)' }}>
                 Jij helpt hem op weg, hij scheelt jou een ritje naar de glasbak. Het
-                statiegeld blijft gewoon van jou — daar komt hij niet aan.
+                statiegeld blijft gewoon van jou, daar komt hij niet aan.
               </p>
             </div>
           </div>
@@ -259,8 +268,8 @@ const Landing: React.FC = () => (
 
         <h2 className="cmt-section-title mb-3">Klaar om je kratten kwijt te raken?</h2>
         <p className="cmt-lead mb-7 max-w-xl mx-auto">
-          Een account maken kost een minuut en is gratis. Je betaalt pas iets als je
-          daadwerkelijk glas laat ophalen.
+          Een account maken kost een minuut en is gratis. Woon je in Tilburg rond de
+          Magriethof, dan komt Jayce bij je langs.
         </p>
 
         <div className="flex flex-col sm:flex-row gap-3 justify-center">
@@ -282,7 +291,7 @@ const Landing: React.FC = () => (
             <Logo size="sm" showText={false} className="mb-3" />
             <p className="font-bold">CashMetTrash</p>
             <p className="text-sm" style={{ color: 'rgba(255,255,255,0.55)' }}>
-              Glas en statiegeld ophalen in de buurt.
+              Glas en statiegeld ophalen in Tilburg.
             </p>
           </div>
 

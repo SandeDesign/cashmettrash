@@ -62,7 +62,7 @@ export const clearErrorLogs = () => {
   }
 };
 
-// Errors that come from the dev environment (webcontainer, HMR, etc.) — not our app
+// Errors that come from the dev environment (webcontainer, HMR, etc.), not our app
 const IGNORED_ERROR_PATTERNS = [
   /webcontainer/i,
   /\.webcontainer@/i,

@@ -1,8 +1,11 @@
 // src/pages/admin/StatiegeldLog.tsx
 //
 // Statiegeld-administratie: gegroepeerd per klant. Toont de schatting van de klant
-// naast de telling van Jayce. De Tikkie wordt buiten de app verstuurd; hier wordt
-// alleen handmatig gemarkeerd dat het gebeurd is.
+// naast de telling van Jayce.
+//
+// De Tikkie komt uit Viatim en kan hier niet worden aangepast; je plakt alleen
+// het bedrag en de link. De app zet die link automatisch in het gesprek met de
+// klant en zet tegelijk de ophaalkosten op openstaand.
 
 import React, { useEffect, useMemo, useState } from 'react';
 import { format } from 'date-fns';
@@ -13,59 +16,91 @@ import { ADMIN_NAV } from '../../components/layout/navItems';
 import Loading from '../../components/shared/Loading';
 import { StatiegeldStatusBadge } from '../../components/common/StatusBadge';
 import { useStatiegeldStore } from '../../store/statiegeldStore';
-import { formatCenten, STATIEGELD_STATUS_LABEL } from '../../utils/constants';
+import { useChatStore } from '../../store/chatStore';
+import {
+  formatCenten,
+  SERVICEKOSTEN_STATUS_LABEL,
+  STATIEGELD_STATUS_LABEL,
+} from '../../utils/constants';
 import { centenVoorCsv, downloadCsv, naarCsv } from '../../utils/csv';
 import type { StatiegeldLog as StatiegeldLogType } from '../../types';
 
 const datumTijd = (iso?: string) =>
   iso ? format(new Date(iso), 'd MMM yyyy HH:mm', { locale: nl }) : '';
 
-const TikkieKnop: React.FC<{ log: StatiegeldLogType; onVerstuur: (centen: number) => Promise<void> }> = ({
-  log,
-  onVerstuur,
-}) => {
+const TikkieKnop: React.FC<{
+  log: StatiegeldLogType;
+  onVerstuur: (centen: number, link: string) => Promise<void>;
+}> = ({ log, onVerstuur }) => {
   const [open, setOpen] = useState(false);
   const [euro, setEuro] = useState('');
+  const [link, setLink] = useState('');
   const [bezig, setBezig] = useState(false);
 
   if (!open) {
     return (
       <button className="cmt-btn-primary !py-1.5 !px-3 !text-xs" onClick={() => setOpen(true)}>
-        <Send className="w-3.5 h-3.5" /> Tikkie verstuurd
+        <Send className="w-3.5 h-3.5" /> Tikkie delen
       </button>
     );
   }
 
   const centen = Math.round(parseFloat(euro.replace(',', '.')) * 100);
-  const geldig = Number.isFinite(centen) && centen > 0;
+  const geldigBedrag = Number.isFinite(centen) && centen > 0;
+  const geldigeLink = /^https?:\/\/\S+$/.test(link.trim());
+  const geldig = geldigBedrag && geldigeLink;
 
   return (
     <form
-      className="flex items-center gap-1.5"
+      className="w-full flex flex-wrap items-end gap-2"
       onSubmit={async (e) => {
         e.preventDefault();
         if (!geldig) return;
         setBezig(true);
         try {
-          await onVerstuur(centen);
+          await onVerstuur(centen, link.trim());
         } finally {
           setBezig(false);
         }
       }}
     >
-      <input
-        className="cmt-input !w-24 !py-1.5 !text-sm"
-        inputMode="decimal"
-        placeholder="2,85"
-        value={euro}
-        onChange={(e) => setEuro(e.target.value)}
-        aria-label={`Tikkie-bedrag voor ${log.customerNaam}`}
-        autoFocus
-      />
+      <div>
+        <label className="cmt-label !text-xs" htmlFor={`bedrag-${log.id}`}>
+          Bedrag uit Viatim
+        </label>
+        <input
+          id={`bedrag-${log.id}`}
+          className="cmt-input !w-28 !py-1.5 !text-sm"
+          inputMode="decimal"
+          placeholder="2,85"
+          value={euro}
+          onChange={(e) => setEuro(e.target.value)}
+          autoFocus
+        />
+      </div>
+
+      <div className="flex-1 min-w-[12rem]">
+        <label className="cmt-label !text-xs" htmlFor={`link-${log.id}`}>
+          Tikkie-link
+        </label>
+        <input
+          id={`link-${log.id}`}
+          className="cmt-input !py-1.5 !text-sm"
+          inputMode="url"
+          placeholder="https://tikkie.me/pay/..."
+          value={link}
+          onChange={(e) => setLink(e.target.value)}
+        />
+      </div>
+
       <button type="submit" className="cmt-btn-primary !py-1.5 !px-3 !text-xs" disabled={!geldig || bezig}>
-        {bezig ? '...' : 'Opslaan'}
+        {bezig ? '...' : 'Delen in chat'}
       </button>
-      <button type="button" className="cmt-btn-ghost !py-1.5 !px-2 !text-xs" onClick={() => setOpen(false)}>
+      <button
+        type="button"
+        className="cmt-btn-ghost !py-1.5 !px-2 !text-xs"
+        onClick={() => setOpen(false)}
+      >
         Annuleren
       </button>
     </form>
@@ -75,15 +110,33 @@ const TikkieKnop: React.FC<{ log: StatiegeldLogType; onVerstuur: (centen: number
 const StatiegeldLogPagina: React.FC = () => {
   const { logs, loading, error, loadAlle, markeerVerwerkt, markeerTikkieVerstuurd } =
     useStatiegeldStore();
+  const stuurBericht = useChatStore((s) => s.stuurBericht);
   const [alleenOpenstaand, setAlleenOpenstaand] = useState(true);
 
   useEffect(() => {
     loadAlle();
   }, [loadAlle]);
 
+  // Openstaand is alles waar nog iets voor moet gebeuren: de Tikkie moet nog
+  // gedeeld worden, of de ophaalkosten zijn nog niet betaald.
   const zichtbaar = alleenOpenstaand
-    ? logs.filter((l) => l.status !== 'tikkieVerstuurd')
+    ? logs.filter((l) => l.status !== 'tikkieVerstuurd' || l.servicekostenStatus === 'openstaand')
     : logs;
+
+  /** Deelt de Tikkie en plaatst hem meteen in het gesprek met de klant. */
+  const deelTikkie = async (log: StatiegeldLogType, centen: number, link: string) => {
+    await markeerTikkieVerstuurd(log.id, centen, link);
+    await stuurBericht({
+      customerId: log.customerId,
+      customerNaam: log.customerNaam,
+      afzender: 'admin',
+      tekst:
+        `Je statiegeld is ingeleverd. Je krijgt ${formatCenten(centen)} terug via de Tikkie hieronder. ` +
+        `Voor het ophalen rekenen we ${formatCenten(log.servicekosten)}, die kun je hier meteen voldoen.`,
+      tikkieLink: link,
+      statiegeldLogId: log.id,
+    });
+  };
 
   /** Gegroepeerd per klant, nieuwste melding eerst binnen elke groep. */
   const perKlant = useMemo(() => {
@@ -102,6 +155,7 @@ const StatiegeldLogPagina: React.FC = () => {
         'Melding', 'Klant', 'Adres', 'Postcode', 'Plaats', 'Status',
         'Schatting flessen', 'Schatting blik', 'Geteld flessen', 'Geteld blik',
         'Aangemeld', 'Opgehaald', 'Verwerkt', 'Tikkie verstuurd', 'Tikkie bedrag',
+        'Ophaalkosten', 'Ophaalkosten status', 'Ophaalkosten betaald',
       ],
       zichtbaar.map((l) => [
         l.id,
@@ -119,6 +173,9 @@ const StatiegeldLogPagina: React.FC = () => {
         datumTijd(l.verwerktOp),
         datumTijd(l.tikkieVerstuurdOp),
         centenVoorCsv(l.tikkieBedrag),
+        centenVoorCsv(l.servicekosten),
+        SERVICEKOSTEN_STATUS_LABEL[l.servicekostenStatus],
+        datumTijd(l.servicekostenBetaaldOp),
       ])
     );
     downloadCsv(`statiegeld-${new Date().toISOString().slice(0, 10)}.csv`, csv);
@@ -193,7 +250,18 @@ const StatiegeldLogPagina: React.FC = () => {
                         </p>
                       </div>
 
-                      <StatiegeldStatusBadge status={log.status} />
+                      <div className="flex flex-wrap items-center gap-2">
+                        <StatiegeldStatusBadge status={log.status} />
+
+                        {log.servicekostenStatus === 'openstaand' && (
+                          <span className="cmt-badge cmt-badge-warning">
+                            {formatCenten(log.servicekosten)} ophaalkosten open
+                          </span>
+                        )}
+                        {log.servicekostenStatus === 'betaald' && (
+                          <span className="cmt-badge cmt-badge-done">Ophaalkosten betaald</span>
+                        )}
+                      </div>
 
                       {log.status === 'opgehaald' && (
                         <button
@@ -207,7 +275,7 @@ const StatiegeldLogPagina: React.FC = () => {
                       {log.status === 'verwerktBijViatim' && (
                         <TikkieKnop
                           log={log}
-                          onVerstuur={(centen) => markeerTikkieVerstuurd(log.id, centen)}
+                          onVerstuur={(centen, link) => deelTikkie(log, centen, link)}
                         />
                       )}
                     </li>

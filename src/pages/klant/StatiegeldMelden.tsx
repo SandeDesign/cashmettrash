@@ -1,7 +1,8 @@
 // src/pages/klant/StatiegeldMelden.tsx
 //
-// Statiegeld-flow: puur registratie. Er komt bewust GEEN betaling en geen bedrag
-// aan te pas — het statiegeld wordt later via Tikkie uitbetaald.
+// Statiegeld-flow: aanmelden is gratis en kost hier geen betaling. Het statiegeld
+// zelf komt onaangeroerd uit Viatim en gaat volledig naar de klant. De
+// ophaalkosten worden pas achteraf in rekening gebracht, samen met de Tikkie.
 
 import React, { useEffect, useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
@@ -12,6 +13,7 @@ import Loading from '../../components/shared/Loading';
 import { useAuth } from '../../hooks/useAuth';
 import { useCustomerStore } from '../../store/customerStore';
 import { useStatiegeldStore } from '../../store/statiegeldStore';
+import { formatCenten, STATIEGELD_SERVICE_CENTEN } from '../../utils/constants';
 
 const AantalVeld: React.FC<{
   id: string;
@@ -96,7 +98,7 @@ const StatiegeldMelden: React.FC = () => {
             <Recycle className="w-8 h-8 mb-3" style={{ color: 'var(--cmt-stat)' }} />
             <h1 className="text-xl font-bold mb-1">Statiegeld aanmelden</h1>
             <p className="text-sm mb-5" style={{ color: 'var(--cmt-ink-soft)' }}>
-              Geef ongeveer aan wat er klaarstaat. Precies hoeven de aantallen niet te zijn —
+              Geef ongeveer aan wat er klaarstaat. Precies hoeven de aantallen niet te zijn,
               Jayce telt bij het ophalen.
             </p>
 
@@ -139,8 +141,9 @@ const StatiegeldMelden: React.FC = () => {
             </button>
 
             <p className="mt-3 text-center text-xs" style={{ color: 'var(--cmt-ink-muted)' }}>
-              Hier betaal je niets voor. Het statiegeld krijg je via een Tikkie terug zodra
-              alles is ingeleverd.
+              Aanmelden is gratis. Zodra het is ingeleverd krijg je het volledige
+              statiegeld terug via een Tikkie, en betaal je{' '}
+              {formatCenten(STATIEGELD_SERVICE_CENTEN)} ophaalkosten.
             </p>
           </form>
         )}

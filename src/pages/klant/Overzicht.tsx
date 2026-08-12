@@ -54,7 +54,7 @@ const Overzicht: React.FC = () => {
           <Recycle className="w-7 h-7 mb-2" style={{ color: 'var(--cmt-stat)' }} />
           <h2 className="font-bold mb-1">Statiegeld aanmelden</h2>
           <p className="text-sm mb-4" style={{ color: 'var(--cmt-ink-soft)' }}>
-            Plastic flessen en blikjes. Je krijgt het statiegeld later via Tikkie terug.
+            Plastic flessen en blikjes. Je krijgt het statiegeld via Tikkie terug.
           </p>
           <span className="cmt-btn-primary">Aanmelden</span>
         </Link>
@@ -121,6 +121,12 @@ const Overzicht: React.FC = () => {
                       Aangemeld op {datum(log.aangemaaktOp)}
                       {log.tikkieBedrag != null && ` · Tikkie ${formatCenten(log.tikkieBedrag)}`}
                     </p>
+                    {log.servicekostenStatus === 'openstaand' && (
+                      <p className="text-xs mt-0.5" style={{ color: 'var(--cmt-warning)' }}>
+                        {formatCenten(log.servicekosten)} ophaalkosten open, te betalen in je
+                        berichten
+                      </p>
+                    )}
                   </div>
                   <StatiegeldStatusBadge status={log.status} />
                 </li>

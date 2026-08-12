@@ -112,7 +112,7 @@ const GlasOrders: React.FC = () => {
                     <td className="whitespace-nowrap">{formatCenten(order.bedrag)}</td>
                     <td>
                       <span style={{ color: 'var(--cmt-ink-muted)' }}>
-                        {order.stripeStatus ?? '—'}
+                        {order.stripeStatus ?? 'geen'}
                       </span>
                     </td>
                     <td>

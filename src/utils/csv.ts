@@ -7,7 +7,7 @@ function veld(waarde: unknown): string {
 }
 
 /**
- * Bouwt een CSV met puntkomma's als scheidingsteken — dat opent in de
+ * Bouwt een CSV met puntkomma's als scheidingsteken, want dat opent in de
  * Nederlandse Excel-instelling direct in kolommen.
  */
 export function naarCsv(kolommen: string[], rijen: unknown[][]): string {
@@ -29,7 +29,7 @@ export function downloadCsv(bestandsnaam: string, inhoud: string): void {
   URL.revokeObjectURL(url);
 }
 
-/** Bedrag in centen als "4,99" — komma-decimaal voor Excel NL. */
+/** Bedrag in centen als "4,99", met komma-decimaal voor Excel NL. */
 export function centenVoorCsv(centen: number | undefined): string {
   return centen == null ? '' : (centen / 100).toFixed(2).replace('.', ',');
 }

@@ -1,4 +1,4 @@
-# CashMetTrash — opzetten
+# CashMetTrash opzetten
 
 Vier stappen: Firebase, PHP-proxy, Vercel, rollen.
 
@@ -29,7 +29,7 @@ krijg je een `firebaseConfig`-blok te zien. Daaruit heb je zes waarden nodig:
 | `appId` | `VITE_FIREBASE_APP_ID` |
 
 Lokaal zet je die in een `.env` (kopieer `.env.example`). In Vercel zet je ze bij
-**Settings > Environment Variables** — zie stap 3.
+**Settings > Environment Variables**, zie stap 3.
 
 Deze waarden zijn niet geheim; ze worden afgeschermd door de security rules.
 
@@ -51,13 +51,15 @@ firebase deploy --only firestore:rules
 
 ### 1.4 Indexen
 
-Firestore vraagt bij het eerste gebruik zelf om twee samengestelde indexen — de
+Firestore vraagt bij het eerste gebruik zelf om samengestelde indexen. De
 foutmelding in de console bevat een directe aanmaaklink. Klik die aan bij:
 
 - `glasOrders`: `customerId` (asc) + `aangemaaktOp` (desc)
 - `glasOrders`: `status` (asc) + `aangemaaktOp` (asc)
 - `statiegeldLogs`: `customerId` (asc) + `aangemaaktOp` (desc)
 - `statiegeldLogs`: `status` (asc) + `aangemaaktOp` (asc)
+
+De chat heeft geen samengestelde index nodig.
 
 ---
 
@@ -107,7 +109,7 @@ Zorg dat beide bestanden CORS toestaan voor het productiedomein.
 
 1. Koppel de repo aan een Vercel-project. Framework wordt herkend als **Vite**;
    build command `npm run build`, output `dist`. Dat staat al in `vercel.json`.
-2. **Settings > Environment Variables** — zet voor **Production, Preview én
+2. **Settings > Environment Variables**: zet voor **Production, Preview én
    Development**:
 
    ```
@@ -132,7 +134,7 @@ Zorg dat beide bestanden CORS toestaan voor het productiedomein.
    Geautoriseerde domeinen**, anders weigert Firebase Auth in te loggen.
 
 > Let op: alles met een `VITE_`-prefix komt in de browserbundle terecht. Zet daar
-> nooit de Stripe secret key in — die hoort in `checkout.php`.
+> nooit de Stripe secret key in, die hoort in `checkout.php`.
 
 ---
 
@@ -157,7 +159,7 @@ rollen simpelweg niet gebruikt.
 ## 5. Logo-assets vervangen
 
 In `public/` staan tijdelijke placeholders. Overschrijf deze bestanden met de
-definitieve assets — de bestandsnamen zijn al goed, er hoeft niets in de code te
+definitieve assets. De bestandsnamen zijn al goed, er hoeft niets in de code te
 veranderen:
 
 | Bestand | Formaat |

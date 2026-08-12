@@ -11,7 +11,14 @@ import {
   where,
 } from 'firebase/firestore';
 import { db } from '../lib/firebase';
-import type { Customer, StatiegeldItems, StatiegeldLog, StatiegeldStatus } from '../types';
+import type {
+  Customer,
+  ServicekostenStatus,
+  StatiegeldItems,
+  StatiegeldLog,
+  StatiegeldStatus,
+} from '../types';
+import { STATIEGELD_SERVICE_CENTEN } from '../utils/constants';
 
 const COLLECTIE = 'statiegeldLogs';
 
@@ -28,8 +35,17 @@ interface StatiegeldStore {
   markeerOpgehaald: (logId: string, jayceId: string, itemsWerkelijk: StatiegeldItems) => Promise<void>;
   /** Admin: ingescand bij Viatim. */
   markeerVerwerkt: (logId: string) => Promise<void>;
-  /** Admin: Tikkie handmatig verstuurd, bedrag in centen. */
-  markeerTikkieVerstuurd: (logId: string, tikkieBedrag: number) => Promise<void>;
+  /**
+   * Admin: Tikkie uit Viatim gedeeld. Zet tegelijk de ophaalkosten op
+   * openstaand, want die worden pas na het ophalen in rekening gebracht.
+   */
+  markeerTikkieVerstuurd: (logId: string, tikkieBedrag: number, tikkieLink: string) => Promise<void>;
+  /** Klant: ophaalkosten betaald via Stripe. */
+  markeerServicekostenBetaald: (
+    logId: string,
+    stripeSessionId: string,
+    stripeStatus: string
+  ) => Promise<void>;
 }
 
 function mapLogs(docs: { id: string; data: () => Record<string, unknown> }[]): StatiegeldLog[] {
@@ -103,6 +119,8 @@ export const useStatiegeldStore = create<StatiegeldStore>((set, get) => ({
       plaats: customer.plaats,
       items,
       status: 'aangemeld',
+      servicekosten: STATIEGELD_SERVICE_CENTEN,
+      servicekostenStatus: 'nietVerschuldigd',
       aangemaaktOp: new Date().toISOString(),
       ...(opmerking ? { opmerking } : {}),
     };
@@ -132,11 +150,24 @@ export const useStatiegeldStore = create<StatiegeldStore>((set, get) => ({
     set({ logs: get().logs.map((l) => (l.id === logId ? { ...l, ...updates } : l)) });
   },
 
-  markeerTikkieVerstuurd: async (logId, tikkieBedrag) => {
+  markeerTikkieVerstuurd: async (logId, tikkieBedrag, tikkieLink) => {
     const updates = {
       status: 'tikkieVerstuurd' as StatiegeldStatus,
       tikkieBedrag,
+      tikkieLink,
       tikkieVerstuurdOp: new Date().toISOString(),
+      servicekostenStatus: 'openstaand' as ServicekostenStatus,
+    };
+    await updateDoc(doc(db, COLLECTIE, logId), updates);
+    set({ logs: get().logs.map((l) => (l.id === logId ? { ...l, ...updates } : l)) });
+  },
+
+  markeerServicekostenBetaald: async (logId, stripeSessionId, stripeStatus) => {
+    const updates = {
+      servicekostenStatus: 'betaald' as ServicekostenStatus,
+      servicekostenBetaaldOp: new Date().toISOString(),
+      serviceStripeSessionId: stripeSessionId,
+      serviceStripeStatus: stripeStatus,
     };
     await updateDoc(doc(db, COLLECTIE, logId), updates);
     set({ logs: get().logs.map((l) => (l.id === logId ? { ...l, ...updates } : l)) });

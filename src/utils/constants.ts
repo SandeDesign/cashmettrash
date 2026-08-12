@@ -1,8 +1,15 @@
 // src/utils/constants.ts
-import type { GlasStatus, StatiegeldStatus } from '../types';
+import type { GlasStatus, ServicekostenStatus, StatiegeldStatus } from '../types';
 
 /** Vaste prijs per glas-ophaalbeurt, in centen. Niet per fles. */
 export const GLAS_PRIJS_CENTEN = 499;
+
+/**
+ * Ophaalkosten statiegeld, in centen. Wordt achteraf in rekening gebracht,
+ * tegelijk met de Tikkie. Staat los van het statiegeld zelf: dat bedrag komt
+ * uit Viatim en gaat volledig naar de klant.
+ */
+export const STATIEGELD_SERVICE_CENTEN = 200;
 
 /**
  * PHP-proxy endpoints. De Stripe secret key staat uitsluitend server-side op de proxy.
@@ -32,6 +39,12 @@ export const STATIEGELD_STATUS_LABEL: Record<StatiegeldStatus, string> = {
   opgehaald: 'Opgehaald',
   verwerktBijViatim: 'Verwerkt bij Viatim',
   tikkieVerstuurd: 'Tikkie verstuurd',
+};
+
+export const SERVICEKOSTEN_STATUS_LABEL: Record<ServicekostenStatus, string> = {
+  nietVerschuldigd: 'Nog niet verschuldigd',
+  openstaand: 'Ophaalkosten open',
+  betaald: 'Ophaalkosten betaald',
 };
 
 /** Google Maps navigatie-link naar een adres. */

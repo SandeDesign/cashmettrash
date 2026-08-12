@@ -1,4 +1,4 @@
-# CLAUDE.md — CashMetTrash
+# CLAUDE.md voor CashMetTrash
 
 Primaire context voor Claude Code in dit project.
 
@@ -9,13 +9,14 @@ Primaire context voor Claude Code in dit project.
 **Naam:** CashMetTrash
 **Onderdeel van:** SandeDesign ecosysteem
 **Doel:** Buurtservice waarbij Jayce glazen flessen en statiegeld (plastic flessen +
-blik) ophaalt bij mensen in de buurt.
+blik) ophaalt bij mensen in de buurt. Werkgebied: Tilburg, rond de Magriethof.
+Jayce doet zijn ronde op de skelter.
 **Repo:** https://github.com/SandeDesign/cashmettrash
 **Hosting:** Vercel
 
 ---
 
-## 2. De twee geldstromen — dit moet exact kloppen
+## 2. De twee geldstromen (dit moet exact kloppen)
 
 Dit is de kern van het project. De twee stromen mogen nergens door elkaar lopen:
 niet in het datamodel, niet in de UI, niet in de security rules.
@@ -29,11 +30,17 @@ niet in het datamodel, niet in de UI, niet in de security rules.
 
 ### Statiegeld
 - Klant geeft via de app aan dat er iets klaarstaat, met een schatting van de aantallen
+- Aanmelden is gratis
 - Jayce verzamelt fysiek en corrigeert de telling; **geen geld loopt via hem**
 - Marc haalt wekelijks collectief op bij Jayce en scant in bij Viatim.nl op zijn account
-- Marc stuurt rechtstreeks een Tikkie naar de klant — niet via Jayce, niet via de app
-- **Geen Stripe, geen betaling** — alleen registratie en logging
-- Firestore: `statiegeldLogs`, zonder enig betaalveld
+- **Het statiegeld zelf gaat volledig en onaangeroerd naar de klant.** Het bedrag
+  komt uit de inleverautomaat via Viatim en kan niet worden aangepast, dus er kan
+  ook niets van worden afgetrokken
+- Marc plakt de Viatim-Tikkie in de chat; de app zet dat bericht automatisch klaar
+- **Ophaalkosten** van EUR 2,00 staan hier helemaal los van. Die worden achteraf in
+  rekening gebracht, tegelijk met de Tikkie, en betaalt de klant via Stripe in de app
+- Firestore: `statiegeldLogs`. Bevat wel `servicekosten*`-velden, maar nooit een
+  veld dat het statiegeld zelf als betaling behandelt
 
 ---
 
@@ -41,9 +48,9 @@ niet in het datamodel, niet in de UI, niet in de security rules.
 
 | Rol | Route | Rechten |
 |---|---|---|
-| `klant` | `/mijn` | Glas aanvragen + betalen, statiegeld aanmelden, eigen overzicht, eigen gegevens |
-| `jayce` | `/jayce` | Openstaande taken zien en afvinken, statiegeld tellen. **Ziet nooit bedragen** |
-| `admin` | `/admin` | Alle orders + Stripe-status, statiegeld-log per klant, Tikkie markeren, CSV-export |
+| `klant` | `/mijn` | Glas aanvragen + betalen, statiegeld aanmelden, ophaalkosten betalen, chatten met de beheerder, eigen gegevens |
+| `jayce` | `/jayce` | Openstaande taken zien en afvinken, statiegeld tellen. **Ziet nooit bedragen en heeft geen toegang tot de chat** |
+| `admin` | `/admin` | Alle orders + Stripe-status, statiegeld-log per klant, Tikkie delen, chatten met klanten, CSV-export |
 
 Registratie geeft altijd `klant`. `jayce` en `admin` worden handmatig in Firestore
 gezet; `firestore.rules` blokkeert rol-escalatie.
@@ -52,11 +59,11 @@ gezet; `firestore.rules` blokkeert rol-escalatie.
 
 ## 4. Tech stack
 
-- React 18 (SPA, react-router-dom v7 — géén Next.js)
+- React 18 (SPA, react-router-dom v7, géén Next.js)
 - TypeScript strict
 - Vite 5
 - Tailwind CSS 3 + eigen design system (`src/styles/cmt-theme.css`)
-- Zustand 5 (`authStore`, `customerStore`, `glasStore`, `statiegeldStore`)
+- Zustand 5 (`authStore`, `customerStore`, `glasStore`, `statiegeldStore`, `chatStore`)
 - Firebase Auth (email/wachtwoord) + Firestore
 - Stripe via PHP-proxy op internedata.nl (`/uploads/cashmettrash/`)
 - lucide-react (iconen), date-fns (datums)
@@ -77,16 +84,28 @@ glasOrders/{orderId}
   stripeSessionId?, stripePaymentIntentId?, stripeStatus?
   aangemaaktOp, betaaldOp?, opgehaaldOp?, jayceId?
 
-statiegeldLogs/{logId}             // GEEN payment/stripe velden
+statiegeldLogs/{logId}
   customerId, customerNaam, adres, postcode, plaats
-  items: { plastic, blik }         // schatting door klant
+  items: { plastic, blik }            // schatting door klant
   itemsWerkelijk?: { plastic, blik }  // telling door Jayce
   status: 'aangemeld' | 'opgehaald' | 'verwerktBijViatim' | 'tikkieVerstuurd'
-  aangemaaktOp, opgehaaldOp?, verwerktOp?, tikkieVerstuurdOp?, tikkieBedrag?
-  jayceId?
+  aangemaaktOp, opgehaaldOp?, verwerktOp?, jayceId?
+  tikkieVerstuurdOp?, tikkieBedrag?, tikkieLink?   // registratie, niet aanpasbaar
+  servicekosten: 200                               // ophaalkosten in centen
+  servicekostenStatus: 'nietVerschuldigd' | 'openstaand' | 'betaald'
+  servicekostenBetaaldOp?, serviceStripeSessionId?, serviceStripeStatus?
+
+chatGesprekken/{customerId}
+  customerId, customerNaam, laatsteBericht, laatsteBerichtOp,
+  ongelezenKlant, ongelezenAdmin
+
+chatGesprekken/{customerId}/berichten/{id}
+  afzender: 'klant' | 'admin', tekst, aangemaaktOp,
+  tikkieLink?, statiegeldLogId?     // alleen door admin te zetten
 ```
 
-`GLAS_PRIJS_CENTEN = 499` staat op één plek: `src/utils/constants.ts`.
+`GLAS_PRIJS_CENTEN = 499` en `STATIEGELD_SERVICE_CENTEN = 200` staan op één plek:
+`src/utils/constants.ts`.
 Bedragen zijn **altijd in centen** en worden alleen bij weergave geformatteerd met
 `formatCenten`.
 
@@ -94,13 +113,13 @@ Bedragen zijn **altijd in centen** en worden alleen bij weergave geformatteerd m
 
 ## 6. Design system
 
-Licht en vriendelijk — een buurtservice voor gezinnen, geen premium uitstraling.
+Licht en vriendelijk, een buurtservice voor gezinnen en geen premium uitstraling.
 Geen dark theme, geen glassmorphism.
 
 | Token | Waarde | Betekenis |
 |---|---|---|
-| `--cmt-glas` | `#0E8F6C` | groen — **altijd** de glas-flow |
-| `--cmt-stat` | `#0B4A9E` | blauw — **altijd** de statiegeld-flow |
+| `--cmt-glas` | `#0E8F6C` | groen, **altijd** de glas-flow |
+| `--cmt-stat` | `#0B4A9E` | blauw, **altijd** de statiegeld-flow |
 | `--cmt-paper` | `#F5F3EE` | achtergrond |
 | `--cmt-ink` | `#14181F` | tekst |
 
@@ -153,9 +172,10 @@ Endpoints zijn overschrijfbaar via `VITE_CHECKOUT_URL` / `VITE_STRIPE_PROXY_URL`
 - Geen Next.js, geen SSR
 - Geen nieuwe npm-packages zonder overleg
 - Geen Stripe SDK client-side
-- Geen abonnementen of SEPA-machtigingen — alleen eenmalige betalingen
-- **Nooit** een Stripe- of bedrag-veld toevoegen aan `statiegeldLogs`
-- **Nooit** bedragen tonen in het Jayce-dashboard
+- Geen abonnementen of SEPA-machtigingen, alleen eenmalige betalingen
+- **Nooit** het statiegeldbedrag zelf als betaling behandelen. Dat komt uit Viatim,
+  is niet aanpasbaar en gaat volledig naar de klant. De `servicekosten` staan daar los van
+- **Nooit** bedragen tonen in het Jayce-dashboard, en Jayce nooit toegang tot de chat geven
 
 ### Naamgeving
 - Componenten en pagina's: PascalCase
@@ -183,7 +203,7 @@ VITE_STRIPE_PROXY_URL=
 Ingesteld in Vercel bij Settings > Environment Variables. Er staan geen hardcoded
 fallbacks meer in `src/lib/firebase.ts`.
 
-**Nooit committen en nooit in Vercel:** de Stripe secret key — die staat alleen in
+**Nooit committen en nooit in Vercel:** de Stripe secret key. Die staat alleen in
 `checkout.php` op internedata.nl.
 
 ---
@@ -191,8 +211,11 @@ fallbacks meer in `src/lib/firebase.ts`.
 ## 10. Openstaand / TODO
 
 - [ ] Definitieve logo-assets vervangen de placeholders in `public/`
-- [ ] Geen e-mailnotificaties in v1 — bevestigingsmails zijn bewust uitgesteld
-- [ ] Tikkie-koppeling is handmatig; geen API-integratie in v1
+- [ ] Geen e-mailnotificaties in v1, bevestigingsmails zijn bewust uitgesteld
+- [ ] Tikkie-koppeling is handmatig: je plakt bedrag en link uit Viatim, de app
+      deelt ze in de chat. Geen Viatim- of Tikkie-API in v1
+- [ ] Ophaalkosten worden achteraf geïnd. Betaalt een klant niet, dan blijft de
+      melding op 'openstaand' staan; er is geen automatische herinnering
 - [ ] Geen unit- of E2E-tests
 - [ ] Stripe-webhook zou de betaalstatus betrouwbaarder maken dan de huidige
       controle bij terugkeer uit Checkout

@@ -1,7 +1,7 @@
 // src/pages/jayce/Taken.tsx
 //
 // Jayce ziet glas- en statiegeldtaken strikt gescheiden (groen vs blauw) en
-// nooit bedragen — niet bij glas en niet bij statiegeld. Dat voorkomt verwarring
+// nooit bedragen, niet bij glas en niet bij statiegeld. Dat voorkomt verwarring
 // over wie wat krijgt, en de security rules dwingen hetzelfde af.
 
 import React, { useEffect, useState } from 'react';

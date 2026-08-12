@@ -20,12 +20,15 @@ import StatiegeldMelden from './pages/klant/StatiegeldMelden';
 import BetalingGelukt from './pages/klant/BetalingGelukt';
 import BetalingGeannuleerd from './pages/klant/BetalingGeannuleerd';
 import Profiel from './pages/klant/Profiel';
+import KlantChat from './pages/klant/Chat';
 
 import JayceTaken from './pages/jayce/Taken';
 
 import AdminOverzicht from './pages/admin/Overzicht';
 import AdminGlasOrders from './pages/admin/GlasOrders';
 import AdminStatiegeldLog from './pages/admin/StatiegeldLog';
+import AdminGesprekken from './pages/admin/Gesprekken';
+import AdminGesprek from './pages/admin/Gesprek';
 
 /** Stuurt een ingelogde gebruiker naar het dashboard van zijn rol. */
 const NaarDashboard: React.FC = () => {
@@ -104,6 +107,14 @@ const AppRoutes: React.FC = () => {
         }
       />
       <Route
+        path="/chat"
+        element={
+          <RoleGuard allowedRoles={['klant']}>
+            <KlantChat />
+          </RoleGuard>
+        }
+      />
+      <Route
         path="/betaling/gelukt"
         element={
           <RoleGuard allowedRoles={['klant']}>
@@ -152,6 +163,23 @@ const AppRoutes: React.FC = () => {
         element={
           <RoleGuard allowedRoles={['admin']}>
             <AdminStatiegeldLog />
+          </RoleGuard>
+        }
+      />
+
+      <Route
+        path="/admin/berichten"
+        element={
+          <RoleGuard allowedRoles={['admin']}>
+            <AdminGesprekken />
+          </RoleGuard>
+        }
+      />
+      <Route
+        path="/admin/berichten/:customerId"
+        element={
+          <RoleGuard allowedRoles={['admin']}>
+            <AdminGesprek />
           </RoleGuard>
         }
       />

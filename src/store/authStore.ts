@@ -49,7 +49,7 @@ export const useAuthStore = create<AuthStore>((set) => ({
 
   /**
    * Registreert een klant. Schrijft users/{uid} met rol 'klant' en customers/{uid}
-   * in één flow — er is geen aparte onboarding en geen goedkeuringsstap.
+   * in één flow. Er is geen aparte onboarding en geen goedkeuringsstap.
    * De rollen 'jayce' en 'admin' worden handmatig in Firestore gezet; de
    * security rules blokkeren dat een gebruiker zichzelf een andere rol geeft.
    */

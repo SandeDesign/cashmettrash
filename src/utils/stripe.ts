@@ -1,7 +1,7 @@
 // src/utils/stripe.ts
 //
 // Stripe loopt uitsluitend via de PHP-proxy op internedata.nl; de secret key
-// staat alleen server-side. Alleen eenmalige betalingen (mode: 'payment') —
+// staat alleen server-side. Alleen eenmalige betalingen (mode: 'payment'),
 // er zijn geen abonnementen in CashMetTrash.
 //
 // Alle bedragen zijn in centen.
@@ -14,6 +14,8 @@ interface CheckoutOptions {
   productNaam: string;
   klantEmail: string;
   orderId: string;
+  /** 'glas' is een ophaalbeurt, 'service' zijn de ophaalkosten voor statiegeld. */
+  soort?: 'glas' | 'service';
   successUrl: string;
   cancelUrl: string;
 }
@@ -63,7 +65,7 @@ export async function createCheckoutSession(options: CheckoutOptions): Promise<C
       cancel_url: options.cancelUrl,
       metadata: {
         order_id: options.orderId,
-        flow: 'glas',
+        flow: options.soort ?? 'glas',
       },
     });
 

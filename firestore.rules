@@ -117,20 +117,56 @@ service cloud.firestore {
                     && request.resource.data.items.blik is int
                     && request.resource.data.items.plastic >= 0
                     && request.resource.data.items.blik >= 0
+                    && request.resource.data.servicekostenStatus == 'nietVerschuldigd'
+                    && request.resource.data.servicekosten == 200
                     && !request.resource.data.keys().hasAny(
-                         ['tikkieBedrag', 'tikkieVerstuurdOp', 'verwerktOp',
-                          'opgehaaldOp', 'jayceId', 'itemsWerkelijk']);
+                         ['tikkieBedrag', 'tikkieLink', 'tikkieVerstuurdOp', 'verwerktOp',
+                          'opgehaaldOp', 'jayceId', 'itemsWerkelijk',
+                          'servicekostenBetaaldOp', 'serviceStripeSessionId']);
 
       allow update: if isAdmin()
-                    // Jayce corrigeert de telling en vinkt af. Nooit Tikkie-velden.
+                    // Jayce corrigeert de telling en vinkt af. Nooit Tikkie-velden
+                    // en nooit iets aan de ophaalkosten.
                     || (isJayce()
                         && alleenVelden(['status', 'itemsWerkelijk', 'opgehaaldOp', 'jayceId'])
                         && request.resource.data.status == 'opgehaald'
                         && request.resource.data.jayceId == request.auth.uid
                         && request.resource.data.itemsWerkelijk.plastic is int
-                        && request.resource.data.itemsWerkelijk.blik is int);
+                        && request.resource.data.itemsWerkelijk.blik is int)
+                    // Klant rondt alleen de eigen ophaalkosten af. Het bedrag
+                    // ligt vast en de Tikkie-velden blijven onaangeroerd.
+                    || (isEigenaar(resource.data.customerId)
+                        && alleenVelden(['servicekostenStatus', 'servicekostenBetaaldOp',
+                                         'serviceStripeSessionId', 'serviceStripeStatus'])
+                        && request.resource.data.servicekostenStatus == 'betaald'
+                        && resource.data.servicekostenStatus == 'openstaand'
+                        && request.resource.data.servicekosten == resource.data.servicekosten);
 
       allow delete: if isAdmin();
+    }
+
+    /* ---------------- chatGesprekken ---------------- */
+    // Alleen tussen klant en admin. Jayce heeft hier bewust geen toegang toe,
+    // zodat vragen over geld niet bij hem terechtkomen.
+
+    match /chatGesprekken/{customerId} {
+      allow read: if isEigenaar(customerId) || isAdmin();
+      allow create, update: if isEigenaar(customerId) || isAdmin();
+      allow delete: if isAdmin();
+
+      match /berichten/{berichtId} {
+        allow read: if isEigenaar(customerId) || isAdmin();
+
+        // De afzender moet kloppen: een klant kan geen bericht namens de
+        // beheerder plaatsen, en dus ook geen Tikkie-link vervalsen.
+        allow create: if (isEigenaar(customerId)
+                          && request.resource.data.afzender == 'klant'
+                          && !request.resource.data.keys().hasAny(['tikkieLink', 'statiegeldLogId']))
+                      || (isAdmin() && request.resource.data.afzender == 'admin');
+
+        allow update: if false;
+        allow delete: if isAdmin();
+      }
     }
 
     // Alles wat hierboven niet expliciet is toegestaan, is verboden.
