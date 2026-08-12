@@ -12,7 +12,7 @@ interface ErrorLog {
 }
 
 const MAX_LOGS = 50;
-const STORAGE_KEY = 'vlottr_error_logs';
+const STORAGE_KEY = 'cmt_error_logs';
 
 export const logError = (error: Error | string, context?: string) => {
   try {

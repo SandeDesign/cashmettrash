@@ -1,155 +1,105 @@
-const DEFAULT_CHECKOUT_URL = 'https://internedata.nl/uploads/vlottr/checkout.php';
-const DEFAULT_PROXY_URL = 'https://internedata.nl/uploads/vlottr/stripe-proxy.php';
+// src/utils/stripe.ts
+//
+// Stripe loopt uitsluitend via de PHP-proxy op internedata.nl; de secret key
+// staat alleen server-side. Alleen eenmalige betalingen (mode: 'payment') —
+// er zijn geen abonnementen in CashMetTrash.
+//
+// Alle bedragen zijn in centen.
 
-interface CreateCheckoutSessionOptions {
-  amount: number;
-  productName: string;
-  customerEmail: string;
-  bookingId: string;
+import { CHECKOUT_URL, STRIPE_PROXY_URL } from './constants';
+
+interface CheckoutOptions {
+  /** Bedrag in centen. */
+  bedragCenten: number;
+  productNaam: string;
+  klantEmail: string;
+  orderId: string;
   successUrl: string;
   cancelUrl: string;
-  proxyUrl?: string;
 }
 
-interface CreateSubscriptionCheckoutOptions {
-  priceAmount: number;
-  priceId?: string; // Stripe recurring price ID (price_xxxx) — heeft voorrang op priceAmount
-  productName: string;
-  productDescription: string;
-  customerEmail: string;
-  bookingId: string;
-  carId: string;
-  successUrl: string;
-  cancelUrl: string;
-  proxyUrl?: string;
-}
-
-interface CheckoutSessionResponse {
+interface CheckoutResponse {
   url?: string;
   session_id?: string;
   error?: string;
 }
 
-interface RetrieveSessionOptions {
-  sessionId: string;
-  proxyUrl?: string;
-}
-
-interface SessionStatus {
+export interface SessieStatus {
   payment_status?: string;
   status?: string;
-  metadata?: Record<string, any>;
+  payment_intent?: string;
+  metadata?: Record<string, string>;
   error?: string;
 }
 
-export async function createCheckoutSession(
-  options: CreateCheckoutSessionOptions
-): Promise<CheckoutSessionResponse> {
-  try {
-    const functionUrl = options.proxyUrl || DEFAULT_CHECKOUT_URL;
+const TIMEOUT_MS = 30000;
 
-    const response = await fetch(functionUrl, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        mode: 'payment',
-        amount: options.amount,
-        productName: options.productName,
-        customerEmail: options.customerEmail,
-        bookingId: options.bookingId,
-        success_url: options.successUrl,
-        cancel_url: options.cancelUrl
-      })
-    });
-
-    if (!response.ok) {
-      const error = await response.json();
-      throw new Error(error.error || 'Checkout sessie kon niet worden aangemaakt');
-    }
-
-    return await response.json();
-  } catch (error: any) {
-    console.error('Stripe checkout error:', error);
-    return { error: error.message || 'Betaling kon niet worden gestart' };
-  }
-}
-
-export async function createSubscriptionCheckout(
-  options: CreateSubscriptionCheckoutOptions
-): Promise<CheckoutSessionResponse> {
+async function postMetTimeout(url: string, body: unknown): Promise<Response> {
   const controller = new AbortController();
-  const timeoutId = setTimeout(() => controller.abort(), 30000);
-
+  const timeout = setTimeout(() => controller.abort(), TIMEOUT_MS);
   try {
-    const amountInCents = Math.round(options.priceAmount * 100);
-    const functionUrl = options.proxyUrl || DEFAULT_CHECKOUT_URL;
-
-    const response = await fetch(functionUrl, {
+    return await fetch(url, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        mode: 'subscription',
-        price_id: options.priceId || '',
-        payment_method_types: ['sepa_debit'],
-        amount: amountInCents,
-        productName: options.productName,
-        productDescription: options.productDescription,
-        customerEmail: options.customerEmail,
-        bookingId: options.bookingId,
-        carId: options.carId,
-        success_url: options.successUrl,
-        cancel_url: options.cancelUrl,
-        metadata: {
-          booking_id: options.bookingId,
-          car_id: options.carId,
-          subscription_type: 'car_rental'
-        }
-      }),
-      signal: controller.signal
+      body: JSON.stringify(body),
+      signal: controller.signal,
     });
-
-    clearTimeout(timeoutId);
-
-    if (!response.ok) {
-      const errorData = await response.json().catch(() => ({}));
-      throw new Error(errorData.error || `HTTP ${response.status}: Abonnement kon niet worden gestart`);
-    }
-
-    return await response.json();
-  } catch (error: any) {
-    clearTimeout(timeoutId);
-    const message = error.name === 'AbortError'
-      ? 'Betaling time-out: server reageert niet. Probeer het opnieuw.'
-      : (error.message || 'Abonnement kon niet worden gestart');
-    console.error('Stripe subscription checkout error:', error);
-    return { error: message };
+  } finally {
+    clearTimeout(timeout);
   }
 }
 
-export async function retrieveSession(
-  options: RetrieveSessionOptions
-): Promise<SessionStatus> {
+/** Maakt een eenmalige Stripe Checkout-sessie aan voor een glas-ophaalbeurt. */
+export async function createCheckoutSession(options: CheckoutOptions): Promise<CheckoutResponse> {
   try {
-    const functionUrl = options.proxyUrl || DEFAULT_PROXY_URL;
-
-    const response = await fetch(functionUrl, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ sessionId: options.sessionId })
+    const response = await postMetTimeout(CHECKOUT_URL, {
+      mode: 'payment',
+      amount: options.bedragCenten,
+      currency: 'eur',
+      productName: options.productNaam,
+      customerEmail: options.klantEmail,
+      orderId: options.orderId,
+      success_url: options.successUrl,
+      cancel_url: options.cancelUrl,
+      metadata: {
+        order_id: options.orderId,
+        flow: 'glas',
+      },
     });
 
     if (!response.ok) {
-      const error = await response.json();
-      throw new Error(error.error || 'Sessie status kon niet worden opgehaald');
+      const data = await response.json().catch(() => ({}));
+      throw new Error(data.error || `Betaling kon niet worden gestart (HTTP ${response.status})`);
     }
 
     return await response.json();
-  } catch (error: any) {
-    console.error('Stripe session retrieve error:', error);
-    return { error: error.message || 'Status kon niet worden opgehaald' };
+  } catch (error: unknown) {
+    const bericht =
+      error instanceof Error && error.name === 'AbortError'
+        ? 'De betaalserver reageert niet. Probeer het opnieuw.'
+        : error instanceof Error
+          ? error.message
+          : 'Betaling kon niet worden gestart';
+    console.error('[Stripe] checkout mislukt:', error);
+    return { error: bericht };
   }
 }
 
-export function calculateRentalPrice(weeks: number, weeklyRate: number): number {
-  return weeks * weeklyRate * 100;
+/** Haalt de status van een Checkout-sessie op na terugkeer uit Stripe. */
+export async function retrieveSession(sessionId: string): Promise<SessieStatus> {
+  try {
+    const response = await postMetTimeout(STRIPE_PROXY_URL, { sessionId });
+
+    if (!response.ok) {
+      const data = await response.json().catch(() => ({}));
+      throw new Error(data.error || 'Betaalstatus kon niet worden opgehaald');
+    }
+
+    return await response.json();
+  } catch (error: unknown) {
+    console.error('[Stripe] sessie ophalen mislukt:', error);
+    return {
+      error: error instanceof Error ? error.message : 'Betaalstatus kon niet worden opgehaald',
+    };
+  }
 }

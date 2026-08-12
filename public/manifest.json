@@ -1,27 +1,28 @@
 {
-  "name": "Vlottr - Premium Auto Verhuur",
-  "short_name": "Vlottr",
-  "description": "Huur premium auto's per week. Flexibel, betrouwbaar en altijd scherp geprijsd.",
+  "name": "CashMetTrash",
+  "short_name": "CashMetTrash",
+  "description": "Glas en statiegeld laten ophalen bij jou in de buurt.",
   "start_url": "/",
+  "scope": "/",
   "display": "standalone",
-  "background_color": "#0a0a0a",
-  "theme_color": "#22c55e",
+  "background_color": "#F5F3EE",
+  "theme_color": "#0E8F6C",
   "orientation": "portrait-primary",
   "icons": [
     {
-      "src": "/192x192x2.png",
+      "src": "/icon-192.png",
       "sizes": "192x192",
       "type": "image/png",
       "purpose": "any maskable"
     },
     {
-      "src": "/512x512x2.png",
+      "src": "/icon-512.png",
       "sizes": "512x512",
       "type": "image/png",
       "purpose": "any maskable"
     }
   ],
-  "categories": ["business", "lifestyle", "travel"],
+  "categories": ["lifestyle", "utilities"],
   "lang": "nl-NL",
   "dir": "ltr"
 }

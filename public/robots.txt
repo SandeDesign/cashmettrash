@@ -1,48 +1,14 @@
-# Vlottr - Premium Auto Verhuur
-# robots.txt voor SEO optimalisatie
+# CashMetTrash
+# De app is volledig afgeschermd achter login; alleen login en registratie zijn publiek.
 
-# Allow all search engines
 User-agent: *
-Allow: /
-
-# Disallow private/admin pages
-Disallow: /admin/
-Disallow: /manager/
-Disallow: /dashboard/
-Disallow: /bookings/
-Disallow: /profile/
-Disallow: /onboarding/
-
-# Allow public pages
-Allow: /
+Allow: /$
 Allow: /login
 Allow: /registreren
-Allow: /pwa-install
-Allow: /terms
-Allow: /privacy
-Allow: /cookies
-
-# Sitemap location
-Sitemap: https://vlottr.eu/sitemap.xml
-
-# Crawl-delay (be nice to servers)
-Crawl-delay: 1
-
-# Specific bots
-User-agent: Googlebot
-Allow: /
-Crawl-delay: 0
-
-User-agent: Bingbot
-Allow: /
-Crawl-delay: 1
-
-# Block bad bots
-User-agent: AhrefsBot
-Disallow: /
-
-User-agent: SemrushBot
-Disallow: /
-
-User-agent: MJ12bot
-Disallow: /
+Disallow: /mijn
+Disallow: /glas
+Disallow: /statiegeld
+Disallow: /profiel
+Disallow: /betaling/
+Disallow: /jayce
+Disallow: /admin

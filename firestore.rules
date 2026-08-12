@@ -1,0 +1,141 @@
+rules_version = '2';
+
+// CashMetTrash — Firestore security rules
+//
+// Twee gescheiden geldstromen:
+//   glasOrders      klant betaalt EUR 4,99 via Stripe -> bedragen en Stripe-velden
+//                   zijn alleen voor de klant zelf en de admin.
+//   statiegeldLogs  puur logging, geen betaling. Alleen de admin mag de
+//                   Tikkie-velden zetten; Jayce ziet en schrijft ze nooit.
+//
+// Jayce mag ophaaltaken zien en afvinken, maar nooit bedragen aanpassen.
+
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    function isSignedIn() {
+      return request.auth != null;
+    }
+
+    function rol() {
+      return get(/databases/$(database)/documents/users/$(request.auth.uid)).data.rol;
+    }
+
+    function isAdmin() {
+      return isSignedIn() && rol() == 'admin';
+    }
+
+    function isJayce() {
+      return isSignedIn() && rol() == 'jayce';
+    }
+
+    function isEigenaar(customerId) {
+      return isSignedIn() && request.auth.uid == customerId;
+    }
+
+    // Velden die bij een update ongewijzigd moeten blijven.
+    function ongewijzigd(velden) {
+      return !request.resource.data.diff(resource.data).affectedKeys().hasAny(velden);
+    }
+
+    // Alleen deze velden mogen bij een update veranderen.
+    function alleenVelden(velden) {
+      return request.resource.data.diff(resource.data).affectedKeys().hasOnly(velden);
+    }
+
+    /* ---------------- users ---------------- */
+
+    match /users/{uid} {
+      allow read: if isEigenaar(uid) || isAdmin();
+
+      // Een gebruiker maakt uitsluitend zijn eigen document aan, en altijd als klant.
+      // Hiermee is rol-escalatie bij registratie geblokkeerd; 'jayce' en 'admin'
+      // worden handmatig in de Firestore-console gezet.
+      allow create: if isEigenaar(uid)
+                    && request.resource.data.rol == 'klant'
+                    && request.resource.data.uid == uid;
+
+      // Eigen naam bijwerken mag; de rol wijzigen niet.
+      allow update: if isAdmin()
+                    || (isEigenaar(uid) && ongewijzigd(['rol', 'uid']));
+
+      allow delete: if isAdmin();
+    }
+
+    /* ---------------- customers ---------------- */
+
+    match /customers/{customerId} {
+      // Jayce staat hier bewust niet bij: naam en adres worden bij het aanmaken
+      // van een taak meegekopieerd, dus hij heeft geen toegang nodig tot
+      // telefoonnummers en e-mailadressen van alle klanten.
+      allow read: if isEigenaar(customerId) || isAdmin();
+
+      allow create: if isEigenaar(customerId) && request.resource.data.id == customerId;
+      allow update: if (isEigenaar(customerId) && ongewijzigd(['id'])) || isAdmin();
+      allow delete: if isAdmin();
+    }
+
+    /* ---------------- glasOrders ---------------- */
+
+    match /glasOrders/{orderId} {
+      allow read: if isEigenaar(resource.data.customerId) || isJayce() || isAdmin();
+
+      // De klant meldt aan tegen het vaste tarief; het bedrag is niet manipuleerbaar
+      // en de order start altijd onbetaald zonder Stripe-gegevens.
+      allow create: if isEigenaar(request.resource.data.customerId)
+                    && request.resource.data.status == 'aangemeld'
+                    && request.resource.data.bedrag == 499
+                    && !request.resource.data.keys().hasAny(
+                         ['stripeSessionId', 'stripePaymentIntentId', 'stripeStatus',
+                          'betaaldOp', 'opgehaaldOp', 'jayceId']);
+
+      allow update: if isAdmin()
+                    // Klant mag alleen de eigen betaling afronden of annuleren.
+                    || (isEigenaar(resource.data.customerId)
+                        && alleenVelden(['status', 'stripeSessionId', 'stripePaymentIntentId',
+                                         'stripeStatus', 'betaaldOp'])
+                        && request.resource.data.status in ['aangemeld', 'betaald', 'geannuleerd']
+                        && request.resource.data.bedrag == resource.data.bedrag)
+                    // Jayce vinkt alleen af. Bedrag en Stripe-velden blijven onaangeroerd.
+                    || (isJayce()
+                        && alleenVelden(['status', 'opgehaaldOp', 'jayceId'])
+                        && request.resource.data.status == 'opgehaald'
+                        && request.resource.data.jayceId == request.auth.uid);
+
+      allow delete: if isAdmin();
+    }
+
+    /* ---------------- statiegeldLogs ---------------- */
+    // Bevat bewust geen enkel Stripe- of betalingsveld.
+
+    match /statiegeldLogs/{logId} {
+      allow read: if isEigenaar(resource.data.customerId) || isJayce() || isAdmin();
+
+      allow create: if isEigenaar(request.resource.data.customerId)
+                    && request.resource.data.status == 'aangemeld'
+                    && request.resource.data.items.plastic is int
+                    && request.resource.data.items.blik is int
+                    && request.resource.data.items.plastic >= 0
+                    && request.resource.data.items.blik >= 0
+                    && !request.resource.data.keys().hasAny(
+                         ['tikkieBedrag', 'tikkieVerstuurdOp', 'verwerktOp',
+                          'opgehaaldOp', 'jayceId', 'itemsWerkelijk']);
+
+      allow update: if isAdmin()
+                    // Jayce corrigeert de telling en vinkt af. Nooit Tikkie-velden.
+                    || (isJayce()
+                        && alleenVelden(['status', 'itemsWerkelijk', 'opgehaaldOp', 'jayceId'])
+                        && request.resource.data.status == 'opgehaald'
+                        && request.resource.data.jayceId == request.auth.uid
+                        && request.resource.data.itemsWerkelijk.plastic is int
+                        && request.resource.data.itemsWerkelijk.blik is int);
+
+      allow delete: if isAdmin();
+    }
+
+    // Alles wat hierboven niet expliciet is toegestaan, is verboden.
+    match /{document=**} {
+      allow read, write: if false;
+    }
+  }
+}
