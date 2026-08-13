@@ -74,7 +74,7 @@ const Overzicht: React.FC = () => {
       const bedrag = openKosten.reduce((som, l) => som + l.servicekosten, 0);
       lijst.push({
         id: 'ophaalkosten',
-        tekst: `Je Tikkie staat klaar in je berichten. Daar betaal je ook de ${formatCenten(bedrag)} ophaalkosten.`,
+        tekst: `Je Tikkie staat klaar in je berichten. Betaal daar de ${formatCenten(bedrag)} ophaalkosten, dan kun je hem openen.`,
         knop: 'Naar mijn berichten',
         naar: '/chat',
       });

@@ -141,9 +141,9 @@ const klantStappen: RondleidingStap[] = [
           <strong>helemaal</strong> terug via een Tikkie. We kunnen dat bedrag niet aanpassen.
         </p>
         <p>
-          De Tikkie komt bij je berichten te staan. Daar betaal je ook de{' '}
-          {formatCenten(STATIEGELD_SERVICE_CENTEN)} ophaalkosten, en dus pas nadat hij echt is
-          langs geweest.
+          De Tikkie komt bij je berichten te staan. Betaal daar eerst de{' '}
+          {formatCenten(STATIEGELD_SERVICE_CENTEN)} ophaalkosten, dan verschijnt de knop om je
+          Tikkie te openen. Je betaalt dus pas iets nadat hij echt is langs geweest.
         </p>
       </>
     ),

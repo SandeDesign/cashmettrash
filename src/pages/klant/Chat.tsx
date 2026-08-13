@@ -4,6 +4,7 @@
 // met daaronder de knop om de ophaalkosten te betalen.
 
 import React, { useEffect, useState } from 'react';
+import { ExternalLink, Lock } from 'lucide-react';
 import AppLayout from '../../components/layout/AppLayout';
 import { KLANT_NAV } from '../../components/layout/navItems';
 import ChatVenster from '../../components/chat/ChatVenster';
@@ -74,20 +75,28 @@ const Chat: React.FC = () => {
   };
 
   /**
-   * De knop om de Tikkie te openen zit al in het gespreksvenster zelf. Hier komt
-   * alleen wat daarbovenop hoort: de ophaalkosten afrekenen.
+   * De Tikkie komt pas vrij als de ophaalkosten betaald zijn. Daarom staat de
+   * knop om hem te openen hier en niet in het gespreksvenster zelf: zolang er
+   * nog iets openstaat zie je in plaats daarvan de betaalknop.
    */
   const extra = (bericht: ChatBericht) => {
     if (!bericht.tikkieLink) return null;
 
     const log = logs.find((l) => l.id === bericht.statiegeldLogId);
-    const moetBetalen = log?.servicekostenStatus === 'openstaand';
+    const betaald = !log || log.servicekostenStatus !== 'openstaand';
 
-    return (
-      <div className="mt-2 flex flex-col gap-2 items-start">
-        {moetBetalen && log && (
+    if (!betaald && log) {
+      return (
+        <div className="mt-2 cmt-flow-stat cmt-card cmt-card-tint !p-3">
+          <p className="text-sm mb-3 flex items-start gap-2">
+            <Lock className="w-4 h-4 flex-shrink-0 mt-0.5" />
+            <span>
+              Je Tikkie staat klaar. Zodra je de {formatCenten(log.servicekosten)} ophaalkosten
+              hebt betaald verschijnt hier de knop om hem te openen.
+            </span>
+          </p>
           <button
-            className="cmt-btn-secondary !py-2 !text-sm"
+            className="cmt-btn-primary !py-2 !text-sm"
             onClick={() => betaalOphaalkosten(log.id)}
             disabled={betaaltLog === log.id}
           >
@@ -95,8 +104,20 @@ const Chat: React.FC = () => {
               ? 'Bezig...'
               : `Betaal ${formatCenten(log.servicekosten)} ophaalkosten`}
           </button>
-        )}
+        </div>
+      );
+    }
 
+    return (
+      <div className="mt-2 flex flex-wrap gap-2 items-center">
+        <a
+          href={bericht.tikkieLink}
+          target="_blank"
+          rel="noopener noreferrer"
+          className="cmt-flow-stat cmt-btn-primary !py-2 !text-sm"
+        >
+          <ExternalLink className="w-4 h-4" /> Open je Tikkie
+        </a>
         {log?.servicekostenStatus === 'betaald' && (
           <span className="cmt-badge cmt-badge-done">Ophaalkosten betaald</span>
         )}
@@ -113,6 +134,7 @@ const Chat: React.FC = () => {
         loading={loading}
         ikBen="klant"
         onVerstuur={verstuur}
+        toonTikkieKnop={false}
         renderExtra={extra}
         legeTekst="Nog geen berichten. Stel gerust een vraag, je krijgt hier ook je Tikkie."
       />

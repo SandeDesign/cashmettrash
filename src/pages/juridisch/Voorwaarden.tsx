@@ -67,8 +67,9 @@ const Voorwaarden: React.FC = () => (
       </li>
       <li>
         Voor het ophalen brengen wij <strong>{formatCenten(STATIEGELD_SERVICE_CENTEN)}</strong>{' '}
-        in rekening. Die betaal je achteraf, tegelijk met het delen van de Tikkie, en dus
-        pas nadat er echt is opgehaald.
+        in rekening. Die betaal je achteraf en dus pas nadat er echt is opgehaald. De knop om
+        je Tikkie te openen verschijnt zodra die ophaalkosten voldaan zijn. Het bedrag van de
+        Tikkie zelf blijft ongewijzigd: de ophaalkosten worden er niet van afgetrokken.
       </li>
       <li>
         Wij nemen alleen verpakkingen mee waar statiegeld op zit. Lege of beschadigde

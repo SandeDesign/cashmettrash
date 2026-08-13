@@ -20,6 +20,12 @@ interface ChatVensterProps {
   onVerstuur: (tekst: string, tikkieLink?: string) => Promise<void>;
   /** Alleen de beheerder mag een Tikkie-link meesturen. */
   magTikkieSturen?: boolean;
+  /**
+   * Toont bij een Tikkie-bericht meteen de knop om de link te openen. Aan de
+   * klantkant staat dit uit: die krijgt de Tikkie pas te zien nadat de
+   * ophaalkosten betaald zijn, en dat regelt de pagina zelf via renderExtra.
+   */
+  toonTikkieKnop?: boolean;
   /** Extra inhoud onder een bericht, bijvoorbeeld de Tikkie-knoppen. */
   renderExtra?: (bericht: ChatBericht) => React.ReactNode;
   legeTekst?: string;
@@ -35,6 +41,7 @@ const ChatVenster: React.FC<ChatVensterProps> = ({
   onVerstuur,
   renderExtra,
   magTikkieSturen = false,
+  toonTikkieKnop = true,
   legeTekst = 'Nog geen berichten.',
 }) => {
   const [tekst, setTekst] = useState('');
@@ -110,9 +117,9 @@ const ChatVenster: React.FC<ChatVensterProps> = ({
                     <BerichtTekst tekst={bericht.tekst} />
                   </div>
 
-                  {/* De Tikkie-knop hoort aan beide kanten zichtbaar te zijn: de
-                      beheerder moet kunnen nakijken of hij de goede link stuurde. */}
-                  {bericht.tikkieLink && (
+                  {/* De beheerder ziet de link altijd, zodat hij kan nakijken of
+                      hij de goede heeft gestuurd. */}
+                  {bericht.tikkieLink && toonTikkieKnop && (
                     <a
                       href={bericht.tikkieLink}
                       target="_blank"

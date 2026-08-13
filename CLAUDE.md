@@ -43,6 +43,10 @@ niet in het datamodel, niet in de UI, niet in de security rules.
   komt uit de inleverautomaat via Viatim en kan niet worden aangepast, dus er kan
   ook niets van worden afgetrokken
 - Marc plakt de Viatim-Tikkie in de chat; de app zet dat bericht automatisch klaar
+- De klant ziet de knop naar die Tikkie **pas nadat de ophaalkosten betaald zijn**.
+  Daarvoor staat er een slotje met de betaalknop. De beheerder ziet de link wel
+  meteen, want die moet kunnen nakijken wat hij heeft gestuurd
+  (`toonTikkieKnop` op `ChatVenster`)
 - **Ophaalkosten** van EUR 2,00 staan hier helemaal los van. Die worden achteraf in
   rekening gebracht, tegelijk met de Tikkie, en betaalt de klant via Stripe in de app
 - Firestore: `statiegeldLogs`. Bevat wel `servicekosten*`-velden, maar nooit een

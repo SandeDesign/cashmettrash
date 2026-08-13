@@ -105,14 +105,15 @@ const StatiegeldLogPagina: React.FC = () => {
       customerNaam: log.customerNaam,
       afzender: 'admin',
       tekst:
-        `Je statiegeld is ingeleverd. Je krijgt ${formatCenten(centen)} terug via de Tikkie hieronder. ` +
-        `Voor het ophalen rekenen we ${formatCenten(log.servicekosten)}, die kun je hier meteen voldoen.`,
+        `Je statiegeld is ingeleverd en heeft ${formatCenten(centen)} opgebracht. ` +
+        `Betaal hieronder de ${formatCenten(log.servicekosten)} ophaalkosten, daarna komt de knop ` +
+        'naar je Tikkie tevoorschijn.',
       tikkieLink: link,
       statiegeldLogId: log.id,
     });
     void stuurPushNaarKlant(log.customerId, {
       titel: 'Je Tikkie staat klaar',
-      tekst: `Je krijgt ${formatCenten(centen)} terug voor je statiegeld.`,
+      tekst: `${formatCenten(centen)} voor je statiegeld. Betaal even de ophaalkosten, dan kun je hem openen.`,
       url: '/chat',
     });
     setAfrekenen(null);
