@@ -18,6 +18,7 @@ import {
   MapPin,
   MessageSquare,
   Recycle,
+  Search,
   ShieldAlert,
   Smartphone,
   Star,
@@ -64,8 +65,9 @@ const klantStappen: RondleidingStap[] = [
     tekst: (
       <>
         <p>
-          Wijnflessen, bierflesjes en jampotten. Daar zit geen statiegeld op, dus die leveren
-          niets op. Je betaalt Jayce voor het ophalen en wegbrengen.
+          Wijnflessen, jampotten en sauspotten: alles van glas <strong>zonder</strong>{' '}
+          statiegeldlogo. Daar zit geen statiegeld op, dus het levert niets op. Je betaalt Jayce
+          voor het ophalen en wegbrengen.
         </p>
         <p>
           Dat kost <strong>{formatCenten(GLAS_PRIJS_CENTEN)} per keer</strong>, en niet per fles.
@@ -83,8 +85,8 @@ const klantStappen: RondleidingStap[] = [
     tekst: (
       <>
         <p>
-          Plastic flessen en blikjes met het statiegeldlogo. Dat geld is van jou en blijft van
-          jou. Aanmelden is gratis.
+          <strong>Plastic</strong> flessen en blikjes mét het statiegeldlogo. Dat geld is van jou
+          en blijft van jou. Aanmelden is gratis.
         </p>
         <p>
           Geef ongeveer aan wat er staat, precies hoeft niet. Jayce telt bij het ophalen zelf na,
@@ -94,6 +96,23 @@ const klantStappen: RondleidingStap[] = [
     ),
     naar: '/statiegeld',
     knop: 'Laat de statiegeld-pagina zien',
+  },
+  {
+    icon: <Search className="w-7 h-7" />,
+    titel: 'Glas of statiegeld?',
+    tekst: (
+      <>
+        <p>
+          Kijk naar het <strong>statiegeldlogo</strong> en niet naar het soort fles. Logo erop is
+          statiegeld, geen logo is glas.
+        </p>
+        <p>
+          Pas op met bierflesjes: die zijn van glas, maar op de flesjes uit een krat zit wél
+          statiegeld. Die horen dus bij geen van beide. Breng die zelf naar de supermarkt, daar
+          krijg je je geld voor terug.
+        </p>
+      </>
+    ),
   },
   {
     icon: <CalendarClock className="w-7 h-7" />,

@@ -141,7 +141,8 @@ const Overzicht: React.FC = () => {
           <Wine className="w-7 h-7 mb-2" style={{ color: 'var(--cmt-glas)' }} />
           <h2 className="font-bold mb-1">Glas laten ophalen</h2>
           <p className="text-sm mb-4" style={{ color: 'var(--cmt-ink-soft)' }}>
-            Jayce haalt je glazen flessen op. {formatCenten(GLAS_PRIJS_CENTEN)} per keer.
+            Glas zonder statiegeldlogo, zoals wijnflessen en jampotten.{' '}
+            {formatCenten(GLAS_PRIJS_CENTEN)} per keer.
           </p>
           <span className="cmt-btn-primary">Aanvragen</span>
         </Link>
@@ -153,7 +154,7 @@ const Overzicht: React.FC = () => {
           <Recycle className="w-7 h-7 mb-2" style={{ color: 'var(--cmt-stat)' }} />
           <h2 className="font-bold mb-1">Statiegeld aanmelden</h2>
           <p className="text-sm mb-4" style={{ color: 'var(--cmt-ink-soft)' }}>
-            Plastic flessen en blikjes. Je krijgt het statiegeld via Tikkie terug.
+            Plastic flessen en blikjes mét logo. Je krijgt het statiegeld via Tikkie terug.
           </p>
           <span className="cmt-btn-primary">Aanmelden</span>
         </Link>

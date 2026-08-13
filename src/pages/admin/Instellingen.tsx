@@ -10,6 +10,7 @@ import AppLayout from '../../components/layout/AppLayout';
 import { ADMIN_NAV } from '../../components/layout/navItems';
 import Loading from '../../components/shared/Loading';
 import Kaart from '../../components/kaart/Kaart';
+import AantalVeld from '../../components/common/AantalVeld';
 import { useInstellingenStore } from '../../store/instellingenStore';
 import { routeplannerBeschikbaar, type Punt } from '../../utils/geo';
 
@@ -177,18 +178,16 @@ const Instellingen: React.FC = () => {
             Pas als het allebei geldt: het adres ligt buiten de straal hierboven, én er staat
             minstens dit aantal flessen en blikjes klaar.
           </p>
-          <label className="cmt-label" htmlFor="maxitems">
-            Vanaf dit aantal stuks
-          </label>
-          <input
-            id="maxitems"
-            type="number"
-            min={1}
-            max={500}
-            className="cmt-input !w-32"
-            value={maxItems}
-            onChange={(e) => setMaxItems(Math.max(1, Number(e.target.value) || 1))}
-          />
+          <div className="max-w-[8rem]">
+            <AantalVeld
+              id="maxitems"
+              label="Vanaf dit aantal stuks"
+              waarde={maxItems}
+              onChange={setMaxItems}
+              min={1}
+              max={500}
+            />
+          </div>
         </section>
 
         <button type="submit" className="cmt-btn-primary" disabled={bezig}>

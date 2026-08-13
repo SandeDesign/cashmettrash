@@ -22,6 +22,10 @@ Dit is de kern van het project. De twee stromen mogen nergens door elkaar lopen:
 niet in het datamodel, niet in de UI, niet in de security rules.
 
 ### Glas
+- Alleen glas **zonder** statiegeldlogo: wijnflessen, jampotten, sauspotten. Het
+  logo bepaalt de stroom, niet het soort fles. Bierflesjes uit een krat hebben
+  wél statiegeld en horen dus bij geen van beide; die laat Jayce staan en levert
+  de klant zelf in bij de supermarkt
 - Klant meldt zich aan en geeft adres op
 - Jayce haalt fysiek op bij de klant
 - Klant betaalt **€ 4,99 per ophaalbeurt** via Stripe (eenmalige betaling, niet per fles)
@@ -29,6 +33,8 @@ niet in het datamodel, niet in de UI, niet in de security rules.
 - Firestore: `glasOrders`, mét Stripe-velden
 
 ### Statiegeld
+- Alleen **plastic** flessen en blikjes mét statiegeldlogo, want dat is wat de
+  inleverautomaat van Viatim aanneemt
 - Klant geeft via de app aan dat er iets klaarstaat, met een schatting van de aantallen
 - Aanmelden is gratis
 - Jayce verzamelt fysiek en corrigeert de telling; **geen geld loopt via hem**
@@ -278,6 +284,9 @@ Endpoints zijn overschrijfbaar via `VITE_CHECKOUT_URL` / `VITE_STRIPE_PROXY_URL`
 - `fetch`, nooit axios
 - Functionele componenten met hooks
 - TypeScript strict; vermijd `any`
+- Aantallen invoeren via `AantalVeld` (`src/components/common/`). Nooit een kale
+  `<input type="number">` met `Number(x) || 0`: dan springt de nul meteen terug
+  zodra je het veld leegmaakt en kun je er niets meer in typen
 - Tailwind-utilities + `cmt-*` classes; `style` alleen voor dynamische waarden en
   CSS-variabelen
 - **Cascade-valkuil:** `cmt-theme.css` wordt ná Tailwind geladen, dus een

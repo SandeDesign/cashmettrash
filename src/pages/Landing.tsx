@@ -42,6 +42,11 @@ const VRAGEN = [
       'Simpel: op een wijnfles zit geen statiegeld. Die is bij de glasbak niets waard, dus je betaalt Jayce voor het sjouwen. Op plastic flessen en blikjes zit wél statiegeld, en dat is en blijft van jou. Zodra alles in de automaat is geweest krijg je dat hele bedrag terug via een Tikkie.',
   },
   {
+    vraag: 'Hoe weet ik of iets glas of statiegeld is?',
+    antwoord:
+      'Kijk naar het statiegeldlogo, niet naar het soort fles. Zit er een logo op, dan is het statiegeld. Zit er geen logo op, dan is het glas. Let op bij bierflesjes: die zijn van glas, maar op de flesjes uit een krat zit wél statiegeld. Die horen dus bij geen van beide en kun je het beste zelf naar de supermarkt brengen, want daar krijg je je geld voor terug.',
+  },
+  {
     vraag: 'Wat kost het ophalen van glas?',
     antwoord: `${formatCenten(GLAS_PRIJS_CENTEN)} per keer. Niet per fles. Vijf flessen of vijftig flessen, de skelter rijdt toch, dus de prijs blijft hetzelfde.`,
   },
@@ -137,7 +142,7 @@ const Landing: React.FC = () => (
 
             <h3 className="text-xl font-bold mb-1">Glas: jij betaalt</h3>
             <p className="text-sm mb-5" style={{ color: 'var(--cmt-ink-soft)' }}>
-              Wijnflessen, bierflesjes, jampotten. Alles wat rinkelt.
+              Wijnflessen, jampotten, sauspotten. Alles van glas zonder statiegeldlogo.
             </p>
 
             <p className="cmt-prijs">{formatCenten(GLAS_PRIJS_CENTEN)}</p>
@@ -189,6 +194,16 @@ const Landing: React.FC = () => (
               </li>
             </ul>
           </article>
+        </div>
+
+        <div className="cmt-card cmt-card-tint mt-5 max-w-3xl">
+          <p className="font-bold mb-1">Twijfel je? Kijk naar het logo.</p>
+          <p className="text-sm" style={{ color: 'var(--cmt-ink-soft)' }}>
+            Niet het soort fles bepaalt het, maar het statiegeldlogo. Zit er een logo op, dan is
+            het statiegeld. Zit er geen logo op, dan is het glas. Pas op met bierflesjes: die zijn
+            van glas, maar op de flesjes uit een krat zit wél statiegeld. Breng die zelf naar de
+            supermarkt, want daar krijg je je geld voor terug.
+          </p>
         </div>
       </div>
     </section>

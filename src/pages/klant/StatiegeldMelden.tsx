@@ -10,6 +10,7 @@ import { AlertCircle, ArrowLeft, Heart, Recycle } from 'lucide-react';
 import AppLayout from '../../components/layout/AppLayout';
 import { KLANT_NAV } from '../../components/layout/navItems';
 import Loading from '../../components/shared/Loading';
+import AantalVeld from '../../components/common/AantalVeld';
 import BuitenWerkgebied from '../../components/klant/BuitenWerkgebied';
 import VoorkeurKiezer, { type Voorkeur } from '../../components/klant/VoorkeurKiezer';
 import { useAuth } from '../../hooks/useAuth';
@@ -18,29 +19,6 @@ import { useStatiegeldStore } from '../../store/statiegeldStore';
 import { useWerkgebiedToets } from '../../hooks/useWerkgebiedToets';
 import { formatCenten, STATIEGELD_SERVICE_CENTEN } from '../../utils/constants';
 import { stuurPushNaarRol } from '../../utils/push';
-
-const AantalVeld: React.FC<{
-  id: string;
-  label: string;
-  waarde: number;
-  onChange: (n: number) => void;
-}> = ({ id, label, waarde, onChange }) => (
-  <div>
-    <label className="cmt-label" htmlFor={id}>
-      {label}
-    </label>
-    <input
-      id={id}
-      type="number"
-      inputMode="numeric"
-      min={0}
-      max={999}
-      className="cmt-input"
-      value={waarde}
-      onChange={(e) => onChange(Math.max(0, Math.min(999, Number(e.target.value) || 0)))}
-    />
-  </div>
-);
 
 const StatiegeldMelden: React.FC = () => {
   const navigate = useNavigate();
@@ -130,8 +108,9 @@ const StatiegeldMelden: React.FC = () => {
             <Recycle className="w-8 h-8 mb-3" style={{ color: 'var(--cmt-stat)' }} />
             <h1 className="text-xl font-bold mb-1">Statiegeld aanmelden</h1>
             <p className="text-sm mb-5" style={{ color: 'var(--cmt-ink-soft)' }}>
-              Geef ongeveer aan wat er klaarstaat. Precies hoeven de aantallen niet te zijn,
-              Jayce telt bij het ophalen.
+              Voor <strong>plastic</strong> flessen en blikjes mét statiegeldlogo. Geef ongeveer
+              aan wat er klaarstaat; precies hoeven de aantallen niet te zijn, want Jayce telt bij
+              het ophalen na.
             </p>
 
             {fout && (

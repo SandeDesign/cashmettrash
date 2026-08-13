@@ -18,6 +18,7 @@ import AppLayout from '../../components/layout/AppLayout';
 import { JAYCE_NAV } from '../../components/layout/navItems';
 import Loading from '../../components/shared/Loading';
 import MeldingenKaart from '../../components/common/MeldingenKaart';
+import AantalVeld from '../../components/common/AantalVeld';
 import TijdslotKiezer from '../../components/jayce/TijdslotKiezer';
 import { useAuth } from '../../hooks/useAuth';
 import { useGlasStore } from '../../store/glasStore';
@@ -173,6 +174,10 @@ const GlasTaak: React.FC<{
       </p>
     )}
 
+    <p className="mt-3 text-sm" style={{ color: 'var(--cmt-ink-muted)' }}>
+      Zit er een statiegeldlogo op een flesje? Laat die dan staan, die horen hier niet bij.
+    </p>
+
     {order.geplandVan && order.geplandTot ? (
       <AfspraakBalk van={order.geplandVan} tot={order.geplandTot} />
     ) : (
@@ -243,38 +248,20 @@ const StatiegeldTaak: React.FC<{
           </p>
 
           <div className="grid grid-cols-2 gap-3">
-            <div>
-              <label className="cmt-label" htmlFor={`plastic-${log.id}`}>
-                Flesjes
-              </label>
-              <input
-                id={`plastic-${log.id}`}
-                type="number"
-                inputMode="numeric"
-                min={0}
-                max={999}
-                className="cmt-input !text-lg"
-                value={plastic}
-                onChange={(e) =>
-                  setPlastic(Math.max(0, Math.min(999, Number(e.target.value) || 0)))
-                }
-              />
-            </div>
-            <div>
-              <label className="cmt-label" htmlFor={`blik-${log.id}`}>
-                Blikjes
-              </label>
-              <input
-                id={`blik-${log.id}`}
-                type="number"
-                inputMode="numeric"
-                min={0}
-                max={999}
-                className="cmt-input !text-lg"
-                value={blik}
-                onChange={(e) => setBlik(Math.max(0, Math.min(999, Number(e.target.value) || 0)))}
-              />
-            </div>
+            <AantalVeld
+              id={`plastic-${log.id}`}
+              label="Flesjes"
+              waarde={plastic}
+              onChange={setPlastic}
+              groot
+            />
+            <AantalVeld
+              id={`blik-${log.id}`}
+              label="Blikjes"
+              waarde={blik}
+              onChange={setBlik}
+              groot
+            />
           </div>
         </>
       )}

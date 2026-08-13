@@ -33,8 +33,14 @@ const Voorwaarden: React.FC = () => (
       </li>
       <li>Je betaalt vooraf in de app. Pas daarna staat de aanvraag klaar voor Jayce.</li>
       <li>
-        Op glazen flessen zit geen statiegeld. Je betaalt dus voor het ophalen en
-        wegbrengen, en krijgt voor het glas zelf niets terug.
+        Deze dienst is voor glas <strong>zonder</strong> statiegeldlogo, zoals wijnflessen,
+        jampotten en sauspotten. Daar zit geen statiegeld op, dus je betaalt voor het ophalen
+        en wegbrengen en krijgt voor het glas zelf niets terug.
+      </li>
+      <li>
+        Glazen flessen waar wél statiegeld op zit, zoals bierflesjes uit een krat, nemen we
+        niet mee. Die kun je bij de supermarkt inleveren en daar krijg je het statiegeld voor
+        terug. Zet je ze toch bij het glas, dan laat Jayce ze staan.
       </li>
       <li>
         Zet het glas op een plek die vanaf de straat te bereiken is en geef in de opmerking

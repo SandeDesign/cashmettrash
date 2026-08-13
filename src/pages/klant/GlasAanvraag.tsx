@@ -98,7 +98,9 @@ const GlasAanvraag: React.FC = () => {
             <Wine className="w-8 h-8 mb-3" style={{ color: 'var(--cmt-glas)' }} />
             <h1 className="text-xl font-bold mb-1">Glas laten ophalen</h1>
             <p className="text-sm mb-5" style={{ color: 'var(--cmt-ink-soft)' }}>
-              Zet je glazen flessen klaar. Jayce komt binnenkort langs.
+              Voor glas <strong>zonder</strong> statiegeldlogo: wijnflessen, jampotten,
+              sauspotten. Zit er wél een logo op, meld het dan aan als statiegeld, dan krijg je
+              er geld voor terug.
             </p>
 
             {fout && (
