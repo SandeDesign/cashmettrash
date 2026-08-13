@@ -125,6 +125,16 @@ een begin- en eindtijd. Mama beheert ze op `/mama/tijden`, de beheerder op
 `/admin/tijden`; het is dezelfde lijst en hetzelfde component. Zijn er geen
 actieve tijdsloten, dan kan Jayce niets bevestigen en zegt de app dat ook.
 
+### Rondleiding
+
+Klant, Jayce en mama hebben elk een eigen uitleg in stapjes, met een vraagteken
+in de header om hem opnieuw te openen. De eerste keer gaat hij vanzelf open; dat
+onthoudt de app in `localStorage` onder `cmt_rondleiding_gezien_{rol}`. De teksten
+staan in `src/components/uitleg/rondleidingStappen.tsx`, het venster zelf in
+`Rondleiding.tsx`. Een stap kan een `naar` meekrijgen; dan verschijnt er een knop
+die de rondleiding sluit en meteen naar die pagina springt. De beheerder heeft
+bewust geen rondleiding.
+
 ### Route
 
 `/jayce/route` tekent de ronde met Leaflet en OpenStreetMap-tegels. De route komt

@@ -475,6 +475,72 @@ h1, h2, h3, h4 {
   padding: 1.5rem;
 }
 
+/* ---------- Rondleiding ---------- */
+/* Ruime regelafstand en flinke letters: dit wordt ook door een kind gelezen. */
+
+.cmt-rondleiding {
+  max-width: 30rem;
+}
+
+.cmt-rondleiding-icoon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 3.5rem;
+  height: 3.5rem;
+  margin-bottom: 0.9rem;
+  border-radius: 1.25rem;
+  background: var(--cmt-accent-bg);
+  color: var(--cmt-accent);
+}
+
+.cmt-rondleiding-tekst {
+  font-size: 1rem;
+  line-height: 1.65;
+  color: var(--cmt-ink-soft);
+}
+
+.cmt-rondleiding-tekst p + p {
+  margin-top: 0.75rem;
+}
+
+.cmt-rondleiding-tekst ul {
+  margin-top: 0.5rem;
+  padding-left: 1.25rem;
+  list-style: disc;
+}
+
+.cmt-rondleiding-tekst li + li {
+  margin-top: 0.25rem;
+}
+
+.cmt-rondleiding-tekst strong {
+  color: var(--cmt-ink);
+  font-weight: 600;
+}
+
+.cmt-rondleiding-stippen {
+  display: flex;
+  gap: 0.35rem;
+  margin-top: 1.5rem;
+}
+
+.cmt-rondleiding-stippen span {
+  height: 0.35rem;
+  flex: 1;
+  border-radius: 999px;
+  background: var(--cmt-border);
+  transition: background 0.2s ease;
+}
+
+.cmt-rondleiding-stippen span.is-gehad {
+  background: var(--cmt-accent-border);
+}
+
+.cmt-rondleiding-stippen span.is-hier {
+  background: var(--cmt-accent);
+}
+
 /* ---------- Teller ---------- */
 /* Het rode bolletje met een aantal, zoals op een app-icoon. */
 

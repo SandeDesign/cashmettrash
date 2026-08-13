@@ -1,13 +1,15 @@
 // src/components/layout/AppLayout.tsx
 import React from 'react';
 import { Link, NavLink } from 'react-router-dom';
-import { LogOut } from 'lucide-react';
+import { HelpCircle, LogOut } from 'lucide-react';
 import Logo from '../shared/Logo';
 import MobielMenu from './MobielMenu';
 import NavTeller from './NavTeller';
+import Rondleiding from '../uitleg/Rondleiding';
 import { useAuthStore } from '../../store/authStore';
 import { useAuth } from '../../hooks/useAuth';
 import { useOngelezen } from '../../hooks/useOngelezen';
+import { useRondleiding } from '../../hooks/useRondleiding';
 
 export interface NavItem {
   to: string;
@@ -31,6 +33,7 @@ const AppLayout: React.FC<AppLayoutProps> = ({ children, nav = [], title }) => {
   const { user } = useAuth();
   const logout = useAuthStore((s) => s.logout);
   const ongelezen = useOngelezen();
+  const rondleiding = useRondleiding();
   const heeftNav = nav.length > 0;
 
   return (
@@ -50,6 +53,17 @@ const AppLayout: React.FC<AppLayoutProps> = ({ children, nav = [], title }) => {
                 {user.naam}
               </span>
             )}
+            {rondleiding.stappen && (
+              <button
+                onClick={rondleiding.openen}
+                className="cmt-btn-ghost !px-3 !py-2"
+                title={rondleiding.titel}
+              >
+                <HelpCircle className="w-4 h-4" />
+                <span className="hidden sm:inline">Uitleg</span>
+              </button>
+            )}
+
             <button onClick={() => logout()} className="cmt-btn-ghost !px-3 !py-2" title="Uitloggen">
               <LogOut className="w-4 h-4" />
               <span className="hidden sm:inline">Uitloggen</span>
@@ -98,6 +112,14 @@ const AppLayout: React.FC<AppLayoutProps> = ({ children, nav = [], title }) => {
       </main>
 
       {heeftNav && <MobielMenu nav={nav} ongelezen={ongelezen} />}
+
+      {rondleiding.open && rondleiding.stappen && (
+        <Rondleiding
+          stappen={rondleiding.stappen}
+          titel={rondleiding.titel}
+          onSluiten={rondleiding.sluiten}
+        />
+      )}
     </div>
   );
 };

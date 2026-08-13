@@ -52,6 +52,13 @@ const Cookies: React.FC = () => (
       opmaak.
     </p>
 
+    <h3>4. Wat je al gezien hebt</h3>
+    <p>
+      De uitleg over hoe de app werkt komt de eerste keer vanzelf tevoorschijn. Dat je hem hebt
+      gezien schrijven we op, anders zou hij elke keer opnieuw beginnen. Hetzelfde geldt voor de
+      melding onderaan over cookies. Meer dan een vinkje is het niet.
+    </p>
+
     <h2>Wat bewaren we niet?</h2>
     <ul>
       <li>Geen advertentiecookies. Je krijgt hier nooit reclame te zien.</li>
