@@ -167,7 +167,7 @@ vanaf het verkeerde punt.
 
 `/jayce/route` tekent de hele ronde met Leaflet en OpenStreetMap-tegels. De
 tegels hebben geen sleutel nodig, dus de kaart met genummerde spelden werkt
-altijd. Alleen de **lijn** komt van OpenRouteService (profiel `cycling-safe`,
+altijd. Alleen de **lijn** komt van OpenRouteService (profiel `cycling-regular`,
 met de plekken van mama als `avoid_polygons`) en heeft `VITE_ORS_API_KEY` nodig.
 
 Diezelfde sleutel zet adressen om naar coördinaten. Zonder sleutel hebben nieuwe

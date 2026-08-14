@@ -19,6 +19,12 @@ const ORS_SLEUTEL = import.meta.env.VITE_ORS_API_KEY;
 // kwestie van VITE_ORS_BASIS zetten in Vercel, zonder de code aan te raken.
 const ORS_BASIS = import.meta.env.VITE_ORS_BASIS || 'https://api.openrouteservice.org';
 
+// Het fietsprofiel. Let op: 'cycling-safe' bestaat niet bij deze dienst en gaf
+// een foutmelding terug. De geldige fietsprofielen zijn cycling-regular,
+// cycling-road, cycling-mountain en cycling-electric. Regular is het gewone
+// stadsfietsen: fietspaden waar die er zijn, rustige straten waar niet.
+const ORS_PROFIEL = 'cycling-regular';
+
 /** Zonder sleutel doet de routeplanner niets; de app blijft wel werken. */
 export const routeplannerBeschikbaar = Boolean(ORS_SLEUTEL);
 
@@ -113,7 +119,7 @@ export async function berekenRit(
 
 /**
  * Berekent de veiligste fietsroute langs alle stops en terug naar het begin.
- * Gebruikt het profiel cycling-safe: dat mijdt drukke wegen en kiest fietspaden.
+ * Gebruikt het fietsprofiel, dat fietspaden kiest en drukke wegen mijdt.
  */
 export async function berekenRoute(
   start: Punt,
@@ -169,7 +175,7 @@ async function vraagRouteOp(
   }
 
   try {
-    const response = await fetch(`${ORS_BASIS}/v2/directions/cycling-safe/geojson`, {
+    const response = await fetch(`${ORS_BASIS}/v2/directions/${ORS_PROFIEL}/geojson`, {
       method: 'POST',
       headers: { Authorization: ORS_SLEUTEL, 'Content-Type': 'application/json' },
       body: JSON.stringify(body),
