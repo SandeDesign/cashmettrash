@@ -9,7 +9,7 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import { format } from 'date-fns';
 import { nl } from 'date-fns/locale';
-import { Check, Download, ExternalLink, Recycle, Wallet } from 'lucide-react';
+import { Check, Download, ExternalLink, Recycle, Trash2, Wallet } from 'lucide-react';
 import AppLayout from '../../components/layout/AppLayout';
 import { ADMIN_NAV } from '../../components/layout/navItems';
 import Loading from '../../components/shared/Loading';
@@ -44,7 +44,8 @@ function volgendeStap(log: StatiegeldLogType): string | null {
 }
 
 const StatiegeldLogPagina: React.FC = () => {
-  const { logs, loading, error, loadAlle, markeerVerwerkt, rekenAf } = useStatiegeldStore();
+  const { logs, loading, error, loadAlle, markeerVerwerkt, rekenAf, verwijderLog } =
+    useStatiegeldStore();
   const stuurBericht = useChatStore((s) => s.stuurBericht);
 
   const [alleenOpenstaand, setAlleenOpenstaand] = useState(true);
@@ -127,6 +128,20 @@ const StatiegeldLogPagina: React.FC = () => {
       url: '/chat',
     });
     setAfrekenen(null);
+  };
+
+  /** Weghalen kan niet ongedaan gemaakt worden, dus eerst even vragen. */
+  const verwijder = async (log: StatiegeldLogType) => {
+    const geteld = log.itemsWerkelijk ?? log.items;
+    const bevestigd = window.confirm(
+      `Melding van ${log.customerNaam} verwijderen?\n\n` +
+        `${geteld.plastic} flessen en ${geteld.blik} blikjes, aangemeld ${datum(log.aangemaaktOp)}.` +
+        (log.status === 'tikkieVerstuurd'
+          ? '\n\nLet op: de Tikkie is al verstuurd. Het bericht in de chat blijft staan.'
+          : '') +
+        '\n\nDit kan niet ongedaan worden gemaakt.'
+    );
+    if (bevestigd) await verwijderLog(log.id);
   };
 
   const exporteer = () => {
@@ -298,6 +313,18 @@ const StatiegeldLogPagina: React.FC = () => {
                             Alleen ingescand bij Viatim
                           </button>
                         )}
+
+                        {/* Opruimen kan altijd, ook als er al is afgerekend: dit
+                            is er voor testrommel en voor een misser. */}
+                        <button
+                          className="cmt-btn-ghost !py-1.5 !px-2 !text-xs"
+                          style={{ color: 'var(--cmt-error)' }}
+                          onClick={() => verwijder(log)}
+                          aria-label={`Verwijder de melding van ${log.customerNaam}`}
+                          title="Verwijderen"
+                        >
+                          <Trash2 className="w-4 h-4" />
+                        </button>
                       </li>
                     );
                   })}

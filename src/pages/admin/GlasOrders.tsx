@@ -2,7 +2,7 @@
 import React, { useEffect, useState } from 'react';
 import { format } from 'date-fns';
 import { nl } from 'date-fns/locale';
-import { Download } from 'lucide-react';
+import { Download, Trash2 } from 'lucide-react';
 import AppLayout from '../../components/layout/AppLayout';
 import { ADMIN_NAV } from '../../components/layout/navItems';
 import Loading from '../../components/shared/Loading';
@@ -10,7 +10,7 @@ import { GlasStatusBadge } from '../../components/common/StatusBadge';
 import { useGlasStore } from '../../store/glasStore';
 import { formatCenten, GLAS_STATUS_LABEL } from '../../utils/constants';
 import { centenVoorCsv, downloadCsv, naarCsv } from '../../utils/csv';
-import type { GlasStatus } from '../../types';
+import type { GlasOrder, GlasStatus } from '../../types';
 
 const STATUSSEN = Object.keys(GLAS_STATUS_LABEL) as GlasStatus[];
 
@@ -18,7 +18,7 @@ const datumTijd = (iso?: string) =>
   iso ? format(new Date(iso), 'd MMM yyyy HH:mm', { locale: nl }) : '';
 
 const GlasOrders: React.FC = () => {
-  const { orders, loading, error, loadAlle, setStatus } = useGlasStore();
+  const { orders, loading, error, loadAlle, setStatus, verwijderOrder } = useGlasStore();
   const [filter, setFilter] = useState<GlasStatus | 'alle'>('alle');
 
   useEffect(() => {
@@ -26,6 +26,17 @@ const GlasOrders: React.FC = () => {
   }, [loadAlle]);
 
   const zichtbaar = filter === 'alle' ? orders : orders.filter((o) => o.status === filter);
+
+  /** Weghalen kan niet ongedaan gemaakt worden, dus eerst even vragen. */
+  const verwijder = async (order: GlasOrder) => {
+    const bevestigd = window.confirm(
+      `Aanvraag van ${order.customerNaam} verwijderen?\n\n` +
+        `${formatCenten(order.bedrag)}, aangemeld ${datumTijd(order.aangemaaktOp)}.` +
+        (order.betaaldOp ? '\n\nLet op: deze aanvraag is al betaald.' : '') +
+        '\n\nDit kan niet ongedaan worden gemaakt.'
+    );
+    if (bevestigd) await verwijderOrder(order.id);
+  };
 
   const exporteer = () => {
     const csv = naarCsv(
@@ -97,6 +108,7 @@ const GlasOrders: React.FC = () => {
                   <th>Bedrag</th>
                   <th>Betaling</th>
                   <th>Status</th>
+                  <th aria-label="Verwijderen" />
                 </tr>
               </thead>
               <tbody>
@@ -141,6 +153,19 @@ const GlasOrders: React.FC = () => {
                           ))}
                         </select>
                       </div>
+                    </td>
+                    <td>
+                      {/* Opruimen kan altijd, ook als er al is betaald: dit is er
+                          voor testrommel en voor een misser. */}
+                      <button
+                        className="cmt-btn-ghost !py-1.5 !px-2 !text-xs"
+                        style={{ color: 'var(--cmt-error)' }}
+                        onClick={() => verwijder(order)}
+                        aria-label={`Verwijder de aanvraag van ${order.customerNaam}`}
+                        title="Verwijderen"
+                      >
+                        <Trash2 className="w-4 h-4" />
+                      </button>
                     </td>
                   </tr>
                 ))}

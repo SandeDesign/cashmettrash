@@ -77,7 +77,7 @@ niet in het datamodel, niet in de UI, niet in de security rules.
 | `klant` | `/mijn` | Glas aanvragen + betalen, statiegeld aanmelden, ophaalkosten betalen, chatten met de beheerder, eigen gegevens |
 | `jayce` | `/jayce`, `/jayce/route`, `/jayce/bekenden`, `/jayce/score` | Aanvragen bevestigen met een tijdslot en daarna afvinken, statiegeld tellen, de route bekijken, bekenden zien, eigen score. **Geen toegang tot de chat.** Het enige bedrag dat hij ziet is zijn eigen potje |
 | `moeder` | `/mama`, `/mama/scannen`, `/mama/contant`, `/mama/tijden`, `/mama/plekken`, `/mama/ideeen` | Meekijken met de ronde en zien bij welke ritten ze mee moet, statiegeld inscannen bij Viatim en de Tikkie klaarzetten, contant meegegeven ophaalkosten afvinken, de ophaaltijden instellen, gevaarlijke plekken markeren, ideeën doorgeven. Geen orders, geen chat |
-| `admin` | `/admin` | Takenlijst, orders, statiegeld afrekenen, chatten met klanten, rollen toewijzen en klanten als bekende aanwijzen (`/admin/klanten`), ophaalronde (`/admin/ophalen`), ophaaltijden (`/admin/tijden`), werkgebied (`/admin/instellingen`), dagoverzicht (`/admin/dagoverzicht`), ideeën (`/admin/ideeen`), cijfers (`/admin/cijfers`), CSV-export |
+| `admin` | `/admin` | Takenlijst, orders, statiegeld afrekenen, contant geld nakijken (`/admin/contant`), chatten met klanten, rollen toewijzen en klanten als bekende aanwijzen (`/admin/klanten`), ophaalronde (`/admin/ophalen`), ophaaltijden (`/admin/tijden`), werkgebied (`/admin/instellingen`), dagoverzicht (`/admin/dagoverzicht`), ideeën (`/admin/ideeen`), cijfers (`/admin/cijfers`), CSV-export |
 
 **Dashboards tonen acties, geen cijfers.** `/admin` en `/mijn` beantwoorden de
 vraag "wat moet ik nu doen". Getallen horen op `/admin/cijfers` en `/jayce/score`.
@@ -94,7 +94,9 @@ Een beheerder kan zijn eigen rol niet aanpassen, zodat de laatste admin niet per
 ongeluk verdwijnt.
 
 De navigatie per rol staat in `src/components/layout/navItems.tsx`. Op desktop is
-dat de balk onder de header; op mobiel opent `MobielMenu` rechtsonder een paneel
+dat de balk onder de header; vanaf acht items (dus bij de beheerder) staan daar
+alleen de iconen, met de paginanaam als tooltip en zichtbaar bij de pagina waar
+je nu bent; op mobiel opent `MobielMenu` rechtsonder een paneel
 waarin de items per `groep` bij elkaar staan, allemaal uitgeklapt zodat je in één
 oogopslag alles ziet; inklappen doe je zelf.
 
@@ -104,7 +106,8 @@ lezen: `chat` (ongelezen berichten), `nieuw` (aanvragen zonder tijdslot), `ronde
 (alles wat nog opgehaald moet worden, alleen bij Jayce), `meerijden` (de ritten
 waar mama daadwerkelijk mee moet, dus niet alles wat openstaat), `afrekenen`
 (statiegeld dat wacht op de beheerder), `ideeen`, `scannen` (opgehaald, nog niet
-ingescand) en `contant` (geld dat mama nog moet afvinken). Op de menuknop zelf
+ingescand) en `contant` (geld dat mama nog moet afvinken; de beheerder ziet
+dezelfde teller op `/admin/contant`). Op de menuknop zelf
 staat de som van alles behalve `ronde`, want die zou daar altijd branden.
 
 ### Bekende
@@ -155,8 +158,9 @@ staat, glas en statiegeld door elkaar, gesplitst in "wacht op Jayce" en
 "ingepland". Dat is bewust een aparte pagina, want `/admin/glas` en
 `/admin/statiegeld` gaan over de administratie en niet over de ronde zelf. Daar
 kan hij een aanvraag ook **verwijderen**, met een bevestiging vooraf; dat is er
-voor de testfase en om een misser op te ruimen. De rules staan `delete` alleen
-een admin toe.
+voor de testfase en om een misser op te ruimen. Datzelfde kan op `/admin/glas` en
+`/admin/statiegeld`, ook als er al is betaald of afgerekend. De rules staan
+`delete` alleen een admin toe.
 
 De tijdsloten staan in `tijdsloten/{id}` en herhalen zich wekelijks: een dag plus
 een begin- en eindtijd. Mama beheert ze op `/mama/tijden`, de beheerder op

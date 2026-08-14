@@ -61,6 +61,7 @@ const AdminDagoverzicht = lazy(() => import('./pages/admin/Dagoverzicht'));
 const AdminIdeeen = lazy(() => import('./pages/admin/Ideeen'));
 const AdminTijden = lazy(() => import('./pages/admin/Tijden'));
 const AdminOphalen = lazy(() => import('./pages/admin/Ophalen'));
+const AdminContant = lazy(() => import('./pages/admin/Contant'));
 
 /** Stuurt een ingelogde gebruiker naar het dashboard van zijn rol. */
 const NaarDashboard: React.FC = () => {
@@ -305,6 +306,14 @@ const AppRoutes: React.FC = () => {
           element={
             <RoleGuard allowedRoles={['admin']}>
               <AdminOphalen />
+            </RoleGuard>
+          }
+        />
+        <Route
+          path="/admin/contant"
+          element={
+            <RoleGuard allowedRoles={['admin']}>
+              <AdminContant />
             </RoleGuard>
           }
         />

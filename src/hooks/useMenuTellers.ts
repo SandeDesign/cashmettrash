@@ -10,7 +10,7 @@
 //   afrekenen  statiegeld dat wacht op Marc   beheerder
 //   ideeen     ideeën die nog nieuw zijn      beheerder
 //   scannen    opgehaald, nog niet ingescand  mama
-//   contant    contant geld nog niet gezien   mama
+//   contant    contant geld nog niet gezien   mama, beheerder
 //
 // Een teller op nul laat `NavTeller` gewoon weg, dus rollen zonder een bepaalde
 // teller hoeven niets bijzonders te doen.
@@ -150,9 +150,10 @@ export function useMenuTellers(): MenuTellers {
     };
   }, [rol]);
 
-  // Alleen mama scant in en telt het contante geld na.
+  // Mama scant in en vinkt het contante geld af. De beheerder kijkt mee, dus hij
+  // krijgt dezelfde tellers.
   useEffect(() => {
-    if (rol !== 'moeder') {
+    if (rol !== 'moeder' && rol !== 'admin') {
       setScannen(0);
       setContant(0);
       return;

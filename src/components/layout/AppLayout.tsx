@@ -35,6 +35,10 @@ const AppLayout: React.FC<AppLayoutProps> = ({ children, nav = [], title }) => {
   const tellers = useMenuTellers();
   const rondleiding = useRondleiding();
   const heeftNav = nav.length > 0;
+  // Vanaf een stuk of acht items past de balk met tekst en al niet meer op een
+  // laptop. Dan tonen we alleen de iconen; de beheerder heeft er het meeste last
+  // van en het meeste baat bij.
+  const compacteNav = nav.length > 7;
 
   // Op de menuknop zelf alles wat om een handeling vraagt. Alleen de ronde telt
   // niet mee: die staat altijd vol en zou het bolletje altijd laten branden.
@@ -85,14 +89,18 @@ const AppLayout: React.FC<AppLayoutProps> = ({ children, nav = [], title }) => {
             style={{ borderTop: '1px solid var(--cmt-border)' }}
             aria-label="Hoofdnavigatie"
           >
-            {/* De beheerder heeft elf items; die passen niet naast elkaar op een
-                laptop. Daarom mag de balk schuiven in plaats van over te lopen. */}
+            {/* Bij een lange balk, zoals die van de beheerder, staan alleen de
+                iconen. De naam van de pagina komt tevoorschijn als je er met de
+                muis op blijft staan, en bij de pagina waar je nu bent staat hij
+                gewoon. Dat scheelt de helft aan breedte. */}
             <div className="max-w-4xl mx-auto px-4 flex gap-1 overflow-x-auto cmt-nav-schuif">
               {nav.map((item) => (
                 <NavLink
                   key={item.to}
                   to={item.to}
                   end={item.end}
+                  title={item.label}
+                  aria-label={item.label}
                   className={({ isActive }) =>
                     `flex items-center gap-2 px-2.5 py-3 text-sm font-medium border-b-2 whitespace-nowrap flex-shrink-0 transition-colors ${
                       isActive ? 'border-current' : 'border-transparent'
@@ -102,9 +110,15 @@ const AppLayout: React.FC<AppLayoutProps> = ({ children, nav = [], title }) => {
                     color: isActive ? 'var(--cmt-glas)' : 'var(--cmt-ink-soft)',
                   })}
                 >
-                  {item.icon}
-                  {item.label}
-                  {item.teller && <NavTeller aantal={tellers[item.teller] ?? 0} soort={item.teller} />}
+                  {({ isActive }: { isActive: boolean }) => (
+                    <>
+                      {item.icon}
+                      {(!compacteNav || isActive) && item.label}
+                      {item.teller && (
+                        <NavTeller aantal={tellers[item.teller] ?? 0} soort={item.teller} />
+                      )}
+                    </>
+                  )}
                 </NavLink>
               ))}
             </div>

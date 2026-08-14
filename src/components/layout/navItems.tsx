@@ -182,6 +182,13 @@ export const ADMIN_NAV: NavItem[] = [
     groep: 'Ophalen',
     teller: 'afrekenen',
   },
+  {
+    to: '/admin/contant',
+    label: 'Contant',
+    icon: <Coins className="w-5 h-5" />,
+    groep: 'Ophalen',
+    teller: 'contant',
+  },
   { to: '/admin/klanten', label: 'Mensen', icon: <Users className="w-5 h-5" />, groep: 'Beheer' },
   {
     to: '/admin/tijden',
