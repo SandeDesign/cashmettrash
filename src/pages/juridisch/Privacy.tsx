@@ -26,6 +26,7 @@ const Privacy: React.FC = () => (
         </li>
       )}
       {BEDRIJF.kvk && <li>KvK-nummer: {BEDRIJF.kvk}</li>}
+      {BEDRIJF.btw && <li>Btw-identificatienummer: {BEDRIJF.btw}</li>}
       {BEDRIJF.email && <li>E-mail: {BEDRIJF.email}</li>}
     </ul>
 

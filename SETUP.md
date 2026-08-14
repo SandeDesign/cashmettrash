@@ -260,14 +260,17 @@ een waarschuwing, zodat het niet ongemerkt live gaat.
 
 Vul ze in op één plek, in `src/utils/bedrijf.ts`:
 
-| Veld | Wat |
-|---|---|
-| `kvk` | KvK-nummer van Buddy BV |
-| `btw` | Btw-identificatienummer, mag leeg blijven als je geen btw factureert |
-| `adres` | Straat en huisnummer van de vestiging |
-| `postcode` | Postcode van de vestiging |
-| `email` | Adres waar privacyverzoeken en klachten binnenkomen |
-| `telefoon` | Optioneel |
+| Veld | Wat | Status |
+|---|---|---|
+| `kvk` | KvK-nummer van Buddy BV | ingevuld |
+| `btw` | Btw-identificatienummer | ingevuld |
+| `adres` | Straat en huisnummer van de vestiging | nog invullen |
+| `postcode` | Postcode van de vestiging | nog invullen |
+| `email` | Adres waar privacyverzoeken en klachten binnenkomen | nog invullen |
+| `telefoon` | Optioneel | |
+
+De waarschuwing bovenaan de juridische pagina's noemt zelf welk veld nog
+ontbreekt, dus je ziet vanzelf wanneer je klaar bent.
 
 Werk daarna ook `laatstBijgewerkt` bij. Die datum staat onderaan elke juridische
 pagina.

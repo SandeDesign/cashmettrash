@@ -17,6 +17,19 @@ const Voorwaarden: React.FC = () => (
       statiegeld op bij mensen thuis. Het ophalen wordt uitgevoerd door Jayce, die daarvoor
       met de skelter langskomt.
     </p>
+    <p>Je sluit de overeenkomst met:</p>
+    <ul>
+      <li>{BEDRIJF.rechtspersoon}, handelend onder de naam {BEDRIJF.handelsnaam}</li>
+      {BEDRIJF.adres && (
+        <li>
+          {BEDRIJF.adres}, {BEDRIJF.postcode} {BEDRIJF.plaats}
+        </li>
+      )}
+      {BEDRIJF.kvk && <li>KvK-nummer: {BEDRIJF.kvk}</li>}
+      {BEDRIJF.btw && <li>Btw-identificatienummer: {BEDRIJF.btw}</li>}
+      {BEDRIJF.email && <li>E-mail: {BEDRIJF.email}</li>}
+      {BEDRIJF.telefoon && <li>Telefoon: {BEDRIJF.telefoon}</li>}
+    </ul>
 
     <h2>2. Werkgebied</h2>
     <p>

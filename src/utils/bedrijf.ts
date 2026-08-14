@@ -15,8 +15,8 @@ export const BEDRIJF = {
   /** Rechtspersoon die de overeenkomst aangaat en de betalingen ontvangt. */
   rechtspersoon: 'Buddy BV',
 
-  kvk: NOG_INVULLEN,
-  btw: NOG_INVULLEN,
+  kvk: '98132873',
+  btw: 'NL868369755B01',
 
   adres: NOG_INVULLEN,
   postcode: NOG_INVULLEN,
@@ -29,7 +29,7 @@ export const BEDRIJF = {
   werkgebied: 'Tilburg, rond de Magriethof',
 
   /** Datum waarop de juridische teksten voor het laatst zijn bijgewerkt. */
-  laatstBijgewerkt: '12 augustus 2026',
+  laatstBijgewerkt: '14 augustus 2026',
 } as const;
 
 /** Geeft de waarde terug, of null als hij nog niet is ingevuld. */
@@ -38,7 +38,17 @@ export function bedrijfsWaarde(sleutel: keyof typeof BEDRIJF): string | null {
   return waarde ? waarde : null;
 }
 
+/** Welke verplichte gegevens nog ontbreken, in gewone woorden. */
+export function ontbrekendeBedrijfsgegevens(): string[] {
+  const ontbreekt: string[] = [];
+  if (!BEDRIJF.kvk) ontbreekt.push('KvK-nummer');
+  if (!BEDRIJF.adres) ontbreekt.push('vestigingsadres');
+  if (!BEDRIJF.postcode) ontbreekt.push('postcode');
+  if (!BEDRIJF.email) ontbreekt.push('contactadres');
+  return ontbreekt;
+}
+
 /** True zodra er nog verplichte gegevens ontbreken. */
 export function bedrijfsgegevensOnvolledig(): boolean {
-  return !BEDRIJF.kvk || !BEDRIJF.adres || !BEDRIJF.postcode || !BEDRIJF.email;
+  return ontbrekendeBedrijfsgegevens().length > 0;
 }

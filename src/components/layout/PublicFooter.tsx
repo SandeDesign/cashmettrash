@@ -56,6 +56,7 @@ const PublicFooter: React.FC = () => (
         <p>
           {BEDRIJF.rechtspersoon}
           {BEDRIJF.kvk && ` · KvK ${BEDRIJF.kvk}`}
+          {BEDRIJF.btw && ` · btw ${BEDRIJF.btw}`}
           {BEDRIJF.email && ` · ${BEDRIJF.email}`}
         </p>
       </div>

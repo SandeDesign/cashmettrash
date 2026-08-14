@@ -8,7 +8,11 @@ import { Link } from 'react-router-dom';
 import { ArrowLeft, AlertTriangle } from 'lucide-react';
 import PublicHeader from './PublicHeader';
 import PublicFooter from './PublicFooter';
-import { BEDRIJF, bedrijfsgegevensOnvolledig } from '../../utils/bedrijf';
+import {
+  BEDRIJF,
+  bedrijfsgegevensOnvolledig,
+  ontbrekendeBedrijfsgegevens,
+} from '../../utils/bedrijf';
 
 interface JuridischeLayoutProps {
   titel: string;
@@ -39,8 +43,8 @@ const JuridischeLayout: React.FC<JuridischeLayoutProps> = ({ titel, inleiding, c
         <div className="cmt-alert cmt-alert-warning mb-8">
           <AlertTriangle className="w-5 h-5 flex-shrink-0" />
           <span>
-            Deze pagina is nog niet compleet: de bedrijfsgegevens moeten worden ingevuld in
-            <code className="mx-1">src/utils/bedrijf.ts</code>. Zie SETUP.md.
+            Deze pagina is nog niet compleet. Vul het {ontbrekendeBedrijfsgegevens().join(', ')}{' '}
+            aan in <code className="mx-1">src/utils/bedrijf.ts</code>. Zie SETUP.md.
           </span>
         </div>
       )}
