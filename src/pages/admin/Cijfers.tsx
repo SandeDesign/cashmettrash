@@ -10,7 +10,7 @@ import { ADMIN_NAV } from '../../components/layout/navItems';
 import Loading from '../../components/shared/Loading';
 import { useGlasStore } from '../../store/glasStore';
 import { useStatiegeldStore } from '../../store/statiegeldStore';
-import { formatCenten } from '../../utils/constants';
+import { formatCenten, VIATIM_CENT_PER_ITEM, viatimVergoeding } from '../../utils/constants';
 
 const DAG_MS = 24 * 60 * 60 * 1000;
 
@@ -59,6 +59,18 @@ const Cijfers: React.FC = () => {
       (l) => l.servicekostenStatus === 'betaald' && binnen(l.servicekostenBetaaldOp)
     );
 
+    // Wat er echt is ingeleverd bij Viatim. Daarover krijgen wij de vergoeding
+    // per verpakking; het statiegeld zelf zit daar niet in.
+    const isIngeleverd = (status: string) =>
+      status === 'verwerktBijViatim' || status === 'tikkieVerstuurd';
+    const telItems = (lijst: typeof logs) =>
+      lijst.reduce((som, l) => {
+        const geteld = l.itemsWerkelijk ?? l.items;
+        return som + geteld.plastic + geteld.blik;
+      }, 0);
+    const ingeleverd = logs.filter((l) => isIngeleverd(l.status) && binnen(l.verwerktOp));
+    const ingeleverdAltijd = logs.filter((l) => isIngeleverd(l.status));
+
     return {
       glasAantal: betaaldeOrders.length,
       glasOmzet: betaaldeOrders.reduce((som, o) => som + o.bedrag, 0),
@@ -77,6 +89,9 @@ const Cijfers: React.FC = () => {
         .filter((l) => l.geschonken)
         .reduce((som, l) => som + (l.tikkieBedrag ?? 0), 0),
       giften: logs.filter((l) => l.geschonken).length,
+      viatimItems: telItems(ingeleverd),
+      viatimVergoeding: viatimVergoeding(telItems(ingeleverd)),
+      viatimVergoedingTotaal: viatimVergoeding(telItems(ingeleverdAltijd)),
       kostenOmzet: betaaldeKosten.reduce((som, l) => som + l.servicekosten, 0),
       kostenOpen: logs
         .filter((l) => l.servicekostenStatus === 'openstaand')
@@ -154,14 +169,33 @@ const Cijfers: React.FC = () => {
       <div className="cmt-card cmt-flow-stat cmt-card-tint mb-6">
         <div className="flex items-center gap-2 mb-1" style={{ color: 'var(--cmt-stat)' }}>
           <PiggyBank className="w-5 h-5" />
-          <span className="text-sm font-semibold">Potje van Jayce</span>
+          <span className="text-sm font-semibold">Wat Jayce verdient</span>
         </div>
-        <p className="text-2xl font-bold">{formatCenten(cijfers.potjeTotaal)}</p>
-        <p className="text-sm mt-1" style={{ color: 'var(--cmt-ink-muted)' }}>
-          {formatCenten(cijfers.potje)} in deze periode, uit {cijfers.giften}{' '}
-          {cijfers.giften === 1 ? 'gift' : 'giften'} van bekenden. Dit staat los van de omzet en
-          wordt binnen Buddy BV apart gehouden.
+        <p className="text-2xl font-bold">
+          {formatCenten(cijfers.potjeTotaal + cijfers.viatimVergoedingTotaal)}
         </p>
+        <p className="text-sm mt-1" style={{ color: 'var(--cmt-ink-muted)' }}>
+          Alles bij elkaar, sinds het begin. Dit staat los van de omzet en wordt binnen Buddy BV
+          apart gehouden.
+        </p>
+
+        <div className="grid sm:grid-cols-2 gap-3 mt-4">
+          <div className="cmt-card !p-4">
+            <p className="text-lg font-bold">{formatCenten(cijfers.potjeTotaal)}</p>
+            <p className="text-xs" style={{ color: 'var(--cmt-ink-muted)' }}>
+              geschonken door bekenden, waarvan {formatCenten(cijfers.potje)} in deze periode, uit{' '}
+              {cijfers.giften} {cijfers.giften === 1 ? 'gift' : 'giften'}
+            </p>
+          </div>
+          <div className="cmt-card !p-4">
+            <p className="text-lg font-bold">{formatCenten(cijfers.viatimVergoedingTotaal)}</p>
+            <p className="text-xs" style={{ color: 'var(--cmt-ink-muted)' }}>
+              vergoeding van Viatim, {String(VIATIM_CENT_PER_ITEM).replace('.', ',')} cent per
+              verpakking. In deze periode {formatCenten(cijfers.viatimVergoeding)} over{' '}
+              {cijfers.viatimItems} ingeleverde stuks
+            </p>
+          </div>
+        </div>
       </div>
 
       <p className="text-xs" style={{ color: 'var(--cmt-ink-muted)' }}>

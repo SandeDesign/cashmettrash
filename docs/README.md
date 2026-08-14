@@ -1,12 +1,18 @@
 # docs
 
-## Schoolpresentatie
+Drie documenten om na te lezen, alle drie in de huisstijl en met het logo.
 
-`cashmettrash-school.pdf` is het uitlegdocument dat Jayce op school kan laten
-zien: drie A4'tjes in de huisstijl, met het logo, geschreven vanuit hemzelf.
+| PDF | Voor wie | Inhoud |
+|---|---|---|
+| `cashmettrash-school.pdf` | de juf of meester | Drie A4'tjes waarmee Jayce op school kan vertellen wat CashMetTrash is, geschreven vanuit hemzelf |
+| `cashmettrash-handleiding-mama.pdf` | mama | Vier A4'tjes: meerijden, inscannen bij Viatim, contant geld afvinken, tijden en plekken instellen |
+| `cashmettrash-handleiding-jayce.pdf` | Jayce | Vier A4'tjes in zijn eigen taal: je lijstje, je route, tellen, afvinken, veilig op pad, en wat je verdient |
 
-De bron staat ernaast als `schoolpresentatie.html`. Dat bestand is helemaal
+De bron staat er telkens naast als `.html`. Die bestanden zijn helemaal
 zelfstandig: het logo en Poppins zitten er als data-URI in, dus er wordt niets
-van buiten opgehaald. Wil je de tekst aanpassen, wijzig dan het HTML-bestand en
-druk het opnieuw af naar PDF met Ctrl+P (A4, marges op standaard, achtergronden
-aan).
+van buiten opgehaald en je kunt ze los doorsturen.
+
+Tekst aanpassen doe je in het HTML-bestand. Druk het daarna opnieuw af naar PDF
+met Ctrl+P: A4, standaardmarges, achtergronden aan. Houd in de gaten dat elk
+blok (`<section class="blad">`) op één bladzijde blijft passen; wordt het te
+lang, dan schuift het door naar de volgende pagina.

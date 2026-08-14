@@ -45,6 +45,11 @@ niet in het datamodel, niet in de UI, niet in de security rules.
 - **Het statiegeld zelf gaat volledig en onaangeroerd naar de klant.** Het bedrag
   komt uit de inleverautomaat via Viatim en kan niet worden aangepast, dus er kan
   ook niets van worden afgetrokken
+- Omdat we via Viatim inleveren krijgen wij **EUR 0,035 per flesje of blikje**
+  (`VIATIM_CENT_PER_ITEM`). Dat is de verdienste van Jayce op het inleveren zelf
+  en staat volledig los van het statiegeld van de klant. Het staat op
+  `/jayce/score` bij zijn eigen verdiensten en op `/admin/cijfers` naast zijn
+  potje; het telt niet mee in de omzet
 - **De Tikkie komt uit Viatim zelf**, die maken wij niet en passen wij niet aan. Marc
   plakt hem in de chat; de app zet dat bericht automatisch klaar
 - De klant ziet de knop naar die Tikkie **pas nadat de ophaalkosten betaald zijn**.
@@ -300,7 +305,10 @@ suggesties/{suggestieId}
 ```
 
 `GLAS_PRIJS_CENTEN = 499` en `STATIEGELD_SERVICE_CENTEN = 200` staan op één plek:
-`src/utils/constants.ts`.
+`src/utils/constants.ts`. Daar staat ook `VIATIM_CENT_PER_ITEM = 3.5`: de
+vergoeding die Viatim ons betaalt per ingeleverde verpakking. Dat is bewust geen
+heel getal, dus reken nooit per stuk af maar bereken het totaal met
+`viatimVergoeding(aantal)` en rond pas daar af.
 Bedragen zijn **altijd in centen** en worden alleen bij weergave geformatteerd met
 `formatCenten`.
 

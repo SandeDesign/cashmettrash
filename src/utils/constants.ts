@@ -12,6 +12,21 @@ export const GLAS_PRIJS_CENTEN = 499;
 export const STATIEGELD_SERVICE_CENTEN = 200;
 
 /**
+ * Wat Viatim ons betaalt per ingeleverde verpakking, in centen. Dit is de
+ * verdienste van Jayce op het inleveren zelf en staat helemaal los van het
+ * statiegeld: dat blijft van de klant en gaat onaangeroerd terug.
+ *
+ * Let op: dit is geen heel getal. Reken daarom nooit per stuk af, maar bereken
+ * het totaal met `viatimVergoeding` en rond pas daar af.
+ */
+export const VIATIM_CENT_PER_ITEM = 3.5;
+
+/** De vergoeding van Viatim over een aantal flesjes en blikjes, in hele centen. */
+export function viatimVergoeding(aantalItems: number): number {
+  return Math.round(aantalItems * VIATIM_CENT_PER_ITEM);
+}
+
+/**
  * PHP-proxy endpoints. De Stripe secret key staat uitsluitend server-side op de proxy.
  * Instelbaar via Vercel-omgevingsvariabelen; de defaults gelden voor productie.
  */

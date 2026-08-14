@@ -27,7 +27,12 @@ import {
   Wallet,
   Wine,
 } from 'lucide-react';
-import { formatCenten, GLAS_PRIJS_CENTEN, STATIEGELD_SERVICE_CENTEN } from '../../utils/constants';
+import {
+  formatCenten,
+  GLAS_PRIJS_CENTEN,
+  STATIEGELD_SERVICE_CENTEN,
+  VIATIM_CENT_PER_ITEM,
+} from '../../utils/constants';
 import type { Rol } from '../../types';
 
 export interface RondleidingStap {
@@ -317,6 +322,11 @@ const jayceStappen: RondleidingStap[] = [
         <p>
           Daar staat ook je potje: het geld dat mensen aan jou hebben gegeven. Papa bewaart dat
           voor je.
+        </p>
+        <p>
+          En je verdient zelf ook. Voor elk flesje en elk blikje dat wordt ingeleverd krijg jij{' '}
+          {String(VIATIM_CENT_PER_ITEM).replace('.', ',')} cent. Hoe meer je ophaalt, hoe meer dat
+          wordt.
         </p>
       </>
     ),

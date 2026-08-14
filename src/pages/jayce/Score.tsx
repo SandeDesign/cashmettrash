@@ -1,17 +1,18 @@
 // src/pages/jayce/Score.tsx
 //
-// De cijferpagina van Jayce. Bewust zonder één bedrag: hij ziet hoeveel hij heeft
-// gedaan, niet wat het opbrengt. Taal en opbouw zijn voor een tienjarige.
+// De cijferpagina van Jayce. Hier staan wel bedragen, maar alleen die van hem
+// zelf: zijn potje met giften en wat hij verdient aan het inleveren. Wat klanten
+// betalen komt hier niet voor. Taal en opbouw zijn voor een tienjarige.
 
 import React, { useEffect, useMemo } from 'react';
-import { Award, Flame, PiggyBank, Recycle, Trophy, Wine } from 'lucide-react';
+import { Award, Coins, Flame, PiggyBank, Recycle, Trophy, Wine } from 'lucide-react';
 import AppLayout from '../../components/layout/AppLayout';
 import { JAYCE_NAV } from '../../components/layout/navItems';
 import Loading from '../../components/shared/Loading';
 import { useAuth } from '../../hooks/useAuth';
 import { useGlasStore } from '../../store/glasStore';
 import { useStatiegeldStore } from '../../store/statiegeldStore';
-import { formatCenten } from '../../utils/constants';
+import { formatCenten, VIATIM_CENT_PER_ITEM, viatimVergoeding } from '../../utils/constants';
 
 const WEEK_MS = 7 * 24 * 60 * 60 * 1000;
 
@@ -69,6 +70,17 @@ const Score: React.FC = () => {
     const geschonkenLogs = logs.filter((l) => l.geschonken && l.tikkieBedrag);
     const potje = geschonkenLogs.reduce((som, l) => som + (l.tikkieBedrag ?? 0), 0);
 
+    // En wat hij verdient met inleveren: Viatim betaalt ons een klein bedrag per
+    // flesje of blikje dat er echt is ingeleverd. Dat is zijn verdienste, los van
+    // het statiegeld zelf, want dat blijft van de klant.
+    const ingeleverd = mijnStat.filter(
+      (l) => l.status === 'verwerktBijViatim' || l.status === 'tikkieVerstuurd'
+    );
+    const ingeleverdeItems = ingeleverd.reduce((som, l) => {
+      const geteld = l.itemsWerkelijk ?? l.items;
+      return som + geteld.plastic + geteld.blik;
+    }, 0);
+
     return {
       totaal: mijnGlas.length + mijnStat.length,
       dezeWeek,
@@ -78,6 +90,8 @@ const Score: React.FC = () => {
       dagen: dagen.size,
       potje,
       giften: geschonkenLogs.length,
+      ingeleverdeItems,
+      verdiend: viatimVergoeding(ingeleverdeItems),
     };
   }, [orders, logs, user]);
 
@@ -143,6 +157,19 @@ const Score: React.FC = () => {
           {score.giften === 0
             ? 'Nog niemand heeft zijn statiegeld aan jou gegeven. Dat kan later nog komen.'
             : `${score.giften === 1 ? 'Eén keer heeft' : `${score.giften} keer hebben`} mensen hun statiegeld aan jou gegeven. Papa bewaart het voor je.`}
+        </p>
+      </div>
+
+      <div className="cmt-card cmt-flow-stat cmt-card-flow mb-6">
+        <Coins className="w-8 h-8 mb-2" style={{ color: 'var(--cmt-stat)' }} />
+        <p className="text-4xl font-bold" style={{ color: 'var(--cmt-stat)' }}>
+          {formatCenten(score.verdiend)}
+        </p>
+        <p className="text-base font-semibold">heb je verdiend met inleveren</p>
+        <p className="text-sm mt-1" style={{ color: 'var(--cmt-ink-soft)' }}>
+          Voor elk flesje en elk blikje dat wordt ingeleverd krijg jij{' '}
+          {String(VIATIM_CENT_PER_ITEM).replace('.', ',')} cent. Tot nu toe zijn dat er{' '}
+          {score.ingeleverdeItems}. Hoe meer je ophaalt, hoe meer het wordt.
         </p>
       </div>
 
