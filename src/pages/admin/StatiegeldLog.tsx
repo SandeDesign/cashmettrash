@@ -37,6 +37,8 @@ function volgendeStap(log: StatiegeldLogType): string | null {
   if (log.status === 'ingepland') return 'Jayce komt langs';
   if (log.status === 'opgehaald') return 'Afrekenen';
   if (log.status === 'verwerktBijViatim') return 'Afrekenen';
+  if (log.servicekostenContant && !log.contantBevestigdOp && log.servicekostenStatus === 'openstaand')
+    return 'Wacht op mama (contant)';
   if (log.servicekostenStatus === 'openstaand') return 'Wacht op betaling';
   return null;
 }
@@ -100,20 +102,28 @@ const StatiegeldLogPagina: React.FC = () => {
       return;
     }
 
+    // Zijn de ophaalkosten al contant voldaan, dan hoeft de klant niets meer te
+    // doen en staat de Tikkie meteen open.
+    const alVoldaan = log.servicekostenStatus === 'betaald';
+
     await stuurBericht({
       customerId: log.customerId,
       customerNaam: log.customerNaam,
       afzender: 'admin',
-      tekst:
-        `Je statiegeld is ingeleverd en heeft ${formatCenten(centen)} opgebracht. ` +
-        `Betaal hieronder de ${formatCenten(log.servicekosten)} ophaalkosten, daarna komt de knop ` +
-        'naar je Tikkie tevoorschijn.',
+      tekst: alVoldaan
+        ? `Je statiegeld is ingeleverd en heeft ${formatCenten(centen)} opgebracht. ` +
+          'De ophaalkosten heb je contant meegegeven, dus je kunt je Tikkie meteen openen.'
+        : `Je statiegeld is ingeleverd en heeft ${formatCenten(centen)} opgebracht. ` +
+          `Betaal hieronder de ${formatCenten(log.servicekosten)} ophaalkosten, daarna komt de knop ` +
+          'naar je Tikkie tevoorschijn.',
       tikkieLink: link,
       statiegeldLogId: log.id,
     });
     void stuurPushNaarKlant(log.customerId, {
       titel: 'Je Tikkie staat klaar',
-      tekst: `${formatCenten(centen)} voor je statiegeld. Betaal even de ophaalkosten, dan kun je hem openen.`,
+      tekst: alVoldaan
+        ? `${formatCenten(centen)} voor je statiegeld. Je kunt hem meteen openen.`
+        : `${formatCenten(centen)} voor je statiegeld. Betaal even de ophaalkosten, dan kun je hem openen.`,
       url: '/chat',
     });
     setAfrekenen(null);
@@ -126,6 +136,7 @@ const StatiegeldLogPagina: React.FC = () => {
         'Schatting flessen', 'Schatting blik', 'Geteld flessen', 'Geteld blik',
         'Aangemeld', 'Opgehaald', 'Verwerkt', 'Tikkie verstuurd', 'Tikkie bedrag',
         'Ophaalkosten', 'Ophaalkosten status', 'Ophaalkosten betaald',
+        'Contant meegegeven', 'Contant bevestigd',
       ],
       zichtbaar.map((l) => [
         l.id,
@@ -146,6 +157,8 @@ const StatiegeldLogPagina: React.FC = () => {
         centenVoorCsv(l.servicekosten),
         SERVICEKOSTEN_STATUS_LABEL[l.servicekostenStatus],
         datumTijd(l.servicekostenBetaaldOp),
+        l.servicekostenContant ? 'ja' : 'nee',
+        datumTijd(l.contantBevestigdOp),
       ])
     );
     downloadCsv(`statiegeld-${new Date().toISOString().slice(0, 10)}.csv`, csv);
@@ -240,10 +253,21 @@ const StatiegeldLogPagina: React.FC = () => {
 
                         <div className="flex items-center gap-2 flex-wrap">
                           <StatiegeldStatusBadge status={log.status} />
-                          {log.servicekostenStatus === 'openstaand' && (
-                            <span className="cmt-badge cmt-badge-warning">
-                              {formatCenten(log.servicekosten)} open
+                          {log.servicekostenStatus === 'openstaand' &&
+                            !log.servicekostenContant && (
+                              <span className="cmt-badge cmt-badge-warning">
+                                {formatCenten(log.servicekosten)} open
+                              </span>
+                            )}
+                          {log.servicekostenContant && (
+                            <span
+                              className={`cmt-badge ${log.contantBevestigdOp ? 'cmt-badge-done' : 'cmt-badge-warning'}`}
+                            >
+                              {log.contantBevestigdOp ? 'Contant voldaan' : 'Contant, wacht op mama'}
                             </span>
+                          )}
+                          {log.tikkieKlaargezetDoor && log.status === 'verwerktBijViatim' && (
+                            <span className="cmt-badge cmt-badge-neutral">Mama scande in</span>
                           )}
                         </div>
 

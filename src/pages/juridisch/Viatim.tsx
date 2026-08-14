@@ -51,8 +51,8 @@ const Viatim: React.FC = () => (
         niet de schatting die je bij het aanmelden invulde.
       </li>
       <li>
-        <strong>Inscannen.</strong> Wij leveren de verpakkingen in bij het Viatim-punt. De automaat
-        bepaalt het bedrag.
+        <strong>Inscannen.</strong> Wij leveren de verpakkingen in bij het Viatim-punt en scannen ze
+        in op ons eigen account. De automaat bepaalt het bedrag.
       </li>
       <li>
         <strong>Doorbetalen.</strong> Dat bedrag sturen wij als Tikkie naar jou door, via de chat
@@ -80,6 +80,11 @@ const Viatim: React.FC = () => (
     <p>
       In de app zie je die twee dan ook los van elkaar staan. Je betaalt eerst de ophaalkosten, en
       daarna verschijnt de knop naar je Tikkie.
+    </p>
+    <p>
+      Je mag die {formatCenten(STATIEGELD_SERVICE_CENTEN)} ook contant meegeven aan Jayce als hij
+      langskomt. Dat scheelt een betaalstap. Zijn moeder vinkt thuis af dat hij het geld heeft
+      gekregen, en daarna staat je Tikkie meteen open.
     </p>
 
     <h2>Waar staat dat in de app?</h2>

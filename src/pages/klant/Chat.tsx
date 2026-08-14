@@ -4,7 +4,7 @@
 // met daaronder de knop om de ophaalkosten te betalen.
 
 import React, { useEffect, useState } from 'react';
-import { ExternalLink, Lock } from 'lucide-react';
+import { Coins, ExternalLink, Lock } from 'lucide-react';
 import AppLayout from '../../components/layout/AppLayout';
 import { KLANT_NAV } from '../../components/layout/navItems';
 import ChatVenster from '../../components/chat/ChatVenster';
@@ -84,6 +84,30 @@ const Chat: React.FC = () => {
 
     const log = logs.find((l) => l.id === bericht.statiegeldLogId);
     const betaald = !log || log.servicekostenStatus !== 'openstaand';
+
+    // Contant meegegeven, maar nog niet bevestigd. Dan is de betaalknop niet de
+    // eerste weg: het geld is er al, het moet alleen nog gezien worden.
+    if (!betaald && log && log.servicekostenContant && !log.contantBevestigdOp) {
+      return (
+        <div className="mt-2 cmt-flow-stat cmt-card cmt-card-tint !p-3">
+          <p className="text-sm mb-3 flex items-start gap-2">
+            <Coins className="w-4 h-4 flex-shrink-0 mt-0.5" />
+            <span>
+              Je hebt de {formatCenten(log.servicekosten)} ophaalkosten contant meegegeven aan
+              Jayce. Zodra zijn moeder bevestigt dat hij het geld heeft, komt hier de knop naar je
+              Tikkie te staan.
+            </span>
+          </p>
+          <button
+            className="cmt-btn-ghost !py-2 !text-sm"
+            onClick={() => betaalOphaalkosten(log.id)}
+            disabled={betaaltLog === log.id}
+          >
+            {betaaltLog === log.id ? 'Bezig...' : 'Toch in de app betalen'}
+          </button>
+        </div>
+      );
+    }
 
     if (!betaald && log) {
       return (

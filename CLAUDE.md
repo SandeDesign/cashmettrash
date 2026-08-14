@@ -49,6 +49,18 @@ niet in het datamodel, niet in de UI, niet in de security rules.
   (`toonTikkieKnop` op `ChatVenster`)
 - **Ophaalkosten** van EUR 2,00 staan hier helemaal los van. Die worden achteraf in
   rekening gebracht, tegelijk met de Tikkie, en betaalt de klant via Stripe in de app
+- De klant kan bij het aanmelden ook kiezen om die EUR 2,00 **contant** mee te geven
+  aan Jayce (`servicekostenContant`). Dat scheelt een stap, maar het geld moet wel
+  aankomen: **mama bevestigt** op `/mama/contant` dat Jayce het muntje heeft
+  (`contantBevestigdOp`), en pas dan staat `servicekostenStatus` op `betaald` en komt
+  de Tikkie vrij. Jayce ziet op zijn taak en op zijn route dat hij hier geld meekrijgt;
+  dat is de enige plek waar op zijn pagina's een bedrag van een klant staat, want
+  zonder dat weet hij niet wat hij aan moet nemen
+- **Mama scant in.** Op `/mama/scannen` staat wat Jayce heeft opgehaald; zij vult het
+  bedrag uit Viatim en de Tikkie-link in en zet het klaar (`verwerktBijViatim` +
+  `tikkieKlaargezetDoor`). De beheerder ziet dat voorgevuld in `AfrekenSheet` en hoeft
+  het alleen nog te versturen, want mama komt niet in de chat. De inloggegevens van
+  Viatim staan bewust **niet** in de app
 - Firestore: `statiegeldLogs`. Bevat wel `servicekosten*`-velden, maar nooit een
   veld dat het statiegeld zelf als betaling behandelt
 
@@ -60,7 +72,7 @@ niet in het datamodel, niet in de UI, niet in de security rules.
 |---|---|---|
 | `klant` | `/mijn` | Glas aanvragen + betalen, statiegeld aanmelden, ophaalkosten betalen, chatten met de beheerder, eigen gegevens |
 | `jayce` | `/jayce`, `/jayce/route`, `/jayce/bekenden`, `/jayce/score` | Aanvragen bevestigen met een tijdslot en daarna afvinken, statiegeld tellen, de route bekijken, bekenden zien, eigen score. **Geen toegang tot de chat.** Het enige bedrag dat hij ziet is zijn eigen potje |
-| `moeder` | `/mama`, `/mama/tijden`, `/mama/plekken`, `/mama/ideeen` | Meekijken met de ronde en zien bij welke ritten ze mee moet, de ophaaltijden instellen, gevaarlijke plekken markeren, ideeën doorgeven. Geen orders, geen chat |
+| `moeder` | `/mama`, `/mama/scannen`, `/mama/contant`, `/mama/tijden`, `/mama/plekken`, `/mama/ideeen` | Meekijken met de ronde en zien bij welke ritten ze mee moet, statiegeld inscannen bij Viatim en de Tikkie klaarzetten, contant meegegeven ophaalkosten afvinken, de ophaaltijden instellen, gevaarlijke plekken markeren, ideeën doorgeven. Geen orders, geen chat |
 | `admin` | `/admin` | Takenlijst, orders, statiegeld afrekenen, chatten met klanten, rollen toewijzen en klanten als bekende aanwijzen (`/admin/klanten`), ophaalronde (`/admin/ophalen`), ophaaltijden (`/admin/tijden`), werkgebied (`/admin/instellingen`), dagoverzicht (`/admin/dagoverzicht`), ideeën (`/admin/ideeen`), cijfers (`/admin/cijfers`), CSV-export |
 
 **Dashboards tonen acties, geen cijfers.** `/admin` en `/mijn` beantwoorden de
@@ -86,7 +98,8 @@ Een item kan een `teller` krijgen: het rode bolletje met een aantal. De aantalle
 komen uit `useMenuTellers`, dat per rol alleen luistert naar wat die rol mag
 lezen: `chat` (ongelezen berichten), `nieuw` (aanvragen zonder tijdslot), `ronde`
 (alles wat nog opgehaald moet worden), `afrekenen` (statiegeld dat wacht op de
-beheerder) en `ideeen`. Op de menuknop zelf staat alleen de som van `chat` en
+beheerder), `ideeen`, `scannen` (opgehaald, nog niet ingescand) en `contant` (geld dat
+mama nog moet afvinken). Op de menuknop zelf staat alleen de som van `chat` en
 `nieuw`, want `ronde` zou daar altijd branden.
 
 ### Bekende
@@ -170,7 +183,12 @@ Het **thuisadres** stel je in op `/admin/instellingen`: vul het adres in, druk o
 goed, dan klopt de zwarte stip op alle kaarten niet en rekent de app de afstanden
 vanaf het verkeerde punt.
 
-`/jayce/route` tekent de hele ronde met Leaflet en OpenStreetMap-tegels. De
+`/jayce/route` tekent de ronde **per dag**, en alleen wat Jayce zelf heeft ingepland;
+een aanvraag zonder tijdslot hoort op zijn takenlijst en niet op de kaart. Bovenaan
+staat een knopje per dag met het aantal adressen, standaard vandaag of anders de
+eerstvolgende dag. Binnen een dag rijdt hij op tijd, en bij meerdere adressen in
+hetzelfde tijdslot pakt de app steeds het dichtstbijzijnde. Getekend met Leaflet en
+OpenStreetMap-tegels. De
 tegels hebben geen sleutel nodig, dus de kaart met genummerde spelden werkt
 altijd. Alleen de **lijn** komt van OpenRouteService (profiel `cycling-regular`,
 met de plekken van mama als `avoid_polygons`) en heeft `VITE_ORS_API_KEY` nodig.
@@ -227,6 +245,9 @@ statiegeldLogs/{logId}
   tijdslotId?, geplandVan?, geplandTot?   // gezet door Jayce bij bevestigen
   voorkeurTijdslotId?, voorkeurVan?, voorkeurTot?   // wens van de klant
   tikkieVerstuurdOp?, tikkieBedrag?, tikkieLink?   // registratie, niet aanpasbaar
+  tikkieKlaargezetDoor?                            // mama, na het inscannen
+  servicekostenContant?                            // klant geeft de EUR 2,00 mee aan Jayce
+  contantBevestigdOp?, contantBevestigdDoor?       // mama heeft het geld gezien
   geschonken: boolean                              // alleen een bekende mag dit
   servicekosten: 200 | 0                           // 0 bij een schenking
   servicekostenStatus: 'nietVerschuldigd' | 'openstaand' | 'betaald'
@@ -340,8 +361,9 @@ Endpoints zijn overschrijfbaar via `VITE_CHECKOUT_URL` / `VITE_STRIPE_PROXY_URL`
 - **Nooit** het statiegeldbedrag zelf als betaling behandelen. Dat komt uit Viatim,
   is niet aanpasbaar en gaat volledig naar de klant. De `servicekosten` staan daar los van
 - **Nooit** bedragen tonen in het Jayce-dashboard, en Jayce nooit toegang tot de
-  chat geven. Eén uitzondering: op `/jayce/score` staat zijn eigen potje, want dat
-  is geld dat aan hem is geschonken
+  chat geven. Twee uitzonderingen: op `/jayce/score` staat zijn eigen potje, want dat
+  is geld dat aan hem is geschonken, en bij een klant die de ophaalkosten contant
+  meegeeft staat dat hij daar EUR 2,00 meekrijgt voor mama
 - Geen analytics, trackers of third-party scripts. Kaart en route lopen wél langs
   OpenStreetMap en OpenRouteService; dat staat zo in de privacyverklaring en in
   het cookiebeleid, en gebeurt alleen op de kaartpagina's van Jayce, mama en de

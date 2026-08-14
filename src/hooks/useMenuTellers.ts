@@ -8,6 +8,8 @@
 //   ronde      adressen die nog open staan    Jayce, mama
 //   afrekenen  statiegeld dat wacht op Marc   beheerder
 //   ideeen     ideeën die nog nieuw zijn      beheerder
+//   scannen    opgehaald, nog niet ingescand  mama
+//   contant    contant geld nog niet gezien   mama
 //
 // Een teller op nul laat `NavTeller` gewoon weg, dus rollen zonder een bepaalde
 // teller hoeven niets bijzonders te doen.
@@ -18,7 +20,14 @@ import { db } from '../lib/firebase';
 import { useAuth } from './useAuth';
 import { useOngelezen } from './useOngelezen';
 
-export type TellerSleutel = 'chat' | 'nieuw' | 'ronde' | 'afrekenen' | 'ideeen';
+export type TellerSleutel =
+  | 'chat'
+  | 'nieuw'
+  | 'ronde'
+  | 'afrekenen'
+  | 'ideeen'
+  | 'scannen'
+  | 'contant';
 
 export type MenuTellers = Partial<Record<TellerSleutel, number>>;
 
@@ -38,6 +47,8 @@ export function useMenuTellers(): MenuTellers {
   const [statiegeld, setStatiegeld] = useState({ open: 0, nieuw: 0 });
   const [afrekenen, setAfrekenen] = useState(0);
   const [ideeen, setIdeeen] = useState(0);
+  const [scannen, setScannen] = useState(0);
+  const [contant, setContant] = useState(0);
 
   const rol = user?.rol;
 
@@ -103,8 +114,42 @@ export function useMenuTellers(): MenuTellers {
     };
   }, [rol]);
 
+  // Alleen mama scant in en telt het contante geld na.
+  useEffect(() => {
+    if (rol !== 'moeder') {
+      setScannen(0);
+      setContant(0);
+      return;
+    }
+
+    const stopScannen = onSnapshot(
+      query(collection(db, 'statiegeldLogs'), where('status', '==', 'opgehaald')),
+      (snapshot) => setScannen(snapshot.size),
+      () => setScannen(0)
+    );
+
+    // Alleen wat Jayce al heeft opgehaald, want daarvoor hoort het geld in huis
+    // te zijn. Dat laatste filteren we hier, want een tweede voorwaarde in de
+    // query zou een samengestelde index vragen.
+    const stopContant = onSnapshot(
+      query(collection(db, 'statiegeldLogs'), where('servicekostenContant', '==', true)),
+      (snapshot) =>
+        setContant(
+          snapshot.docs.filter((d) => d.data().opgehaaldOp && !d.data().contantBevestigdOp).length
+        ),
+      () => setContant(0)
+    );
+
+    return () => {
+      stopScannen();
+      stopContant();
+    };
+  }, [rol]);
+
   return {
     chat,
+    scannen,
+    contant,
     nieuw: glas.nieuw + statiegeld.nieuw,
     ronde: glas.open + statiegeld.open,
     afrekenen,

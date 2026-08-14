@@ -46,6 +46,8 @@ const MoederOverzicht = lazy(() => import('./pages/moeder/Overzicht'));
 const MoederPlekken = lazy(() => import('./pages/moeder/Plekken'));
 const MoederIdeeen = lazy(() => import('./pages/moeder/Ideeen'));
 const MoederTijden = lazy(() => import('./pages/moeder/Tijden'));
+const MoederContant = lazy(() => import('./pages/moeder/Contant'));
+const MoederInscannen = lazy(() => import('./pages/moeder/Inscannen'));
 
 const AdminOverzicht = lazy(() => import('./pages/admin/Overzicht'));
 const AdminGlasOrders = lazy(() => import('./pages/admin/GlasOrders'));
@@ -228,6 +230,22 @@ const AppRoutes: React.FC = () => {
           element={
             <RoleGuard allowedRoles={['moeder']}>
               <MoederTijden />
+            </RoleGuard>
+          }
+        />
+        <Route
+          path="/mama/scannen"
+          element={
+            <RoleGuard allowedRoles={['moeder']}>
+              <MoederInscannen />
+            </RoleGuard>
+          }
+        />
+        <Route
+          path="/mama/contant"
+          element={
+            <RoleGuard allowedRoles={['moeder']}>
+              <MoederContant />
             </RoleGuard>
           }
         />

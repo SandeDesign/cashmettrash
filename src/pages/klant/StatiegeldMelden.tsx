@@ -6,7 +6,7 @@
 
 import React, { useEffect, useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { AlertCircle, ArrowLeft, Heart, MessageSquare, Recycle } from 'lucide-react';
+import { AlertCircle, ArrowLeft, Coins, Heart, MessageSquare, Recycle } from 'lucide-react';
 import AppLayout from '../../components/layout/AppLayout';
 import { KLANT_NAV } from '../../components/layout/navItems';
 import Loading from '../../components/shared/Loading';
@@ -31,6 +31,7 @@ const StatiegeldMelden: React.FC = () => {
   const [blik, setBlik] = useState(0);
   const [opmerking, setOpmerking] = useState('');
   const [schenken, setSchenken] = useState(false);
+  const [contant, setContant] = useState(false);
   const [voorkeur, setVoorkeur] = useState<Voorkeur | null>(null);
   const [fout, setFout] = useState<string | null>(null);
   const [bezig, setBezig] = useState(false);
@@ -65,7 +66,8 @@ const StatiegeldMelden: React.FC = () => {
         { plastic, blik },
         opmerking.trim() || undefined,
         isBekende && schenken,
-        voorkeur
+        voorkeur,
+        contant
       );
       void stuurPushNaarRol('jayce', {
         titel: 'Nieuwe ophaaltaak',
@@ -178,6 +180,51 @@ const StatiegeldMelden: React.FC = () => {
             )}
 
             {!schenken && (
+              <fieldset className="mb-5">
+                <legend className="cmt-label">
+                  Hoe wil je de {formatCenten(STATIEGELD_SERVICE_CENTEN)} ophaalkosten betalen?
+                </legend>
+
+                <label className="cmt-card cmt-card-tint !p-4 mb-2 flex items-start gap-3 cursor-pointer">
+                  <input
+                    type="radio"
+                    name="ophaalkosten"
+                    className="mt-1 flex-shrink-0"
+                    checked={!contant}
+                    onChange={() => setContant(false)}
+                  />
+                  <span>
+                    <span className="font-semibold text-sm">Straks in de app</span>
+                    <span className="block text-xs mt-1" style={{ color: 'var(--cmt-ink-soft)' }}>
+                      Je betaalt pas nadat er is opgehaald, tegelijk met je Tikkie.
+                    </span>
+                  </span>
+                </label>
+
+                <label className="cmt-card cmt-card-tint !p-4 flex items-start gap-3 cursor-pointer">
+                  <input
+                    type="radio"
+                    name="ophaalkosten"
+                    className="mt-1 flex-shrink-0"
+                    checked={contant}
+                    onChange={() => setContant(true)}
+                  />
+                  <span>
+                    <span className="font-semibold text-sm flex items-center gap-1.5">
+                      <Coins className="w-4 h-4" style={{ color: 'var(--cmt-stat)' }} />
+                      Contant meegeven aan Jayce
+                    </span>
+                    <span className="block text-xs mt-1" style={{ color: 'var(--cmt-ink-soft)' }}>
+                      Leg {formatCenten(STATIEGELD_SERVICE_CENTEN)} klaar en geef het mee als hij
+                      langskomt. Dat scheelt een betaalstap. Zodra de moeder van Jayce bevestigt
+                      dat hij het geld heeft, staat het als betaald en komt je Tikkie vrij.
+                    </span>
+                  </span>
+                </label>
+              </fieldset>
+            )}
+
+            {!schenken && (
               <div className="cmt-card cmt-card-tint !p-4 mb-5">
                 <p className="font-semibold text-sm flex items-center gap-1.5">
                   <MessageSquare className="w-4 h-4" style={{ color: 'var(--cmt-stat)' }} />
@@ -187,7 +234,9 @@ const StatiegeldMelden: React.FC = () => {
                   <li>1. Jayce haalt op en telt na wat er staat.</li>
                   <li>2. Wij leveren het in bij Viatim; de automaat bepaalt het bedrag.</li>
                   <li>
-                    3. Je betaalt hier de {formatCenten(STATIEGELD_SERVICE_CENTEN)} ophaalkosten.
+                    {contant
+                      ? `3. De ${formatCenten(STATIEGELD_SERVICE_CENTEN)} ophaalkosten heb je dan al contant meegegeven.`
+                      : `3. Je betaalt hier de ${formatCenten(STATIEGELD_SERVICE_CENTEN)} ophaalkosten.`}
                   </li>
                   <li>
                     4. Daarna staat in <strong>Berichten</strong> de Tikkie klaar met het volledige
@@ -221,8 +270,10 @@ const StatiegeldMelden: React.FC = () => {
               ) : (
                 <>
                   Aanmelden is gratis. Zodra het is ingeleverd krijg je het volledige statiegeld
-                  terug via een Tikkie in Berichten, en betaal je{' '}
-                  {formatCenten(STATIEGELD_SERVICE_CENTEN)} ophaalkosten.
+                  terug via een Tikkie in Berichten.{' '}
+                  {contant
+                    ? `De ${formatCenten(STATIEGELD_SERVICE_CENTEN)} ophaalkosten geef je contant mee aan Jayce.`
+                    : `De ${formatCenten(STATIEGELD_SERVICE_CENTEN)} ophaalkosten betaal je daarbij in de app.`}
                 </>
               )}
             </p>

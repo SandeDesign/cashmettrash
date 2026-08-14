@@ -132,6 +132,8 @@ export interface StatiegeldLog {
   tikkieVerstuurdOp?: string;
   tikkieBedrag?: number;
   tikkieLink?: string;
+  /** Uid van mama, als zij de Tikkie na het inscannen heeft klaargezet. */
+  tikkieKlaargezetDoor?: string;
 
   /**
    * De bekende schenkt dit statiegeld aan Jayce. Er gaat dan geen Tikkie naar de
@@ -145,6 +147,17 @@ export interface StatiegeldLog {
   servicekostenBetaaldOp?: string;
   serviceStripeSessionId?: string;
   serviceStripeStatus?: string;
+
+  /**
+   * De klant geeft de ophaalkosten contant mee aan Jayce in plaats van ze
+   * achteraf in de app te betalen. Dat scheelt een stap, maar het geld moet dan
+   * wel echt in het potje komen: mama bevestigt dat Jayce het muntje heeft, en
+   * pas daarna staat dit als betaald.
+   */
+  servicekostenContant?: boolean;
+  contantBevestigdOp?: string;
+  /** Uid van mama of de beheerder die het contante geld heeft gezien. */
+  contantBevestigdDoor?: string;
 }
 
 /* ------------------------------------------------------------------ */

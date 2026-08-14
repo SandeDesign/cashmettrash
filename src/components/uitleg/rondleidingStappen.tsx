@@ -11,6 +11,7 @@ import {
   Bell,
   CalendarClock,
   Check,
+  Coins,
   Hand,
   Heart,
   Lightbulb,
@@ -18,6 +19,7 @@ import {
   MapPin,
   MessageSquare,
   Recycle,
+  ScanLine,
   Search,
   ShieldAlert,
   Smartphone,
@@ -146,6 +148,11 @@ const klantStappen: RondleidingStap[] = [
           {formatCenten(STATIEGELD_SERVICE_CENTEN)} ophaalkosten, dan verschijnt de knop om je
           Tikkie te openen. Je betaalt dus pas iets nadat hij echt is langs geweest.
         </p>
+        <p>
+          Wil je dat sneller? Kies bij het aanmelden voor contant en geef Jayce{' '}
+          {formatCenten(STATIEGELD_SERVICE_CENTEN)} mee. Zodra zijn moeder bevestigt dat hij het
+          geld heeft, staat je Tikkie meteen open.
+        </p>
       </>
     ),
     naar: '/chat',
@@ -236,7 +243,8 @@ const jayceStappen: RondleidingStap[] = [
           je heen moet.
         </p>
         <p>
-          Bij Route zie je je hele rondje in één keer, met een nummer bij elk adres. Staat er
+          Bij Route zie je je rondje per dag. Bovenaan kies je de dag, daaronder staan de adressen
+          op volgorde met een nummer erbij. Er staat alleen op wat je zelf hebt ingepland. Staat er
           een waarschuwing bij dat mama mee moet? Ga dan niet alleen.
         </p>
       </>
@@ -266,6 +274,22 @@ const jayceStappen: RondleidingStap[] = [
         Heb je alles in je skelter? Druk dan op <strong>Ik heb het opgehaald</strong>. Het kaartje
         verdwijnt van je lijstje en papa ziet dat je klaar bent.
       </p>
+    ),
+  },
+  {
+    icon: <Coins className="w-7 h-7" />,
+    titel: 'Soms krijg je geld mee',
+    tekst: (
+      <>
+        <p>
+          Bij sommige adressen staat dat je <strong>2 euro</strong> meekrijgt. Neem dat aan en stop
+          het goed weg.
+        </p>
+        <p>
+          Thuis geef je het aan mama. Zij vinkt het af in haar app. Dat geld is niet voor jou, het
+          hoort bij het ophalen.
+        </p>
+      </>
     ),
   },
   {
@@ -323,7 +347,11 @@ const moederStappen: RondleidingStap[] = [
           mag, en je wijst aan waar hij niet langs mag.
         </p>
         <p>
-          Wat je hier <strong>niet</strong> ziet: bedragen, betalingen en de chat met klanten. Dat
+          Daarnaast scan je het statiegeld in bij Viatim en vink je af als iemand de ophaalkosten
+          contant heeft meegegeven.
+        </p>
+        <p>
+          Wat je hier <strong>niet</strong> ziet: de chat met klanten en de administratie. Dat
           hoort bij de beheerder.
         </p>
       </>
@@ -347,6 +375,45 @@ const moederStappen: RondleidingStap[] = [
     ),
     naar: '/mama',
     knop: 'Laat de ronde zien',
+  },
+  {
+    icon: <ScanLine className="w-7 h-7" />,
+    titel: 'Inscannen bij Viatim',
+    flow: 'stat',
+    tekst: (
+      <>
+        <p>
+          Wat Jayce heeft opgehaald scan jij in bij Viatim. Op de pagina Inscannen staat per klant
+          wat hij heeft meegenomen. Je vult het bedrag in dat de automaat uitrekent en plakt de
+          link uit Tikkie erbij.
+        </p>
+        <p>
+          Daarna staat het klaar voor de beheerder; hij stuurt het bericht naar de klant. De
+          inloggegevens van Viatim krijg je van hem, die zetten we bewust niet in deze app.
+        </p>
+      </>
+    ),
+    naar: '/mama/scannen',
+    knop: 'Naar het inscannen',
+  },
+  {
+    icon: <Coins className="w-7 h-7" />,
+    titel: 'Contant geld',
+    flow: 'stat',
+    tekst: (
+      <>
+        <p>
+          Een klant kan de {formatCenten(STATIEGELD_SERVICE_CENTEN)} ophaalkosten meegeven aan
+          Jayce in plaats van ze in de app te betalen. Jayce geeft dat geld thuis aan jou.
+        </p>
+        <p>
+          Vink op de pagina Contant af dat je het hebt gekregen. Pas daarna komt de Tikkie bij de
+          klant vrij, dus zonder jouw vinkje loopt het vast.
+        </p>
+      </>
+    ),
+    naar: '/mama/contant',
+    knop: 'Naar het contante geld',
   },
   {
     icon: <CalendarClock className="w-7 h-7" />,

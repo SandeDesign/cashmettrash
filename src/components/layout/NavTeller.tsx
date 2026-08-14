@@ -28,6 +28,10 @@ function omschrijf(aantal: number, soort: TellerSleutel): string {
       return `${aantal} ${een ? 'melding' : 'meldingen'} om af te rekenen`;
     case 'ideeen':
       return `${aantal} nieuwe ${een ? 'idee' : 'ideeën'}`;
+    case 'scannen':
+      return `${aantal} ${een ? 'zak' : 'zakken'} om in te scannen`;
+    case 'contant':
+      return `${aantal} keer contant geld om af te vinken`;
   }
 }
 

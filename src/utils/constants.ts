@@ -28,6 +28,22 @@ export function formatCenten(centen: number): string {
   return new Intl.NumberFormat('nl-NL', { style: 'currency', currency: 'EUR' }).format(centen / 100);
 }
 
+/**
+ * Zet ingetypte euro's om naar centen: "2,85", "2.85" en "€ 2,85" mogen allemaal.
+ * Geeft null bij onzin, zodat de knop uit kan blijven staan.
+ */
+export function naarCenten(invoer: string): number | null {
+  const schoon = invoer.replace(/\s|€/g, '').replace(',', '.');
+  if (!/^\d+(\.\d{1,2})?$/.test(schoon)) return null;
+  const centen = Math.round(parseFloat(schoon) * 100);
+  return centen > 0 ? centen : null;
+}
+
+/** Centen als invoerwaarde voor een euro-veld: 285 wordt "2,85". */
+export function centenAlsInvoer(centen: number): string {
+  return (centen / 100).toFixed(2).replace('.', ',');
+}
+
 export const GLAS_STATUS_LABEL: Record<GlasStatus, string> = {
   aangemeld: 'Aangemeld',
   ingepland: 'Ingepland',

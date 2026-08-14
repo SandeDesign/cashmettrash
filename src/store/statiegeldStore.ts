@@ -41,7 +41,9 @@ interface StatiegeldStore {
     opmerking?: string,
     geschonken?: boolean,
     /** De wens van de klant over wanneer het uitkomt. Geen afspraak. */
-    voorkeur?: { voorkeurTijdslotId: string; voorkeurVan: string; voorkeurTot: string } | null
+    voorkeur?: { voorkeurTijdslotId: string; voorkeurVan: string; voorkeurTot: string } | null,
+    /** De klant geeft de ophaalkosten contant mee aan Jayce. */
+    contant?: boolean
   ) => Promise<string>;
   /** Alleen de beheerder. Handig tijdens het testen, en om een misser op te ruimen. */
   verwijderLog: (logId: string) => Promise<void>;
@@ -68,6 +70,22 @@ interface StatiegeldStore {
    * openstaand, want die worden pas na het ophalen in rekening gebracht.
    */
   markeerTikkieVerstuurd: (logId: string, tikkieBedrag: number, tikkieLink: string) => Promise<void>;
+  /**
+   * Mama: ingescand bij Viatim en de Tikkie alvast klaargezet. Zij heeft geen
+   * chat, dus versturen doet de beheerder; hier staat alleen het bedrag en de
+   * link die uit Viatim kwamen.
+   */
+  zetTikkieKlaar: (
+    logId: string,
+    tikkieBedrag: number,
+    tikkieLink: string,
+    doorUid: string
+  ) => Promise<void>;
+  /**
+   * Mama of de beheerder: Jayce heeft de ophaalkosten contant gekregen. Dit is
+   * de enige weg waarop contant geld als betaald telt.
+   */
+  bevestigContant: (logId: string, doorUid: string) => Promise<void>;
   /** Klant: ophaalkosten betaald via Stripe. */
   markeerServicekostenBetaald: (
     logId: string,
@@ -138,7 +156,7 @@ export const useStatiegeldStore = create<StatiegeldStore>((set, get) => ({
     }
   },
 
-  maakMelding: async (customer, items, opmerking, geschonken, voorkeur) => {
+  maakMelding: async (customer, items, opmerking, geschonken, voorkeur, contant) => {
     // Schenken kan alleen een bekende, en dan brengen we geen ophaalkosten in
     // rekening: er komt bij deze melding immers niets bij de klant terug.
     const schenkt = !!geschonken && !!customer.isBekende;
@@ -154,6 +172,8 @@ export const useStatiegeldStore = create<StatiegeldStore>((set, get) => ({
       geschonken: schenkt,
       servicekosten: schenkt ? 0 : STATIEGELD_SERVICE_CENTEN,
       servicekostenStatus: 'nietVerschuldigd',
+      // Bij een schenking valt er niets te betalen, dus dan ook niets contant.
+      servicekostenContant: !schenkt && !!contant,
       aangemaaktOp: new Date().toISOString(),
       ...(opmerking ? { opmerking } : {}),
       ...(voorkeur ?? {}),
@@ -205,7 +225,11 @@ export const useStatiegeldStore = create<StatiegeldStore>((set, get) => ({
     const nu = new Date().toISOString();
     // Bij een schenking gaat het bedrag naar het potje van Jayce: geen Tikkie
     // naar de klant en dus ook geen ophaalkosten.
-    const schenking = !!get().logs.find((l) => l.id === logId)?.geschonken;
+    const huidig = get().logs.find((l) => l.id === logId);
+    const schenking = !!huidig?.geschonken;
+    // Contant geld dat mama al heeft bevestigd staat al op betaald; dat mag hier
+    // niet weer opengezet worden, anders zou de klant twee keer betalen.
+    const alBetaald = huidig?.servicekostenStatus === 'betaald';
 
     const updates = {
       status: 'tikkieVerstuurd' as StatiegeldStatus,
@@ -213,7 +237,11 @@ export const useStatiegeldStore = create<StatiegeldStore>((set, get) => ({
       tikkieBedrag,
       tikkieLink,
       tikkieVerstuurdOp: nu,
-      servicekostenStatus: (schenking ? 'nietVerschuldigd' : 'openstaand') as ServicekostenStatus,
+      servicekostenStatus: (schenking
+        ? 'nietVerschuldigd'
+        : alBetaald
+          ? 'betaald'
+          : 'openstaand') as ServicekostenStatus,
     };
     await updateDoc(doc(db, COLLECTIE, logId), updates);
     set({ logs: get().logs.map((l) => (l.id === logId ? { ...l, ...updates } : l)) });
@@ -226,6 +254,30 @@ export const useStatiegeldStore = create<StatiegeldStore>((set, get) => ({
       tikkieLink,
       tikkieVerstuurdOp: new Date().toISOString(),
       servicekostenStatus: 'openstaand' as ServicekostenStatus,
+    };
+    await updateDoc(doc(db, COLLECTIE, logId), updates);
+    set({ logs: get().logs.map((l) => (l.id === logId ? { ...l, ...updates } : l)) });
+  },
+
+  zetTikkieKlaar: async (logId, tikkieBedrag, tikkieLink, doorUid) => {
+    const updates = {
+      status: 'verwerktBijViatim' as StatiegeldStatus,
+      verwerktOp: new Date().toISOString(),
+      tikkieBedrag,
+      tikkieLink,
+      tikkieKlaargezetDoor: doorUid,
+    };
+    await updateDoc(doc(db, COLLECTIE, logId), updates);
+    set({ logs: get().logs.map((l) => (l.id === logId ? { ...l, ...updates } : l)) });
+  },
+
+  bevestigContant: async (logId, doorUid) => {
+    const nu = new Date().toISOString();
+    const updates = {
+      servicekostenStatus: 'betaald' as ServicekostenStatus,
+      servicekostenBetaaldOp: nu,
+      contantBevestigdOp: nu,
+      contantBevestigdDoor: doorUid,
     };
     await updateDoc(doc(db, COLLECTIE, logId), updates);
     set({ logs: get().logs.map((l) => (l.id === logId ? { ...l, ...updates } : l)) });

@@ -156,9 +156,15 @@ service cloud.firestore {
                       || (request.resource.data.geschonken == false
                           && request.resource.data.servicekosten == 200)
                     )
+                    // Contant meegeven mag, maar alleen als er ook echt iets te
+                    // betalen valt. Of het geld er is bepaalt mama, niet de klant.
+                    && request.resource.data.servicekostenContant is bool
+                    && (request.resource.data.servicekostenContant == false
+                        || request.resource.data.servicekosten == 200)
                     && !request.resource.data.keys().hasAny(
                          ['tikkieBedrag', 'tikkieLink', 'tikkieVerstuurdOp', 'verwerktOp',
                           'opgehaaldOp', 'jayceId', 'itemsWerkelijk',
+                          'contantBevestigdOp', 'contantBevestigdDoor', 'tikkieKlaargezetDoor',
                           'servicekostenBetaaldOp', 'serviceStripeSessionId',
                           // Inplannen doet Jayce; de klant geeft hoogstens een
                           // voorkeur door via de voorkeur*-velden.
@@ -178,6 +184,23 @@ service cloud.firestore {
                         && alleenVelden(['status', 'tijdslotId', 'geplandVan', 'geplandTot', 'jayceId'])
                         && request.resource.data.status == 'ingepland'
                         && request.resource.data.jayceId == request.auth.uid)
+                    // Mama scant in bij Viatim en zet de Tikkie klaar. Versturen
+                    // doet de beheerder, want mama komt niet in de chat.
+                    || (isMoeder()
+                        && alleenVelden(['status', 'tikkieBedrag', 'tikkieLink', 'verwerktOp',
+                                         'tikkieKlaargezetDoor'])
+                        && resource.data.status == 'opgehaald'
+                        && request.resource.data.status == 'verwerktBijViatim'
+                        && request.resource.data.tikkieBedrag is int
+                        && request.resource.data.tikkieKlaargezetDoor == request.auth.uid)
+                    // Mama bevestigt dat Jayce de ophaalkosten contant heeft
+                    // gekregen. Alleen zij en de beheerder kunnen dat zien.
+                    || ((isMoeder() || isAdmin())
+                        && alleenVelden(['servicekostenStatus', 'servicekostenBetaaldOp',
+                                         'contantBevestigdOp', 'contantBevestigdDoor'])
+                        && resource.data.servicekostenContant == true
+                        && request.resource.data.servicekostenStatus == 'betaald'
+                        && request.resource.data.contantBevestigdDoor == request.auth.uid)
                     // Klant rondt alleen de eigen ophaalkosten af. Het bedrag
                     // ligt vast en de Tikkie-velden blijven onaangeroerd.
                     || (isEigenaar(resource.data.customerId)

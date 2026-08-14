@@ -7,8 +7,8 @@
 // bericht naar de klant verstuurd.
 
 import React, { useEffect, useState } from 'react';
-import { AlertCircle, ExternalLink, Heart, Recycle, X } from 'lucide-react';
-import { formatCenten } from '../../utils/constants';
+import { AlertCircle, Coins, ExternalLink, Heart, Recycle, ScanLine, X } from 'lucide-react';
+import { centenAlsInvoer, formatCenten, naarCenten } from '../../utils/constants';
 import { isLink, normaliseerLink } from '../../utils/links';
 import type { StatiegeldLog } from '../../types';
 
@@ -18,17 +18,11 @@ interface AfrekenSheetProps {
   onAfrekenen: (tikkieBedrag: number, tikkieLink: string) => Promise<void>;
 }
 
-/** Zet "2,85" of "2.85" om naar centen. Geeft null bij onzin. */
-function naarCenten(invoer: string): number | null {
-  const schoon = invoer.replace(/\s|€/g, '').replace(',', '.');
-  if (!/^\d+(\.\d{1,2})?$/.test(schoon)) return null;
-  const centen = Math.round(parseFloat(schoon) * 100);
-  return centen > 0 ? centen : null;
-}
-
 const AfrekenSheet: React.FC<AfrekenSheetProps> = ({ log, onSluiten, onAfrekenen }) => {
-  const [euro, setEuro] = useState('');
-  const [link, setLink] = useState('');
+  // Heeft mama al ingescand, dan staan het bedrag en de link er al in en hoef je
+  // ze alleen nog na te kijken.
+  const [euro, setEuro] = useState(log.tikkieBedrag != null ? centenAlsInvoer(log.tikkieBedrag) : '');
+  const [link, setLink] = useState(log.tikkieLink ?? '');
   const [fout, setFout] = useState<string | null>(null);
   const [bezig, setBezig] = useState(false);
 
@@ -102,6 +96,29 @@ const AfrekenSheet: React.FC<AfrekenSheetProps> = ({ log, onSluiten, onAfrekenen
           </div>
         )}
 
+        {log.tikkieKlaargezetDoor && (
+          <div className="cmt-alert cmt-alert-info mb-4">
+            <ScanLine className="w-5 h-5 flex-shrink-0" />
+            <span>
+              Mama heeft dit al ingescand en het bedrag en de link ingevuld. Kijk het na en druk op
+              versturen.
+            </span>
+          </div>
+        )}
+
+        {log.servicekostenContant && (
+          <div
+            className={`cmt-alert mb-4 ${log.contantBevestigdOp ? 'cmt-alert-success' : 'cmt-alert-warning'}`}
+          >
+            <Coins className="w-5 h-5 flex-shrink-0" />
+            <span>
+              {log.contantBevestigdOp
+                ? `De ophaalkosten zijn contant betaald en door mama afgevinkt. De klant hoeft niets meer te doen.`
+                : `De klant geeft de ophaalkosten contant mee. Mama moet nog afvinken dat Jayce het geld heeft; tot die tijd blijft de Tikkie op slot.`}
+            </span>
+          </div>
+        )}
+
         {fout && (
           <div className="cmt-alert cmt-alert-error mb-4">
             <AlertCircle className="w-5 h-5 flex-shrink-0" />
@@ -168,7 +185,11 @@ const AfrekenSheet: React.FC<AfrekenSheetProps> = ({ log, onSluiten, onAfrekenen
             Ophaalkosten die de klant betaalt
           </span>
           <span className="font-bold">
-            {schenking ? 'geen' : formatCenten(log.servicekosten)}
+            {schenking
+              ? 'geen'
+              : log.contantBevestigdOp
+                ? `${formatCenten(log.servicekosten)} contant voldaan`
+                : formatCenten(log.servicekosten)}
           </span>
         </div>
 

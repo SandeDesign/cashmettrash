@@ -69,7 +69,12 @@ const Overzicht: React.FC = () => {
   const acties = useMemo<Actie[]>(() => {
     const lijst: Actie[] = [];
 
-    const openKosten = logs.filter((l) => l.servicekostenStatus === 'openstaand');
+    // Wie contant heeft meegegeven hoeft niets te doen; die wacht alleen tot het
+    // geld is gezien.
+    const openKosten = logs.filter(
+      (l) =>
+        l.servicekostenStatus === 'openstaand' && !(l.servicekostenContant && !l.contantBevestigdOp)
+    );
     if (openKosten.length > 0) {
       const bedrag = openKosten.reduce((som, l) => som + l.servicekosten, 0);
       lijst.push({
@@ -233,11 +238,17 @@ const Overzicht: React.FC = () => {
                         Jayce komt {afspraak(log.geplandVan, log.geplandTot)}
                       </p>
                     )}
-                    {log.servicekostenStatus === 'openstaand' && (
-                      <p className="text-xs mt-0.5" style={{ color: 'var(--cmt-warning)' }}>
-                        {formatCenten(log.servicekosten)} ophaalkosten open
+                    {log.servicekostenContant && !log.contantBevestigdOp && (
+                      <p className="text-xs mt-0.5" style={{ color: 'var(--cmt-stat)' }}>
+                        Leg {formatCenten(log.servicekosten)} contant klaar voor Jayce
                       </p>
                     )}
+                    {log.servicekostenStatus === 'openstaand' &&
+                      !(log.servicekostenContant && !log.contantBevestigdOp) && (
+                        <p className="text-xs mt-0.5" style={{ color: 'var(--cmt-warning)' }}>
+                          {formatCenten(log.servicekosten)} ophaalkosten open
+                        </p>
+                      )}
                   </div>
                   <StatiegeldStatusBadge status={log.status} />
                 </li>

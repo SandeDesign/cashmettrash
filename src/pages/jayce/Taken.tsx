@@ -7,13 +7,15 @@
 //    rauw getoond, want die zijn onleesbaar.
 // 2. Nergens een bedrag, niet bij glas en niet bij statiegeld. Dat voorkomt
 //    verwarring over wie wat krijgt, en de security rules dwingen hetzelfde af.
+//    Eén uitzondering: geeft de klant de ophaalkosten contant mee, dan staat er
+//    dat hij 2 euro meekrijgt. Zonder dat weet hij niet wat hij aan moet nemen.
 // 3. Elke taak gaat in twee stappen: eerst zeggen wanneer je komt, daarna
 //    afvinken dat je het hebt opgehaald. Zo weet de klant waar hij aan toe is.
 
 import React, { useEffect, useState } from 'react';
 import { format, isToday, isTomorrow } from 'date-fns';
 import { nl } from 'date-fns/locale';
-import { CalendarClock, Check, PartyPopper, Recycle, Wine } from 'lucide-react';
+import { CalendarClock, Check, Coins, PartyPopper, Recycle, Wine } from 'lucide-react';
 import AppLayout from '../../components/layout/AppLayout';
 import { JAYCE_NAV } from '../../components/layout/navItems';
 import Loading from '../../components/shared/Loading';
@@ -244,6 +246,18 @@ const StatiegeldTaak: React.FC<{
         <AfspraakBalk van={log.geplandVan} tot={log.geplandTot} />
       ) : (
         log.voorkeurVan && <VoorkeurBalk van={log.voorkeurVan} />
+      )}
+
+      {/* Hier staat wel een bedrag, en dat is met opzet: zonder dat weet Jayce
+          niet wat hij mee moet krijgen. Verder blijft geld van deze pagina af. */}
+      {log.servicekostenContant && !log.contantBevestigdOp && (
+        <p className="mt-3 cmt-card cmt-card-tint !p-3 flex items-start gap-2 text-base">
+          <Coins className="w-5 h-5 flex-shrink-0 mt-0.5" />
+          <span>
+            Je krijgt hier <strong>2 euro</strong> mee. Stop het in je zak en geef het thuis aan
+            mama, dan vinkt zij het af.
+          </span>
+        </p>
       )}
 
       {!ingepland ? (
