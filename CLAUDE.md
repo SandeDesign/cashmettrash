@@ -98,10 +98,11 @@ oogopslag alles ziet; inklappen doe je zelf.
 Een item kan een `teller` krijgen: het rode bolletje met een aantal. De aantallen
 komen uit `useMenuTellers`, dat per rol alleen luistert naar wat die rol mag
 lezen: `chat` (ongelezen berichten), `nieuw` (aanvragen zonder tijdslot), `ronde`
-(alles wat nog opgehaald moet worden), `afrekenen` (statiegeld dat wacht op de
-beheerder), `ideeen`, `scannen` (opgehaald, nog niet ingescand) en `contant` (geld dat
-mama nog moet afvinken). Op de menuknop zelf staat alleen de som van `chat` en
-`nieuw`, want `ronde` zou daar altijd branden.
+(alles wat nog opgehaald moet worden, alleen bij Jayce), `meerijden` (de ritten
+waar mama daadwerkelijk mee moet, dus niet alles wat openstaat), `afrekenen`
+(statiegeld dat wacht op de beheerder), `ideeen`, `scannen` (opgehaald, nog niet
+ingescand) en `contant` (geld dat mama nog moet afvinken). Op de menuknop zelf
+staat de som van alles behalve `ronde`, want die zou daar altijd branden.
 
 ### Bekende
 

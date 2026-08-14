@@ -24,6 +24,8 @@ function omschrijf(aantal: number, soort: TellerSleutel): string {
       return `${aantal} nieuwe ${een ? 'aanvraag' : 'aanvragen'}`;
     case 'ronde':
       return `${aantal} ${een ? 'adres' : 'adressen'} op de ronde`;
+    case 'meerijden':
+      return `${aantal} ${een ? 'rit' : 'ritten'} waar je mee moet`;
     case 'afrekenen':
       return `${aantal} ${een ? 'melding' : 'meldingen'} om af te rekenen`;
     case 'ideeen':

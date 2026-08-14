@@ -102,7 +102,9 @@ export const MOEDER_NAV: NavItem[] = [
     icon: <ClipboardList className="w-5 h-5" />,
     end: true,
     groep: 'Meekijken',
-    teller: 'ronde',
+    // Alleen ritten waar zij echt mee moet. De rest doet Jayce zelf, dus daar
+    // hoeft geen bolletje voor te branden.
+    teller: 'meerijden',
   },
   {
     to: '/mama/scannen',

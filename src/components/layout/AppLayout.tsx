@@ -36,11 +36,11 @@ const AppLayout: React.FC<AppLayoutProps> = ({ children, nav = [], title }) => {
   const rondleiding = useRondleiding();
   const heeftNav = nav.length > 0;
 
-  // Op de menuknop zelf alleen wat om aandacht vraagt: berichten en nieuwe
-  // aanvragen. De ronde erbij optellen zou het bolletje altijd laten branden.
+  // Op de menuknop zelf alles wat om een handeling vraagt. Alleen de ronde telt
+  // niet mee: die staat altijd vol en zou het bolletje altijd laten branden.
   const knopAantal = nav.reduce(
     (som, item) =>
-      som + (item.teller === 'chat' || item.teller === 'nieuw' ? tellers[item.teller] ?? 0 : 0),
+      som + (item.teller && item.teller !== 'ronde' ? (tellers[item.teller] ?? 0) : 0),
     0
   );
 
