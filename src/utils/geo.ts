@@ -184,7 +184,9 @@ async function vraagRouteOp(
     if (!response.ok) {
       const data = await response.json().catch(() => ({}));
       const melding = data?.error?.message || `De route kon niet berekend worden (${response.status}).`;
-      return { ...leeg, fout: melding };
+      // Het profiel erbij, anders is bij een profielfout niet te zien welke
+      // versie van de app er eigenlijk draait.
+      return { ...leeg, fout: `${melding} (profiel: ${ORS_PROFIEL})` };
     }
 
     const data = await response.json();
