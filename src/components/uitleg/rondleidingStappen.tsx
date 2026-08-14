@@ -231,10 +231,12 @@ const jayceStappen: RondleidingStap[] = [
     tekst: (
       <>
         <p>
-          Bij elk adres staat een knop <strong>Laat me de weg zien</strong>. Die opent een kaart.
+          Bij elk adres staat een knop <strong>Laat me de weg zien</strong>. Er klapt dan een
+          kaartje open in de app zelf, met een zwarte stip voor thuis en een groene voor waar
+          je heen moet.
         </p>
         <p>
-          Bij Route zie je je hele rondje in één keer, met een lijn langs alle adressen. Staat er
+          Bij Route zie je je hele rondje in één keer, met een nummer bij elk adres. Staat er
           een waarschuwing bij dat mama mee moet? Ga dan niet alleen.
         </p>
       </>

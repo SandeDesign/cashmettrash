@@ -150,12 +150,21 @@ staan in `src/components/uitleg/rondleidingStappen.tsx`, het venster zelf in
 die de rondleiding sluit en meteen naar die pagina springt. De beheerder heeft
 bewust geen rondleiding.
 
-### Route
+### Route en kaarten
 
-`/jayce/route` tekent de ronde met Leaflet en OpenStreetMap-tegels. De route komt
-van OpenRouteService met het profiel `cycling-safe`; de plekken die mama markeert
-gaan als `avoid_polygons` mee. Zonder `VITE_ORS_API_KEY` blijft de kaart werken
-maar tekent de app geen route.
+Kaarten staan **in de app zelf**, niet in de kaart-app van de telefoon. Dat is
+bewust: op het toestel van Jayce staat schermtijd aan en mag Maps niet open. Bij
+elk adres klapt `AdresKaart` een kaartje open met thuis en de bestemming erop;
+de link naar de kaart-app staat er nog wel onder, maar klein en secundair.
+
+`/jayce/route` tekent de hele ronde met Leaflet en OpenStreetMap-tegels. De
+tegels hebben geen sleutel nodig, dus de kaart met genummerde spelden werkt
+altijd. Alleen de **lijn** komt van OpenRouteService (profiel `cycling-safe`,
+met de plekken van mama als `avoid_polygons`) en heeft `VITE_ORS_API_KEY` nodig.
+
+Diezelfde sleutel zet adressen om naar coördinaten. Zonder sleutel hebben nieuwe
+klanten dus geen `lat`/`lon` en valt `AdresKaart` terug op alleen de link naar de
+kaart-app. Voor Jayce is de sleutel daarmee in de praktijk verplicht.
 
 ---
 

@@ -5,7 +5,15 @@
 // styling op één plek staat.
 
 import React from 'react';
-import { MapContainer, TileLayer, Marker, Circle, Polyline, useMapEvents } from 'react-leaflet';
+import {
+  MapContainer,
+  TileLayer,
+  Marker,
+  Circle,
+  Polyline,
+  useMap,
+  useMapEvents,
+} from 'react-leaflet';
 import L from 'leaflet';
 import 'leaflet/dist/leaflet.css';
 import type { Punt } from '../../utils/geo';
@@ -42,9 +50,35 @@ interface KaartProps {
   cirkels?: KaartCirkel[];
   lijn?: Punt[];
   hoogte?: string;
+  /** Zoom zo in dat al deze punten in beeld staan. */
+  pasOp?: Punt[];
   /** Wordt aangeroepen als er op de kaart wordt getikt. */
   onKlik?: (punt: Punt) => void;
 }
+
+/** Zoomt zo ver uit dat alle meegegeven punten zichtbaar zijn. */
+const PasOp: React.FC<{ punten: Punt[] }> = ({ punten }) => {
+  const kaart = useMap();
+
+  React.useEffect(() => {
+    if (punten.length === 0) return;
+
+    if (punten.length === 1) {
+      kaart.setView([punten[0].lat, punten[0].lon], 16);
+      return;
+    }
+
+    kaart.fitBounds(
+      punten.map((p) => [p.lat, p.lon] as [number, number]),
+      { padding: [40, 40], maxZoom: 16 }
+    );
+    // De punten komen als nieuwe array binnen bij elke render, dus vergelijken
+    // we op de inhoud in plaats van op de verwijzing.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [kaart, JSON.stringify(punten)]);
+
+  return null;
+};
 
 const KlikVanger: React.FC<{ onKlik: (punt: Punt) => void }> = ({ onKlik }) => {
   useMapEvents({
@@ -62,6 +96,7 @@ const Kaart: React.FC<KaartProps> = ({
   cirkels = [],
   lijn,
   hoogte = '22rem',
+  pasOp,
   onKlik,
 }) => (
   <div
@@ -84,6 +119,7 @@ const Kaart: React.FC<KaartProps> = ({
       />
 
       {onKlik && <KlikVanger onKlik={onKlik} />}
+      {pasOp && pasOp.length > 0 && <PasOp punten={pasOp} />}
 
       {cirkels.map((c, i) => (
         <Circle

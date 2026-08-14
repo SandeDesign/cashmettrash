@@ -6,7 +6,7 @@
 import React, { useEffect, useMemo } from 'react';
 import { format, isToday } from 'date-fns';
 import { nl } from 'date-fns/locale';
-import { CheckCircle, MapPin, Recycle, ShieldAlert, Sparkles, Wine } from 'lucide-react';
+import { CheckCircle, Recycle, ShieldAlert, Sparkles, Wine } from 'lucide-react';
 import AppLayout from '../../components/layout/AppLayout';
 import { MOEDER_NAV } from '../../components/layout/navItems';
 import Loading from '../../components/shared/Loading';
@@ -16,8 +16,8 @@ import { useGlasStore } from '../../store/glasStore';
 import { useStatiegeldStore } from '../../store/statiegeldStore';
 import { useCustomerStore } from '../../store/customerStore';
 import { useInstellingenStore } from '../../store/instellingenStore';
+import AdresKaart from '../../components/kaart/AdresKaart';
 import { afstandMeters, type Punt } from '../../utils/geo';
-import { mapsLink } from '../../utils/constants';
 
 const datum = (iso: string) =>
   isToday(new Date(iso)) ? 'vandaag' : format(new Date(iso), 'd MMM', { locale: nl });
@@ -59,6 +59,7 @@ const Overzicht: React.FC = () => {
           postcode: o.postcode,
           plaats: o.plaats,
           aangemaaktOp: o.aangemaaktOp,
+          punt,
           items: 0,
           teVer: punt ? afstandMeters(thuis, punt) > werkgebied.straalAlleenMeters : false,
           hulpNodig: false,
@@ -79,6 +80,7 @@ const Overzicht: React.FC = () => {
           postcode: l.postcode,
           plaats: l.plaats,
           aangemaaktOp: l.aangemaaktOp,
+          punt,
           items,
           teVer,
           hulpNodig: teVer && items >= werkgebied.maxItemsAlleen,
@@ -130,14 +132,14 @@ const Overzicht: React.FC = () => {
                   {rit.items} stuks en buiten de straal van{' '}
                   {(werkgebied.straalAlleenMeters / 1000).toFixed(1)} km.
                 </p>
-                <a
-                  href={mapsLink(rit.adres, rit.postcode, rit.plaats)}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="cmt-btn-secondary !py-2 !text-sm mt-3"
-                >
-                  <MapPin className="w-4 h-4" /> Route
-                </a>
+                <AdresKaart
+                  adres={rit.adres}
+                  postcode={rit.postcode}
+                  plaats={rit.plaats}
+                  punt={rit.punt}
+                  thuis={thuis}
+                  knopTekst="Waar is dit?"
+                />
               </li>
             ))}
           </ul>

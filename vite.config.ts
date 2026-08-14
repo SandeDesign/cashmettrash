@@ -7,6 +7,9 @@ export default defineConfig({
   build: {
     // Generate manifest for PWA
     manifest: true,
+    // Jayce heeft een iPhone die niet verder komt dan iOS 15, dus daar moet de
+    // bundel op draaien. Zonder deze regel gaat Vite uit van nieuwere browsers.
+    target: ['es2020', 'safari15', 'chrome87', 'firefox78'],
     rollupOptions: {
       output: {
         manualChunks: {

@@ -132,17 +132,6 @@ const Route: React.FC = () => {
     })),
   ];
 
-  if (!routeplannerBeschikbaar) {
-    return (
-      <AppLayout nav={JAYCE_NAV} title="Mijn route">
-        <div className="cmt-alert cmt-alert-info">
-          <AlertTriangle className="w-5 h-5 flex-shrink-0" />
-          <span>De kaart is nog niet ingesteld. Vraag het even aan papa.</span>
-        </div>
-      </AppLayout>
-    );
-  }
-
   return (
     <AppLayout nav={JAYCE_NAV} title="Mijn route">
       {stops.length === 0 ? (
@@ -158,7 +147,8 @@ const Route: React.FC = () => {
       ) : (
         <>
           <p className="text-base mb-4" style={{ color: 'var(--cmt-ink-soft)' }}>
-            De zwarte stip is thuis. De route gaat langs alle nummers en weer terug.
+            De zwarte stip is thuis. Je moet langs alle nummers en dan weer terug naar huis.
+            Tik op een nummer in de lijst hieronder om te zien wie dat is.
           </p>
 
           <Kaart
@@ -171,14 +161,24 @@ const Route: React.FC = () => {
             }))}
           />
 
-          <button
-            className="cmt-btn-primary cmt-btn-block cmt-btn-lg mt-4"
-            onClick={planRoute}
-            disabled={bezig || metCoordinaten.length === 0}
-          >
-            <RefreshCw className="w-5 h-5" />
-            {bezig ? 'Ik zoek de route...' : 'Laat de route zien'}
-          </button>
+          {routeplannerBeschikbaar ? (
+            <button
+              className="cmt-btn-primary cmt-btn-block cmt-btn-lg mt-4"
+              onClick={planRoute}
+              disabled={bezig || metCoordinaten.length === 0}
+            >
+              <RefreshCw className="w-5 h-5" />
+              {bezig ? 'Ik zoek de route...' : 'Laat de route zien'}
+            </button>
+          ) : (
+            <div className="cmt-alert cmt-alert-info mt-4">
+              <AlertTriangle className="w-5 h-5 flex-shrink-0" />
+              <span>
+                De kaart werkt, maar de lijn met de route erin is nog niet aangezet. Vraag dat
+                even aan papa. De nummers hierboven kloppen wel.
+              </span>
+            </div>
+          )}
 
           {route?.fout && <div className="cmt-alert cmt-alert-error mt-3">{route.fout}</div>}
 

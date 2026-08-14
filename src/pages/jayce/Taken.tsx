@@ -13,18 +13,20 @@
 import React, { useEffect, useState } from 'react';
 import { format, isToday, isTomorrow } from 'date-fns';
 import { nl } from 'date-fns/locale';
-import { CalendarClock, Check, MapPin, PartyPopper, Recycle, Wine } from 'lucide-react';
+import { CalendarClock, Check, PartyPopper, Recycle, Wine } from 'lucide-react';
 import AppLayout from '../../components/layout/AppLayout';
 import { JAYCE_NAV } from '../../components/layout/navItems';
 import Loading from '../../components/shared/Loading';
 import MeldingenKaart from '../../components/common/MeldingenKaart';
 import AantalVeld from '../../components/common/AantalVeld';
 import TijdslotKiezer from '../../components/jayce/TijdslotKiezer';
+import AdresKaart from '../../components/kaart/AdresKaart';
 import { useAuth } from '../../hooks/useAuth';
 import { useGlasStore } from '../../store/glasStore';
 import { useStatiegeldStore } from '../../store/statiegeldStore';
+import { useCustomerStore } from '../../store/customerStore';
 import { useInstellingenStore } from '../../store/instellingenStore';
-import { mapsLink } from '../../utils/constants';
+import type { Punt } from '../../utils/geo';
 import { stuurPushNaarKlant, stuurPushNaarRol } from '../../utils/push';
 import type { GlasOrder, StatiegeldItems, StatiegeldLog, Tijdslot } from '../../types';
 
@@ -44,7 +46,9 @@ const AdresKaartje: React.FC<{
   adres: string;
   postcode: string;
   plaats: string;
-}> = ({ naam, adres, postcode, plaats }) => (
+  punt?: Punt | null;
+  thuis?: Punt | null;
+}> = ({ naam, adres, postcode, plaats, punt, thuis }) => (
   <>
     <p className="text-lg font-bold">{naam}</p>
     <p className="text-base" style={{ color: 'var(--cmt-ink-soft)' }}>
@@ -52,14 +56,13 @@ const AdresKaartje: React.FC<{
       <br />
       {postcode} {plaats}
     </p>
-    <a
-      href={mapsLink(adres, postcode, plaats)}
-      target="_blank"
-      rel="noopener noreferrer"
-      className="cmt-btn-secondary mt-3"
-    >
-      <MapPin className="w-5 h-5" /> Laat me de weg zien
-    </a>
+    <AdresKaart
+      adres={adres}
+      postcode={postcode}
+      plaats={plaats}
+      punt={punt}
+      thuis={thuis}
+    />
   </>
 );
 
@@ -147,9 +150,11 @@ const TaakKnoppen: React.FC<{
 const GlasTaak: React.FC<{
   order: GlasOrder;
   sloten: Tijdslot[];
+  punt?: Punt | null;
+  thuis?: Punt | null;
   onInplannen: (slot: Tijdslot, van: Date, tot: Date) => Promise<void>;
   onKlaar: () => Promise<void>;
-}> = ({ order, sloten, onInplannen, onKlaar }) => (
+}> = ({ order, sloten, punt, thuis, onInplannen, onKlaar }) => (
   <li className="cmt-card cmt-card-flow cmt-animate-in">
     <div className="flex items-start justify-between gap-3 mb-2">
       <span className="cmt-badge cmt-badge-glas">
@@ -165,6 +170,8 @@ const GlasTaak: React.FC<{
       adres={order.adres}
       postcode={order.postcode}
       plaats={order.plaats}
+      punt={punt}
+      thuis={thuis}
     />
 
     {order.opmerking && (
@@ -197,9 +204,11 @@ const GlasTaak: React.FC<{
 const StatiegeldTaak: React.FC<{
   log: StatiegeldLog;
   sloten: Tijdslot[];
+  punt?: Punt | null;
+  thuis?: Punt | null;
   onInplannen: (slot: Tijdslot, van: Date, tot: Date) => Promise<void>;
   onKlaar: (items: StatiegeldItems) => Promise<void>;
-}> = ({ log, sloten, onInplannen, onKlaar }) => {
+}> = ({ log, sloten, punt, thuis, onInplannen, onKlaar }) => {
   const [plastic, setPlastic] = useState(log.items.plastic);
   const [blik, setBlik] = useState(log.items.blik);
   const ingepland = log.status === 'ingepland';
@@ -220,6 +229,8 @@ const StatiegeldTaak: React.FC<{
         adres={log.adres}
         postcode={log.postcode}
         plaats={log.plaats}
+        punt={punt}
+        thuis={thuis}
       />
 
       {log.opmerking && (
@@ -295,7 +306,8 @@ const Taken: React.FC = () => {
     markeerOpgehaald: statiegeldOpgehaald,
     markeerIngepland: statiegeldIngepland,
   } = useStatiegeldStore();
-  const { tijdsloten, loadTijdsloten } = useInstellingenStore();
+  const { tijdsloten, werkgebied, loadTijdsloten, loadWerkgebied } = useInstellingenStore();
+  const { customers, loadAlleCustomers } = useCustomerStore();
 
   const [gevierd, setGevierd] = useState<string | null>(null);
 
@@ -303,7 +315,19 @@ const Taken: React.FC = () => {
     loadGlas();
     loadStatiegeld();
     loadTijdsloten();
-  }, [loadGlas, loadStatiegeld, loadTijdsloten]);
+    loadWerkgebied();
+    // De adressen op de kaart komen uit de klantgegevens; die staan niet in de
+    // aanvraag zelf, want daar horen geen coordinaten in.
+    loadAlleCustomers();
+  }, [loadGlas, loadStatiegeld, loadTijdsloten, loadWerkgebied, loadAlleCustomers]);
+
+  const thuis: Punt = { lat: werkgebied.middelpuntLat, lon: werkgebied.middelpuntLon };
+
+  /** Coordinaten van een klant, als we die kennen. */
+  const puntVan = (customerId: string): Punt | null => {
+    const klant = customers.find((c) => c.id === customerId);
+    return klant?.lat != null && klant?.lon != null ? { lat: klant.lat, lon: klant.lon } : null;
+  };
 
   const openGlas = orders.filter((o) => o.status !== 'opgehaald');
   const openStatiegeld = logs.filter(
@@ -403,6 +427,8 @@ const Taken: React.FC = () => {
                 key={order.id}
                 order={order}
                 sloten={tijdsloten}
+                punt={puntVan(order.customerId)}
+                thuis={thuis}
                 onInplannen={async (slot, van, tot) => {
                   await glasIngepland(
                     order.id,
@@ -436,6 +462,8 @@ const Taken: React.FC = () => {
                 key={log.id}
                 log={log}
                 sloten={tijdsloten}
+                punt={puntVan(log.customerId)}
+                thuis={thuis}
                 onInplannen={async (slot, van, tot) => {
                   await statiegeldIngepland(
                     log.id,
