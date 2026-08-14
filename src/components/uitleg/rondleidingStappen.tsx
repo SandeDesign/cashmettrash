@@ -384,8 +384,8 @@ const moederStappen: RondleidingStap[] = [
       <>
         <p>
           Wat Jayce heeft opgehaald scan jij in bij Viatim. Op de pagina Inscannen staat per klant
-          wat hij heeft meegenomen. Je vult het bedrag in dat de automaat uitrekent en plakt de
-          link uit Tikkie erbij.
+          wat hij heeft meegenomen. Viatim rekent het bedrag uit en maakt zelf de Tikkie aan; jij
+          neemt dat bedrag over en plakt de Tikkie-link uit Viatim erbij.
         </p>
         <p>
           Daarna staat het klaar voor de beheerder; hij stuurt het bericht naar de klant. De

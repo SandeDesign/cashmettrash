@@ -55,16 +55,16 @@ const Viatim: React.FC = () => (
         in op ons eigen account. De automaat bepaalt het bedrag.
       </li>
       <li>
-        <strong>Doorbetalen.</strong> Dat bedrag sturen wij als Tikkie naar jou door, via de chat
-        in de app.
+        <strong>Doorbetalen.</strong> Viatim maakt bij dat bedrag zelf een Tikkie aan. Die zetten
+        wij ongewijzigd voor je klaar in de chat in de app.
       </li>
     </ul>
 
     <h2>Waarom je het hele bedrag terugkrijgt</h2>
     <p>
-      Het bedrag komt rechtstreeks uit de inleverautomaat. Wij nemen dat over in de app en sturen
-      er een Tikkie bij; er zit geen rekenstap tussen waarin wij iets zouden kunnen aanpassen.
-      Precies daarom houden we de twee dingen streng gescheiden:
+      Het bedrag komt rechtstreeks uit de inleverautomaat, en de Tikkie wordt door Viatim zelf
+      aangemaakt. Wij zetten die alleen door; er zit geen stap tussen waarin wij iets zouden kunnen
+      aanpassen. Precies daarom houden we de twee dingen streng gescheiden:
     </p>
     <ul>
       <li>

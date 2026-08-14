@@ -164,7 +164,7 @@ const AfrekenSheet: React.FC<AfrekenSheetProps> = ({ log, onSluiten, onAfrekenen
         {!schenking && (
           <div className="mb-5">
             <label className="cmt-label" htmlFor="afreken-link">
-              Tikkie-link
+              Tikkie-link uit Viatim
             </label>
             <input
               id="afreken-link"

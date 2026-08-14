@@ -10,7 +10,12 @@ import { useAuth } from './useAuth';
 import { RONDLEIDINGEN, RONDLEIDING_TITEL } from '../components/uitleg/rondleidingStappen';
 import type { RondleidingStap } from '../components/uitleg/rondleidingStappen';
 
-const SLEUTEL = 'cmt_rondleiding_gezien';
+// Het versienummer hoort bij de inhoud van de rondleiding. Komen er stappen bij
+// die iemand echt moet weten, dan verhoog je dit en gaat de uitleg bij iedereen
+// nog één keer vanzelf open. Zonder dat zou wie hem al had weggeklikt de nieuwe
+// stappen nooit te zien krijgen.
+const VERSIE = 2;
+const SLEUTEL = `cmt_rondleiding_gezien_v${VERSIE}`;
 
 function alGezien(rol: string): boolean {
   try {

@@ -89,9 +89,14 @@ const Contant: React.FC = () => {
               afvinkt blijft die op slot.
             </li>
           </ul>
+          <p className="text-sm mt-2" style={{ color: 'var(--cmt-ink-soft)' }}>
+            <strong>Heeft Jayce het geld niet gekregen?</strong> Vink dan niets af en zeg het tegen
+            de beheerder. De klant kan het dan alsnog gewoon in de app betalen.
+          </p>
           <p className="text-xs mt-2" style={{ color: 'var(--cmt-ink-muted)' }}>
             Het statiegeld zelf staat hier los van. Dat komt uit de automaat en gaat volledig naar
-            de klant.
+            de klant. Afvinken kan niet ongedaan gemaakt worden; lukt het toch niet, vraag het dan
+            aan de beheerder.
           </p>
         </div>
 

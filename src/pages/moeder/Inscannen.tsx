@@ -2,12 +2,12 @@
 //
 // Mama scant het statiegeld in bij Viatim en zet de Tikkie hier klaar.
 //
-// De verdeling is met opzet zo: zij doet het inscannen en het overtypen, Marc
-// drukt daarna alleen nog op versturen. Mama komt namelijk niet in de chat, en
+// De verdeling is met opzet zo: zij doet het inscannen en het overtypen, de
+// beheerder drukt daarna alleen nog op versturen. Mama komt namelijk niet in de chat, en
 // het bericht naar de klant hoort van de beheerder te komen.
 //
 // De inloggegevens van de Viatim-app staan hier bewust niet in. Wachtwoorden
-// horen niet in deze app thuis; die krijgt ze los van Marc.
+// horen niet in deze app thuis; die krijgt ze los van de beheerder.
 
 import React, { useEffect, useMemo, useState } from 'react';
 import { format } from 'date-fns';
@@ -25,7 +25,7 @@ import type { StatiegeldLog } from '../../types';
 
 const datum = (iso?: string) => (iso ? format(new Date(iso), 'd MMM', { locale: nl }) : '');
 
-/** Eén melding invullen: het bedrag uit de automaat en de link uit Tikkie. */
+/** Eén melding invullen: het bedrag en de Tikkie-link die Viatim teruggeeft. */
 const InscanKaart: React.FC<{
   log: StatiegeldLog;
   onKlaarzetten: (centen: number, link: string) => Promise<void>;
@@ -50,7 +50,7 @@ const InscanKaart: React.FC<{
       return;
     }
     if (!linkGeldig) {
-      setFout('Dat lijkt geen webadres. Plak de link uit Tikkie, bijvoorbeeld tikkie.me/pay/iets.');
+      setFout('Dat lijkt geen webadres. Plak de Tikkie-link die je van Viatim krijgt, bijvoorbeeld tikkie.me/pay/iets.');
       return;
     }
 
@@ -112,7 +112,7 @@ const InscanKaart: React.FC<{
           {!schenking && (
             <div>
               <label className="cmt-label" htmlFor={`link-${log.id}`}>
-                Link uit Tikkie
+                Tikkie-link uit Viatim
               </label>
               <input
                 id={`link-${log.id}`}
@@ -132,7 +132,7 @@ const InscanKaart: React.FC<{
           disabled={bezig || centen === null || !linkGeldig}
         >
           <Send className="w-4 h-4" />
-          {bezig ? 'Bezig...' : 'Zet klaar voor Marc'}
+          {bezig ? 'Bezig...' : 'Zet klaar voor de beheerder'}
         </button>
       </form>
     </li>
@@ -182,19 +182,26 @@ const Inscannen: React.FC = () => {
             <li>1. Pak de zakken die Jayce heeft opgehaald.</li>
             <li>
               2. Log in de Viatim-app in en scan de flessen en blikjes in. Die inloggegevens krijg
-              je van Marc; wachtwoorden zetten we bewust niet in deze app.
+              je van de beheerder; wachtwoorden zetten we bewust niet in deze app.
             </li>
-            <li>3. Noteer het bedrag dat de automaat uitrekent.</li>
-            <li>4. Maak in Tikkie een verzoek voor dat bedrag en kopieer de link.</li>
+            <li>
+              3. Viatim rekent het bedrag uit en maakt zelf de Tikkie aan. Jij hoeft dus niets in
+              Tikkie te doen.
+            </li>
+            <li>4. Neem het bedrag over en kopieer de Tikkie-link uit Viatim.</li>
             <li>5. Vul beide hieronder in en zet het klaar.</li>
             <li>
-              6. Marc stuurt het bericht naar de klant. Jij hoeft niets in de chat te doen, daar
+              6. De beheerder stuurt het bericht naar de klant. Jij hoeft niets in de chat te doen, daar
               kom je ook niet.
             </li>
           </ol>
+          <p className="text-sm mt-2" style={{ color: 'var(--cmt-ink-soft)' }}>
+            <strong>Iets verkeerd ingevuld?</strong> Zeg het tegen de beheerder voordat hij het
+            verstuurt; hij kan het bedrag en de link nog aanpassen.
+          </p>
           <p className="text-xs mt-2" style={{ color: 'var(--cmt-ink-muted)' }}>
             Het bedrag komt uit de automaat en gaat volledig naar de klant. De ophaalkosten staan
-            daar helemaal los van.
+            daar helemaal los van, dus tel die er niet bij op en haal ze er niet vanaf.
           </p>
         </div>
 
@@ -230,7 +237,7 @@ const Inscannen: React.FC = () => {
 
         {klaargezet.length > 0 && (
           <section>
-            <h2 className="text-lg font-bold mb-3">Klaargezet voor Marc</h2>
+            <h2 className="text-lg font-bold mb-3">Klaargezet voor de beheerder</h2>
             <ul className="space-y-2">
               {klaargezet.map((log) => (
                 <li key={log.id} className="cmt-card flex items-center gap-3">
@@ -244,7 +251,7 @@ const Inscannen: React.FC = () => {
                       wacht op versturen
                     </p>
                   </div>
-                  <span className="cmt-badge cmt-badge-neutral">Bij Marc</span>
+                  <span className="cmt-badge cmt-badge-neutral">Bij de beheerder</span>
                 </li>
               ))}
             </ul>

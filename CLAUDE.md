@@ -42,7 +42,8 @@ niet in het datamodel, niet in de UI, niet in de security rules.
 - **Het statiegeld zelf gaat volledig en onaangeroerd naar de klant.** Het bedrag
   komt uit de inleverautomaat via Viatim en kan niet worden aangepast, dus er kan
   ook niets van worden afgetrokken
-- Marc plakt de Viatim-Tikkie in de chat; de app zet dat bericht automatisch klaar
+- **De Tikkie komt uit Viatim zelf**, die maken wij niet en passen wij niet aan. Marc
+  plakt hem in de chat; de app zet dat bericht automatisch klaar
 - De klant ziet de knop naar die Tikkie **pas nadat de ophaalkosten betaald zijn**.
   Daarvoor staat er een slotje met de betaalknop. De beheerder ziet de link wel
   meteen, want die moet kunnen nakijken wat hij heeft gestuurd
@@ -162,7 +163,10 @@ actieve tijdsloten, dan kan Jayce niets bevestigen en zegt de app dat ook.
 
 Klant, Jayce en mama hebben elk een eigen uitleg in stapjes, met een vraagteken
 in de header om hem opnieuw te openen. De eerste keer gaat hij vanzelf open; dat
-onthoudt de app in `localStorage` onder `cmt_rondleiding_gezien_{rol}`. De teksten
+onthoudt de app in `localStorage` onder `cmt_rondleiding_gezien_v{versie}_{rol}`.
+Komen er stappen bij die iemand echt moet weten, verhoog dan `VERSIE` in
+`useRondleiding.ts`; dan gaat de uitleg bij iedereen nog één keer vanzelf open.
+De teksten
 staan in `src/components/uitleg/rondleidingStappen.tsx`, het venster zelf in
 `Rondleiding.tsx`. Een stap kan een `naar` meekrijgen; dan verschijnt er een knop
 die de rondleiding sluit en meteen naar die pagina springt. De beheerder heeft
@@ -439,8 +443,10 @@ alsnog een witte flits.
 ## 11. Openstaand / TODO
 
 - [ ] Geen e-mailnotificaties in v1, bevestigingsmails zijn bewust uitgesteld
-- [ ] Tikkie-koppeling is handmatig: je plakt bedrag en link uit Viatim, de app
-      deelt ze in de chat. Geen Viatim- of Tikkie-API in v1
+- [ ] Tikkie-koppeling is handmatig overtypen: **Viatim maakt de Tikkie zelf aan**,
+      wij nemen bedrag en link daaruit over en de app deelt ze in de chat. Er wordt
+      dus nooit een Tikkie in de app of met de hand gemaakt. Geen Viatim- of
+      Tikkie-API in v1
 - [ ] Meldingen worden verstuurd door het apparaat dat de handeling doet. Sluit
       iemand de app te snel, dan kan een melding wegvallen. Een Cloud Function
       die op Firestore luistert zou dat oplossen, maar vereist het Blaze-plan

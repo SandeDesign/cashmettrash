@@ -6,7 +6,8 @@
 import React, { useEffect, useMemo } from 'react';
 import { format, isToday } from 'date-fns';
 import { nl } from 'date-fns/locale';
-import { CheckCircle, Recycle, ShieldAlert, Sparkles, Wine } from 'lucide-react';
+import { Link } from 'react-router-dom';
+import { CheckCircle, Coins, Recycle, ScanLine, ShieldAlert, Sparkles, Wine } from 'lucide-react';
 import AppLayout from '../../components/layout/AppLayout';
 import { MOEDER_NAV } from '../../components/layout/navItems';
 import Loading from '../../components/shared/Loading';
@@ -93,6 +94,13 @@ const Overzicht: React.FC = () => {
   const hulp = ronde.filter((r) => r.hulpNodig);
   const alleen = ronde.filter((r) => !r.hulpNodig);
 
+  // Wat er buiten de ronde om op haar ligt te wachten. Dit staat bovenaan, want
+  // dit dashboard hoort de vraag "wat moet ik nu doen" te beantwoorden.
+  const teScannen = logs.filter((l) => l.status === 'opgehaald').length;
+  const teBevestigen = logs.filter(
+    (l) => l.servicekostenContant && l.opgehaaldOp && !l.contantBevestigdOp
+  ).length;
+
   const cijfers = useMemo(() => {
     const opgehaald = logs.filter((l) => l.opgehaaldOp);
     return {
@@ -106,6 +114,49 @@ const Overzicht: React.FC = () => {
   return (
     <AppLayout nav={MOEDER_NAV} title="De ronde van Jayce">
       {glasLaadt && ronde.length === 0 && <Loading />}
+
+      {(teScannen > 0 || teBevestigen > 0) && (
+        <section className="cmt-flow-stat mb-8">
+          <h2 className="text-lg font-bold mb-3">Wat ligt er voor jou klaar?</h2>
+          <div className="space-y-3">
+            {teScannen > 0 && (
+              <div className="cmt-card cmt-card-flow">
+                <p className="font-semibold flex items-center gap-2">
+                  <ScanLine className="w-5 h-5" style={{ color: 'var(--cmt-stat)' }} />
+                  {teScannen === 1
+                    ? 'Er staat één zak klaar om in te scannen'
+                    : `Er staan ${teScannen} zakken klaar om in te scannen`}
+                </p>
+                <p className="text-sm mt-1" style={{ color: 'var(--cmt-ink-soft)' }}>
+                  Scan ze in bij Viatim en zet het bedrag en de Tikkie klaar. Daarna kan de
+                  beheerder het naar de klant sturen.
+                </p>
+                <Link to="/mama/scannen" className="cmt-btn-primary mt-3">
+                  Naar het inscannen
+                </Link>
+              </div>
+            )}
+
+            {teBevestigen > 0 && (
+              <div className="cmt-card cmt-card-flow">
+                <p className="font-semibold flex items-center gap-2">
+                  <Coins className="w-5 h-5" style={{ color: 'var(--cmt-stat)' }} />
+                  {teBevestigen === 1
+                    ? 'Eén klant heeft geld meegegeven aan Jayce'
+                    : `${teBevestigen} klanten hebben geld meegegeven aan Jayce`}
+                </p>
+                <p className="text-sm mt-1" style={{ color: 'var(--cmt-ink-soft)' }}>
+                  Vink af zodra je het van hem hebt gekregen. Tot die tijd kan die klant zijn
+                  Tikkie niet openen.
+                </p>
+                <Link to="/mama/contant" className="cmt-btn-primary mt-3">
+                  Naar het contante geld
+                </Link>
+              </div>
+            )}
+          </div>
+        </section>
+      )}
 
       <section className="mb-8">
         <h2 className="text-lg font-bold mb-3 flex items-center gap-2">
