@@ -103,7 +103,31 @@ const Route: React.FC = () => {
     return [...uitGlas, ...uitStatiegeld];
   }, [orders, logs, customers, werkgebied, thuis]);
 
-  const metCoordinaten = stops.filter((s) => s.punt !== null);
+  // De routedienst zet de stops niet meer zelf op volgorde, dus doen we het hier:
+  // steeds het dichtstbijzijnde adres dat nog over is. Dat is niet gegarandeerd
+  // de allerkortste ronde, maar wel een logische volgorde om te rijden.
+  const metCoordinaten = useMemo(() => {
+    const over = stops.filter((s) => s.punt !== null);
+    const volgorde: Stop[] = [];
+    let vanaf = thuis;
+
+    while (over.length > 0) {
+      let dichtstbij = 0;
+      for (let i = 1; i < over.length; i += 1) {
+        if (
+          afstandMeters(vanaf, over[i].punt as Punt) <
+          afstandMeters(vanaf, over[dichtstbij].punt as Punt)
+        ) {
+          dichtstbij = i;
+        }
+      }
+      const gekozen = over.splice(dichtstbij, 1)[0];
+      volgorde.push(gekozen);
+      vanaf = gekozen.punt as Punt;
+    }
+
+    return volgorde;
+  }, [stops, thuis]);
   const zonderCoordinaten = stops.filter((s) => s.punt === null);
   const hulpStops = stops.filter((s) => s.hulpNodig);
 

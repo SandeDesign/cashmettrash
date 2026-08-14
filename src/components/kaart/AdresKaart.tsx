@@ -9,7 +9,7 @@
 // en de aanwijzingen stap voor stap in het Nederlands. De kaart zelf wordt pas
 // geladen zodra je hem opent, want Leaflet is een flink stuk code.
 
-import React, { lazy, Suspense, useEffect, useState } from 'react';
+import React, { lazy, Suspense, useEffect, useRef, useState } from 'react';
 import { AlertTriangle, Bike, ChevronUp, ExternalLink, MapPin, Navigation } from 'lucide-react';
 import { mapsLink } from '../../utils/constants';
 import { useInstellingenStore } from '../../store/instellingenStore';
@@ -54,29 +54,37 @@ const AdresKaart: React.FC<AdresKaartProps> = ({
   const [open, setOpen] = useState(false);
   const [route, setRoute] = useState<RouteResultaat | null>(null);
   const [bezig, setBezig] = useState(false);
+  /** Voor welk traject we de weg hebben opgevraagd. */
+  const gevraagdVoor = useRef<string | null>(null);
 
   useEffect(() => {
     if (open) loadPlekken();
   }, [open, loadPlekken]);
 
   // Zodra de kaart opengaat de route ophalen. Eén keer per adres is genoeg.
+  //
+  // Let op de vorm hiervan. Een eerdere versie zette `bezig` in de dependencies
+  // en brak het verzoek af in de cleanup: door setBezig(true) liep het effect
+  // meteen opnieuw, werd het eerste verzoek afgebroken en kwam het antwoord dus
+  // nooit binnen. Het bleef eeuwig op "Ik zoek de weg" staan. Daarom onthouden we
+  // in een ref waar we de weg voor vroegen, en breken we niets meer af.
   useEffect(() => {
-    if (!open || !punt || !thuis || route || bezig || !routeplannerBeschikbaar) return;
+    if (!open || !punt || !thuis || !routeplannerBeschikbaar) return;
 
-    let afgebroken = false;
+    const sleutel = `${thuis.lat},${thuis.lon}>${punt.lat},${punt.lon}|${plekken.length}`;
+    if (gevraagdVoor.current === sleutel) return;
+    gevraagdVoor.current = sleutel;
+
     setBezig(true);
 
     void (async () => {
       const gevonden = await berekenRit(thuis, punt, plekken);
-      if (afgebroken) return;
+      // Is er intussen een nieuwe vraag gesteld, dan telt dit antwoord niet meer.
+      if (gevraagdVoor.current !== sleutel) return;
       setRoute(gevonden);
       setBezig(false);
     })();
-
-    return () => {
-      afgebroken = true;
-    };
-  }, [open, punt, thuis, route, bezig, plekken]);
+  }, [open, punt, thuis, plekken]);
 
   const kaartAppLink = metKaartApp ? (
     <a

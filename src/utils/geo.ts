@@ -108,7 +108,7 @@ export async function berekenRit(
   naar: Punt,
   teMijden: GevaarlijkePlek[] = []
 ): Promise<RouteResultaat> {
-  return vraagRouteOp([van, naar], teMijden, false);
+  return vraagRouteOp([van, naar], teMijden);
 }
 
 /**
@@ -124,14 +124,20 @@ export async function berekenRoute(
     return { lijn: [], afstandMeters: 0, duurSeconden: 0, volgorde: [], stappen: [] };
   }
   // Heen langs alle stops en weer terug naar huis.
-  return vraagRouteOp([start, ...stops, start], teMijden, stops.length > 1);
+  return vraagRouteOp([start, ...stops, start], teMijden);
 }
 
-/** Het werk zelf: één verzoek aan de routedienst met een reeks punten. */
+/**
+ * Het werk zelf: één verzoek aan de routedienst met een reeks punten.
+ *
+ * De stops gaan in de volgorde waarin ze worden meegegeven. De dienst kende ooit
+ * een parameter om die volgorde te optimaliseren, maar die bestaat niet meer en
+ * levert nu "Unknown parameter" op, waardoor het hele verzoek faalt. Wil je de
+ * slimste volgorde, dan is daar het aparte optimalisatie-eindpunt voor.
+ */
 async function vraagRouteOp(
   punten: Punt[],
-  teMijden: GevaarlijkePlek[],
-  optimaliseer: boolean
+  teMijden: GevaarlijkePlek[]
 ): Promise<RouteResultaat> {
   const leeg: RouteResultaat = {
     lijn: [],
@@ -151,8 +157,6 @@ async function vraagRouteOp(
     // De aanwijzingen in het Nederlands, want Jayce leest ze onderweg.
     instructions: true,
     language: 'nl',
-    // De stops in de slimste volgorde laten zetten. Begin en eind blijven thuis.
-    optimize_waypoints: optimaliseer,
   };
 
   if (teMijden.length > 0) {
