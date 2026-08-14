@@ -13,7 +13,11 @@
 import type { GevaarlijkePlek } from '../types';
 
 const ORS_SLEUTEL = import.meta.env.VITE_ORS_API_KEY;
-const ORS_BASIS = 'https://api.openrouteservice.org';
+
+// OpenRouteService verhuist van api.openrouteservice.org naar api.heigit.org.
+// Zolang het oude adres nog werkt houden we dat aan; overstappen is straks een
+// kwestie van VITE_ORS_BASIS zetten in Vercel, zonder de code aan te raken.
+const ORS_BASIS = import.meta.env.VITE_ORS_BASIS || 'https://api.openrouteservice.org';
 
 /** Zonder sleutel doet de routeplanner niets; de app blijft wel werken. */
 export const routeplannerBeschikbaar = Boolean(ORS_SLEUTEL);

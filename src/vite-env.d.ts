@@ -14,6 +14,8 @@ interface ImportMetaEnv {
   readonly VITE_FIREBASE_VAPID_KEY?: string;
   /** Gratis sleutel van openrouteservice.org. Zonder sleutel geen routeplanner. */
   readonly VITE_ORS_API_KEY?: string;
+  /** Basis-URL van OpenRouteService. Leeg laten tenzij het adres verhuist. */
+  readonly VITE_ORS_BASIS?: string;
 }
 
 interface ImportMeta {
