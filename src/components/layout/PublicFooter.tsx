@@ -24,7 +24,7 @@ const PublicFooter: React.FC = () => (
           <Logo size="sm" showText={false} className="mb-3" />
           <p className="font-bold">{BEDRIJF.handelsnaam}</p>
           <p className="text-sm" style={{ color: 'rgba(255,255,255,0.55)' }}>
-            Glas en statiegeld ophalen in {BEDRIJF.plaats}.
+            Glas en statiegeld ophalen in {BEDRIJF.werkgebiedPlaats}.
           </p>
         </div>
 
@@ -57,6 +57,7 @@ const PublicFooter: React.FC = () => (
           {BEDRIJF.rechtspersoon}
           {BEDRIJF.kvk && ` · KvK ${BEDRIJF.kvk}`}
           {BEDRIJF.btw && ` · btw ${BEDRIJF.btw}`}
+          {BEDRIJF.adres && ` · ${BEDRIJF.adres}, ${BEDRIJF.postcode} ${BEDRIJF.plaats}`}
           {BEDRIJF.email && ` · ${BEDRIJF.email}`}
         </p>
       </div>

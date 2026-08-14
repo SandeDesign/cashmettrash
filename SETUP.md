@@ -264,13 +264,18 @@ Vul ze in op één plek, in `src/utils/bedrijf.ts`:
 |---|---|---|
 | `kvk` | KvK-nummer van Buddy BV | ingevuld |
 | `btw` | Btw-identificatienummer | ingevuld |
-| `adres` | Straat en huisnummer van de vestiging | nog invullen |
-| `postcode` | Postcode van de vestiging | nog invullen |
-| `email` | Adres waar privacyverzoeken en klachten binnenkomen | nog invullen |
+| `adres` | Straat en huisnummer van de vestiging | ingevuld |
+| `postcode` | Postcode van de vestiging | ingevuld |
+| `plaats` | Vestigingsplaats. Let op: dit is Geleen en niet het werkgebied | ingevuld |
+| `email` | Adres waar privacyverzoeken en klachten binnenkomen | aanbevolen |
 | `telefoon` | Optioneel | |
 
 De waarschuwing bovenaan de juridische pagina's noemt zelf welk veld nog
 ontbreekt, dus je ziet vanzelf wanneer je klaar bent.
+
+> Zonder `email` valt de app terug op het postadres als contactadres, en
+> verdwijnt de waarschuwing. Bij verkoop op afstand hoort er wel een e-mailadres
+> bij de bedrijfsgegevens te staan, dus vul het aan zodra je er een hebt.
 
 Werk daarna ook `laatstBijgewerkt` bij. Die datum staat onderaan elke juridische
 pagina.
