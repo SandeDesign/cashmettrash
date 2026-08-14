@@ -1,6 +1,6 @@
 // public/service-worker.js
 // Verhoog CACHE_VERSION bij elke deploy om caches te verversen.
-const CACHE_VERSION = 'v1.4.0';
+const CACHE_VERSION = 'v1.5.0';
 const STATIC_CACHE = `cashmettrash-static-${CACHE_VERSION}`;
 const DYNAMIC_CACHE = `cashmettrash-dynamic-${CACHE_VERSION}`;
 

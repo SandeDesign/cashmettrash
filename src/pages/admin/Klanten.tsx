@@ -5,15 +5,16 @@
 // en kan zijn statiegeld aan Jayce schenken.
 
 import React, { useEffect, useMemo, useState } from 'react';
-import { Heart, MapPin, Search, ShieldCheck, Users } from 'lucide-react';
+import { Heart, MapPin, MapPinOff, RefreshCw, Search, ShieldCheck, Users } from 'lucide-react';
 import AppLayout from '../../components/layout/AppLayout';
 import { ADMIN_NAV } from '../../components/layout/navItems';
 import Loading from '../../components/shared/Loading';
 import { useAuth } from '../../hooks/useAuth';
-import { useCustomerStore } from '../../store/customerStore';
+import { useCustomerStore, ververCoordinaten } from '../../store/customerStore';
 import { useGebruikersStore } from '../../store/gebruikersStore';
 import { useInstellingenStore } from '../../store/instellingenStore';
 import { toetsWerkgebied } from '../../utils/werkgebied';
+import { routeplannerBeschikbaar } from '../../utils/geo';
 import type { Customer, Rol } from '../../types';
 
 const ROLLEN: { waarde: Rol; label: string; uitleg: string }[] = [
@@ -38,6 +39,8 @@ const Klanten: React.FC = () => {
 
   const [zoek, setZoek] = useState('');
   const [bezigMet, setBezigMet] = useState<string | null>(null);
+  const [kaartBezig, setKaartBezig] = useState(false);
+  const [kaartMelding, setKaartMelding] = useState<string | null>(null);
 
   useEffect(() => {
     loadAlleGebruikers();
@@ -62,6 +65,32 @@ const Klanten: React.FC = () => {
   }, [mensen, zoek]);
 
   const aantalBekenden = customers.filter((c) => c.isBekende).length;
+  const zonderCoordinaten = customers.filter((c) => c.lat == null || c.lon == null);
+
+  /**
+   * Zoekt de ontbrekende adressen op en bewaart de coordinaten. Zonder die
+   * coordinaten kan Jayce het adres niet op de kaart zien en staat het niet in
+   * zijn route. Normaal gebeurt dit vanzelf zodra de klant een aanvraagpagina
+   * opent, maar dan moet hij daar wel geweest zijn.
+   */
+  const zoekAdressenOp = async () => {
+    setKaartBezig(true);
+    setKaartMelding(null);
+
+    let gelukt = 0;
+    for (const klant of zonderCoordinaten) {
+      const ok = await ververCoordinaten(klant.id, klant.adres, klant.postcode, klant.plaats);
+      if (ok) gelukt += 1;
+    }
+
+    await loadAlleCustomers();
+    setKaartBezig(false);
+    setKaartMelding(
+      gelukt === zonderCoordinaten.length
+        ? `${gelukt} ${gelukt === 1 ? 'adres' : 'adressen'} op de kaart gezet.`
+        : `${gelukt} van de ${zonderCoordinaten.length} adressen gevonden. De rest herkent de kaartdienst niet; controleer of die adressen kloppen.`
+    );
+  };
 
   const wisselBekende = async (id: string, nieuw: boolean) => {
     setBezigMet(id);
@@ -108,6 +137,30 @@ const Klanten: React.FC = () => {
       </div>
 
       {error && <div className="cmt-alert cmt-alert-error mb-4">{error}</div>}
+
+      {kaartMelding && <div className="cmt-alert cmt-alert-info mb-4">{kaartMelding}</div>}
+
+      {zonderCoordinaten.length > 0 && (
+        <div className="cmt-alert cmt-alert-warning mb-4">
+          <MapPinOff className="w-5 h-5 flex-shrink-0" />
+          <span className="flex-1">
+            Van {zonderCoordinaten.length}{' '}
+            {zonderCoordinaten.length === 1 ? 'adres weten' : 'adressen weten'} we nog niet waar
+            het ligt. Jayce ziet die dan niet op de kaart en niet in zijn route.
+            {!routeplannerBeschikbaar && ' Er is nog geen kaartsleutel ingesteld.'}
+          </span>
+          {routeplannerBeschikbaar && (
+            <button
+              className="cmt-btn-secondary !py-2 !text-sm flex-shrink-0"
+              onClick={zoekAdressenOp}
+              disabled={kaartBezig}
+            >
+              <RefreshCw className="w-4 h-4" />
+              {kaartBezig ? 'Bezig...' : 'Zoek ze op'}
+            </button>
+          )}
+        </div>
+      )}
 
       {loading && gebruikers.length === 0 ? (
         <Loading />
@@ -160,6 +213,16 @@ const Klanten: React.FC = () => {
                       {account.email}
                       {klant?.telefoon && ` · ${klant.telefoon}`}
                     </p>
+
+                    {klant && (klant.lat == null || klant.lon == null) && (
+                      <p
+                        className="text-xs mt-1 flex items-center gap-1"
+                        style={{ color: 'var(--cmt-warning)' }}
+                      >
+                        <MapPinOff className="w-3.5 h-3.5" />
+                        Staat nog niet op de kaart
+                      </p>
+                    )}
 
                     {klant && !binnen && (
                       <p

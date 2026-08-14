@@ -6,7 +6,7 @@
 
 import { useEffect, useState } from 'react';
 import { useInstellingenStore } from '../store/instellingenStore';
-import { ververCoordinaten } from '../store/customerStore';
+import { bewaarCoordinaten } from '../store/customerStore';
 import { zoekCoordinaten } from '../utils/geo';
 import { toetsWerkgebied, type WerkgebiedOordeel } from '../utils/werkgebied';
 import type { Customer } from '../types';
@@ -27,7 +27,10 @@ export function useWerkgebiedToets(customer: Customer | null): Toets {
   }, [loadWerkgebied]);
 
   useEffect(() => {
-    if (!customer || customer.lat != null || customer.isBekende) return;
+    // Ook een bekende heeft coordinaten nodig. Voor de toets maakt het niet uit
+    // (die mag altijd), maar zonder coordinaten staat zijn adres niet op de
+    // kaart van Jayce, en dat is precies waar ze voor dienen.
+    if (!customer || customer.lat != null) return;
 
     let afgebroken = false;
     setZoekt(true);
@@ -38,8 +41,10 @@ export function useWerkgebiedToets(customer: Customer | null): Toets {
 
       setGezocht(punt);
       setZoekt(false);
-      // Meteen bewaren, dan hoeft de volgende pagina niet opnieuw te zoeken.
-      if (punt) void ververCoordinaten(customer.id, customer.adres, customer.postcode, customer.plaats);
+      // Meteen bewaren, dan hoeft de volgende pagina niet opnieuw te zoeken. We
+      // geven het gevonden punt mee, anders zou de opslag het nog een keer gaan
+      // opzoeken en verbruik je twee keer je maandquotum.
+      if (punt) void bewaarCoordinaten(customer.id, punt);
     })();
 
     return () => {

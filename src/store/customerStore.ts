@@ -6,25 +6,34 @@ import type { Customer } from '../types';
 import { formatPostcode } from '../utils/validation';
 import { zoekCoordinaten } from '../utils/geo';
 
+/** Zet gevonden coordinaten op de klant. Mislukt dat, dan blijft de app werken. */
+export async function bewaarCoordinaten(
+  customerId: string,
+  punt: { lat: number; lon: number }
+): Promise<void> {
+  try {
+    await setDoc(doc(db, 'customers', customerId), { lat: punt.lat, lon: punt.lon }, { merge: true });
+  } catch (error: unknown) {
+    console.warn('[Klant] coordinaten opslaan mislukt:', error);
+  }
+}
+
 /**
- * Zoekt de coordinaten bij een adres en zet ze op de klant. De routeplanner
- * heeft ze nodig. Mislukt het opzoeken, dan gebeurt er niets: zonder coordinaten
- * werkt de rest van de app gewoon door.
+ * Zoekt de coordinaten bij een adres en zet ze op de klant. De routeplanner en
+ * de kaartjes bij een adres hebben ze nodig. Geeft terug of het gelukt is, zodat
+ * een scherm kan laten zien dat een adres niet gevonden werd.
  */
 export async function ververCoordinaten(
   customerId: string,
   adres: string,
   postcode: string,
   plaats: string
-): Promise<void> {
+): Promise<boolean> {
   const punt = await zoekCoordinaten(adres, postcode, plaats);
-  if (!punt) return;
+  if (!punt) return false;
 
-  try {
-    await setDoc(doc(db, 'customers', customerId), { lat: punt.lat, lon: punt.lon }, { merge: true });
-  } catch (error: unknown) {
-    console.warn('[Klant] coordinaten opslaan mislukt:', error);
-  }
+  await bewaarCoordinaten(customerId, punt);
+  return true;
 }
 
 interface CustomerStore {
