@@ -51,8 +51,13 @@ interface Actie {
 const Overzicht: React.FC = () => {
   const { user } = useAuth();
   const { customer, loadCustomer } = useCustomerStore();
-  const { orders, loading: glasLaadt, loadVoorKlant: loadGlas } = useGlasStore();
-  const { logs, loading: statLaadt, loadVoorKlant: loadStatiegeld } = useStatiegeldStore();
+  const { orders, loading: glasLaadt, error: glasFout, loadVoorKlant: loadGlas } = useGlasStore();
+  const {
+    logs,
+    loading: statLaadt,
+    error: statFout,
+    loadVoorKlant: loadStatiegeld,
+  } = useStatiegeldStore();
   const { oordeel } = useWerkgebiedToets(customer);
 
   useEffect(() => {
@@ -108,6 +113,17 @@ const Overzicht: React.FC = () => {
         <p className="-mt-3 mb-6 text-sm" style={{ color: 'var(--cmt-ink-muted)' }}>
           We komen langs op {customer.adres}, {customer.postcode} {customer.plaats}
         </p>
+      )}
+
+      {/* Mislukt het laden, dan zou de klant anders "je hebt nog geen aanvragen"
+          zien staan en denken dat zijn aanvraag weg is. */}
+      {(glasFout || statFout) && (
+        <div className="cmt-alert cmt-alert-error mb-6">
+          <AlertCircle className="w-5 h-5 flex-shrink-0" />
+          <span>
+            Je aanvragen konden even niet worden geladen. Ververs de pagina; ze zijn niet weg.
+          </span>
+        </div>
       )}
 
       {acties.length > 0 && (
