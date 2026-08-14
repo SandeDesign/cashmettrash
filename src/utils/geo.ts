@@ -81,6 +81,12 @@ function verbodenVlak(plek: GevaarlijkePlek): number[][] {
   ];
 }
 
+/** Eén aanwijzing onderweg: "Sla linksaf op de Magriethof". */
+export interface RouteStap {
+  tekst: string;
+  afstandMeters: number;
+}
+
 export interface RouteResultaat {
   /** Punten van de lijn op de kaart. */
   lijn: Punt[];
@@ -88,7 +94,21 @@ export interface RouteResultaat {
   duurSeconden: number;
   /** Volgorde waarin de stops bezocht moeten worden. */
   volgorde: number[];
+  /** Stap voor stap de weg, in het Nederlands. */
+  stappen: RouteStap[];
   fout?: string;
+}
+
+/**
+ * Berekent de veiligste fietsroute van A naar B, zonder terugweg. Gebruikt voor
+ * het kaartje bij een los adres, zodat Jayce daar meteen de weg ziet.
+ */
+export async function berekenRit(
+  van: Punt,
+  naar: Punt,
+  teMijden: GevaarlijkePlek[] = []
+): Promise<RouteResultaat> {
+  return vraagRouteOp([van, naar], teMijden, false);
 }
 
 /**
@@ -100,18 +120,39 @@ export async function berekenRoute(
   stops: Punt[],
   teMijden: GevaarlijkePlek[]
 ): Promise<RouteResultaat> {
-  const leeg: RouteResultaat = { lijn: [], afstandMeters: 0, duurSeconden: 0, volgorde: [] };
+  if (stops.length === 0) {
+    return { lijn: [], afstandMeters: 0, duurSeconden: 0, volgorde: [], stappen: [] };
+  }
+  // Heen langs alle stops en weer terug naar huis.
+  return vraagRouteOp([start, ...stops, start], teMijden, stops.length > 1);
+}
+
+/** Het werk zelf: één verzoek aan de routedienst met een reeks punten. */
+async function vraagRouteOp(
+  punten: Punt[],
+  teMijden: GevaarlijkePlek[],
+  optimaliseer: boolean
+): Promise<RouteResultaat> {
+  const leeg: RouteResultaat = {
+    lijn: [],
+    afstandMeters: 0,
+    duurSeconden: 0,
+    volgorde: [],
+    stappen: [],
+  };
 
   if (!ORS_SLEUTEL) return { ...leeg, fout: 'Er is nog geen kaartsleutel ingesteld.' };
-  if (stops.length === 0) return leeg;
+  if (punten.length < 2) return leeg;
 
-  const coordinaten = [start, ...stops, start].map((p) => [p.lon, p.lat]);
+  const coordinaten = punten.map((p) => [p.lon, p.lat]);
 
   const body: Record<string, unknown> = {
     coordinates: coordinaten,
-    instructions: false,
+    // De aanwijzingen in het Nederlands, want Jayce leest ze onderweg.
+    instructions: true,
+    language: 'nl',
     // De stops in de slimste volgorde laten zetten. Begin en eind blijven thuis.
-    optimize_waypoints: stops.length > 1,
+    optimize_waypoints: optimaliseer,
   };
 
   if (teMijden.length > 0) {
@@ -146,15 +187,23 @@ export async function berekenRoute(
 
     // De volgorde die de dienst heeft gekozen. Zonder optimalisatie is dat
     // gewoon de volgorde waarin we ze hebben aangeboden.
-    const gekozen: number[] = feature?.properties?.way_points
-      ? stops.map((_, i) => i)
-      : stops.map((_, i) => i);
+    const gekozen: number[] = punten.slice(1, -1).map((_, i) => i);
+
+    // De aanwijzingen zitten per segment; achter elkaar plakken geeft de hele weg.
+    const stappen: RouteStap[] = (feature?.properties?.segments ?? []).flatMap(
+      (segment: { steps?: { instruction?: string; distance?: number }[] }) =>
+        (segment.steps ?? []).map((stap) => ({
+          tekst: stap.instruction ?? '',
+          afstandMeters: stap.distance ?? 0,
+        }))
+    );
 
     return {
       lijn,
       afstandMeters: samenvatting.distance ?? 0,
       duurSeconden: samenvatting.duration ?? 0,
       volgorde: gekozen,
+      stappen: stappen.filter((s) => s.tekst),
     };
   } catch (error: unknown) {
     console.warn('[Geo] route berekenen mislukt:', error);

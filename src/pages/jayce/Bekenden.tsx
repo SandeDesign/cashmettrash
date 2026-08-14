@@ -4,22 +4,31 @@
 // Taal is voor een tienjarige, en er staan geen bedragen op.
 
 import React, { useEffect, useMemo } from 'react';
-import { Gift, Heart, MapPin } from 'lucide-react';
+import { Gift, Heart } from 'lucide-react';
 import AppLayout from '../../components/layout/AppLayout';
 import { JAYCE_NAV } from '../../components/layout/navItems';
 import Loading from '../../components/shared/Loading';
 import { useCustomerStore } from '../../store/customerStore';
 import { useStatiegeldStore } from '../../store/statiegeldStore';
-import { mapsLink } from '../../utils/constants';
+import { useInstellingenStore } from '../../store/instellingenStore';
+import AdresKaart from '../../components/kaart/AdresKaart';
+import type { Punt } from '../../utils/geo';
 
 const Bekenden: React.FC = () => {
   const { customers, loading, loadAlleCustomers } = useCustomerStore();
   const { logs, loadAlle } = useStatiegeldStore();
+  const { werkgebied, loadWerkgebied } = useInstellingenStore();
 
   useEffect(() => {
     loadAlleCustomers();
     loadAlle();
-  }, [loadAlleCustomers, loadAlle]);
+    loadWerkgebied();
+  }, [loadAlleCustomers, loadAlle, loadWerkgebied]);
+
+  const thuis = useMemo<Punt>(
+    () => ({ lat: werkgebied.middelpuntLat, lon: werkgebied.middelpuntLon }),
+    [werkgebied.middelpuntLat, werkgebied.middelpuntLon]
+  );
 
   const bekenden = useMemo(() => customers.filter((c) => c.isBekende), [customers]);
 
@@ -87,14 +96,17 @@ const Bekenden: React.FC = () => {
                   </div>
                 </div>
 
-                <a
-                  href={mapsLink(bekende.adres, bekende.postcode, bekende.plaats)}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="cmt-btn-secondary mt-3"
-                >
-                  <MapPin className="w-5 h-5" /> Laat me de weg zien
-                </a>
+                <AdresKaart
+                  adres={bekende.adres}
+                  postcode={bekende.postcode}
+                  plaats={bekende.plaats}
+                  punt={
+                    bekende.lat != null && bekende.lon != null
+                      ? { lat: bekende.lat, lon: bekende.lon }
+                      : null
+                  }
+                  thuis={thuis}
+                />
               </li>
             );
           })}

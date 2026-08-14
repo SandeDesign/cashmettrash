@@ -153,9 +153,17 @@ bewust geen rondleiding.
 ### Route en kaarten
 
 Kaarten staan **in de app zelf**, niet in de kaart-app van de telefoon. Dat is
-bewust: op het toestel van Jayce staat schermtijd aan en mag Maps niet open. Bij
-elk adres klapt `AdresKaart` een kaartje open met thuis en de bestemming erop;
-de link naar de kaart-app staat er nog wel onder, maar klein en secundair.
+bewust: op het toestel van Jayce staat schermtijd aan en mag Maps niet open.
+
+`AdresKaart` is de routeplanner naar één adres: kaart met de getekende route,
+afstand, reistijd en de aanwijzingen stap voor stap in het Nederlands. Bij Jayce
+staat er géén link naar buiten. Mama en de beheerder krijgen die wel, via
+`metKaartApp`, want zij rijden met de auto en willen hun eigen navigatie starten.
+
+Het **thuisadres** stel je in op `/admin/instellingen`: vul het adres in, druk op
+"Zet de stip op dit adres" en de app zoekt de coördinaten op. Staat dat niet
+goed, dan klopt de zwarte stip op alle kaarten niet en rekent de app de afstanden
+vanaf het verkeerde punt.
 
 `/jayce/route` tekent de hele ronde met Leaflet en OpenStreetMap-tegels. De
 tegels hebben geen sleutel nodig, dus de kaart met genummerde spelden werkt
@@ -232,6 +240,7 @@ pushTokens/{uid}
 
 instellingen/werkgebied
   postcodes: string[]               // leeg = overal
+  thuisAdres?, thuisPostcode?, thuisPlaats?   // waar de ronde begint
   middelpuntLat, middelpuntLon
   straalAlleenMeters                // zo ver mag Jayce alleen
   maxAfstandMeters                  // hier houdt de ronde op; buiten dit: geblokkeerd

@@ -139,6 +139,7 @@ const Overzicht: React.FC = () => {
                   punt={rit.punt}
                   thuis={thuis}
                   knopTekst="Waar is dit?"
+                  metKaartApp
                 />
               </li>
             ))}

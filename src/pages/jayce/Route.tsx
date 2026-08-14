@@ -4,10 +4,11 @@
 // plekken die mama heeft aangewezen. Taal en knoppen zijn voor een tienjarige.
 
 import React, { useEffect, useMemo, useState } from 'react';
-import { AlertTriangle, Bike, MapPin, RefreshCw, ShieldAlert, UserCheck } from 'lucide-react';
+import { AlertTriangle, Bike, RefreshCw, ShieldAlert, UserCheck } from 'lucide-react';
 import AppLayout from '../../components/layout/AppLayout';
 import { JAYCE_NAV } from '../../components/layout/navItems';
 import Kaart, { type KaartMarkering } from '../../components/kaart/Kaart';
+import AdresKaart from '../../components/kaart/AdresKaart';
 import { useGlasStore } from '../../store/glasStore';
 import { useStatiegeldStore } from '../../store/statiegeldStore';
 import { useCustomerStore } from '../../store/customerStore';
@@ -19,7 +20,6 @@ import {
   type Punt,
   type RouteResultaat,
 } from '../../utils/geo';
-import { mapsLink } from '../../utils/constants';
 
 interface Stop {
   id: string;
@@ -219,34 +219,36 @@ const Route: React.FC = () => {
             {metCoordinaten.map((stop, i) => (
               <li
                 key={stop.id}
-                className={`cmt-flow-${stop.soort === 'glas' ? 'glas' : 'stat'} cmt-card cmt-card-flow flex items-center gap-3`}
+                className={`cmt-flow-${stop.soort === 'glas' ? 'glas' : 'stat'} cmt-card cmt-card-flow`}
               >
-                <span
-                  className="flex items-center justify-center w-8 h-8 rounded-full flex-shrink-0 font-bold text-sm"
-                  style={{ background: 'var(--cmt-accent)', color: '#fff' }}
-                >
-                  {i + 1}
-                </span>
-                <div className="flex-1 min-w-0">
-                  <p className="font-bold">{stop.naam}</p>
-                  <p className="text-sm" style={{ color: 'var(--cmt-ink-soft)' }}>
-                    {stop.adres}
-                  </p>
-                  {stop.hulpNodig && (
-                    <p className="text-xs mt-0.5 flex items-center gap-1" style={{ color: 'var(--cmt-warning)' }}>
-                      <UserCheck className="w-3.5 h-3.5" /> Samen met mama
+                <div className="flex items-start gap-3">
+                  <span
+                    className="flex items-center justify-center w-8 h-8 rounded-full flex-shrink-0 font-bold text-sm"
+                    style={{ background: 'var(--cmt-accent)', color: '#fff' }}
+                  >
+                    {i + 1}
+                  </span>
+                  <div className="flex-1 min-w-0">
+                    <p className="font-bold">{stop.naam}</p>
+                    <p className="text-sm" style={{ color: 'var(--cmt-ink-soft)' }}>
+                      {stop.adres}
                     </p>
-                  )}
+                    {stop.hulpNodig && (
+                      <p className="text-xs mt-0.5 flex items-center gap-1" style={{ color: 'var(--cmt-warning)' }}>
+                        <UserCheck className="w-3.5 h-3.5" /> Samen met mama
+                      </p>
+                    )}
+                  </div>
                 </div>
-                <a
-                  href={mapsLink(stop.adres, stop.postcode, stop.plaats)}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="cmt-btn-secondary !p-2"
-                  aria-label={`Route naar ${stop.naam}`}
-                >
-                  <MapPin className="w-5 h-5" />
-                </a>
+
+                <AdresKaart
+                  adres={stop.adres}
+                  postcode={stop.postcode}
+                  plaats={stop.plaats}
+                  punt={stop.punt}
+                  thuis={thuis}
+                  knopTekst="Hoe kom ik hier?"
+                />
               </li>
             ))}
           </ol>

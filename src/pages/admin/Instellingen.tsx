@@ -5,19 +5,24 @@
 // routeplanner.
 
 import React, { useEffect, useState } from 'react';
-import { AlertCircle, CheckCircle, Save } from 'lucide-react';
+import { AlertCircle, CheckCircle, Home, Save, Search } from 'lucide-react';
 import AppLayout from '../../components/layout/AppLayout';
 import { ADMIN_NAV } from '../../components/layout/navItems';
 import Loading from '../../components/shared/Loading';
 import Kaart from '../../components/kaart/Kaart';
 import AantalVeld from '../../components/common/AantalVeld';
 import { useInstellingenStore } from '../../store/instellingenStore';
-import { routeplannerBeschikbaar, type Punt } from '../../utils/geo';
+import { routeplannerBeschikbaar, zoekCoordinaten, type Punt } from '../../utils/geo';
 
 const Instellingen: React.FC = () => {
   const { werkgebied, loading, error, loadWerkgebied, bewaarWerkgebied } = useInstellingenStore();
 
   const [postcodes, setPostcodes] = useState('');
+  const [thuisAdres, setThuisAdres] = useState('');
+  const [thuisPostcode, setThuisPostcode] = useState('');
+  const [thuisPlaats, setThuisPlaats] = useState('');
+  const [zoekt, setZoekt] = useState(false);
+  const [zoekFout, setZoekFout] = useState<string | null>(null);
   const [middelpunt, setMiddelpunt] = useState<Punt | null>(null);
   const [straal, setStraal] = useState(1200);
   const [maxAfstand, setMaxAfstand] = useState(3000);
@@ -31,6 +36,9 @@ const Instellingen: React.FC = () => {
 
   useEffect(() => {
     setPostcodes(werkgebied.postcodes.join(', '));
+    setThuisAdres(werkgebied.thuisAdres ?? '');
+    setThuisPostcode(werkgebied.thuisPostcode ?? '');
+    setThuisPlaats(werkgebied.thuisPlaats ?? '');
     setMiddelpunt({ lat: werkgebied.middelpuntLat, lon: werkgebied.middelpuntLon });
     setStraal(werkgebied.straalAlleenMeters);
     setMaxAfstand(werkgebied.maxAfstandMeters);
@@ -49,6 +57,9 @@ const Instellingen: React.FC = () => {
           .split(',')
           .map((p) => p.trim().toUpperCase())
           .filter(Boolean),
+        thuisAdres: thuisAdres.trim(),
+        thuisPostcode: thuisPostcode.trim(),
+        thuisPlaats: thuisPlaats.trim(),
         middelpuntLat: middelpunt.lat,
         middelpuntLon: middelpunt.lon,
         straalAlleenMeters: straal,
@@ -59,6 +70,19 @@ const Instellingen: React.FC = () => {
       setOpgeslagen(true);
     } finally {
       setBezig(false);
+    }
+  };
+
+  /** Zet het middelpunt op het ingevulde thuisadres. */
+  const zoekThuis = async () => {
+    setZoekt(true);
+    setZoekFout(null);
+    try {
+      const punt = await zoekCoordinaten(thuisAdres, thuisPostcode, thuisPlaats);
+      if (punt) setMiddelpunt(punt);
+      else setZoekFout('Dat adres wordt niet herkend. Controleer de spelling en de postcode.');
+    } finally {
+      setZoekt(false);
     }
   };
 
@@ -117,9 +141,71 @@ const Instellingen: React.FC = () => {
         <section className="cmt-card mb-5">
           <h2 className="font-bold mb-1">Waar begint de ronde?</h2>
           <p className="text-sm mb-4" style={{ color: 'var(--cmt-ink-soft)' }}>
-            Tik op de kaart om het startpunt te verzetten. De cirkel laat zien hoe ver Jayce alleen
-            op pad mag.
+            Vul jullie eigen adres in en laat het opzoeken. Dit is het punt waar Jayce vertrekt
+            en weer terugkomt, en waar de cirkels omheen liggen. Klopt de stip niet helemaal? Tik
+            dan op de kaart om hem te verplaatsen.
           </p>
+
+          <div className="grid sm:grid-cols-[2fr,1fr,1.5fr] gap-3 mb-3">
+            <div>
+              <label className="cmt-label" htmlFor="thuisadres">
+                Straat en huisnummer
+              </label>
+              <input
+                id="thuisadres"
+                className="cmt-input"
+                value={thuisAdres}
+                onChange={(e) => setThuisAdres(e.target.value)}
+                placeholder="Magriethof 1"
+                autoComplete="off"
+              />
+            </div>
+            <div>
+              <label className="cmt-label" htmlFor="thuispostcode">
+                Postcode
+              </label>
+              <input
+                id="thuispostcode"
+                className="cmt-input"
+                value={thuisPostcode}
+                onChange={(e) => setThuisPostcode(e.target.value)}
+                placeholder="5045 AB"
+                autoComplete="off"
+              />
+            </div>
+            <div>
+              <label className="cmt-label" htmlFor="thuisplaats">
+                Plaats
+              </label>
+              <input
+                id="thuisplaats"
+                className="cmt-input"
+                value={thuisPlaats}
+                onChange={(e) => setThuisPlaats(e.target.value)}
+                placeholder="Tilburg"
+                autoComplete="off"
+              />
+            </div>
+          </div>
+
+          <button
+            type="button"
+            className="cmt-btn-secondary mb-4"
+            onClick={zoekThuis}
+            disabled={zoekt || !routeplannerBeschikbaar || !thuisAdres.trim() || !thuisPlaats.trim()}
+          >
+            <Search className="w-4 h-4" />
+            {zoekt ? 'Zoeken...' : 'Zet de stip op dit adres'}
+          </button>
+
+          {zoekFout && <div className="cmt-alert cmt-alert-error mb-4">{zoekFout}</div>}
+
+          {middelpunt && (
+            <p className="text-xs mb-3 flex items-center gap-1.5" style={{ color: 'var(--cmt-ink-muted)' }}>
+              <Home className="w-3.5 h-3.5" />
+              Stip staat nu op {middelpunt.lat.toFixed(5)}, {middelpunt.lon.toFixed(5)}
+            </p>
+          )}
 
           {middelpunt && (
             <Kaart

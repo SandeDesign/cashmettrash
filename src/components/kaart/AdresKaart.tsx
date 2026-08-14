@@ -1,16 +1,24 @@
 // src/components/kaart/AdresKaart.tsx
 //
-// Een kaartje van één adres, binnen de app zelf. Bedoeld voor telefoons waarop
-// de kaart-app niet gebruikt mag worden: dan kun je de weg nog steeds zien
-// zonder de app te verlaten.
+// De routeplanner naar één adres, volledig in de app. Voor Jayce staat de link
+// naar de kaart-app uit: op zijn toestel mag die niet open, dus alles wat hij
+// nodig heeft om er te komen staat hier. Mama rijdt met de auto en kan met
+// `metKaartApp` wel haar eigen navigatie starten.
 //
-// De kaart zelf wordt pas geladen zodra je hem opent. Leaflet is een flink stuk
-// code, en op de takenlijst staat hij standaard dicht.
+// Je krijgt de kaart met de getekende route, hoe ver het is, hoe lang het duurt
+// en de aanwijzingen stap voor stap in het Nederlands. De kaart zelf wordt pas
+// geladen zodra je hem opent, want Leaflet is een flink stuk code.
 
-import React, { lazy, Suspense, useState } from 'react';
-import { ChevronUp, ExternalLink, MapPin } from 'lucide-react';
+import React, { lazy, Suspense, useEffect, useState } from 'react';
+import { AlertTriangle, Bike, ChevronUp, ExternalLink, MapPin, Navigation } from 'lucide-react';
 import { mapsLink } from '../../utils/constants';
-import type { Punt } from '../../utils/geo';
+import { useInstellingenStore } from '../../store/instellingenStore';
+import {
+  berekenRit,
+  routeplannerBeschikbaar,
+  type Punt,
+  type RouteResultaat,
+} from '../../utils/geo';
 
 const Kaart = lazy(() => import('./Kaart'));
 
@@ -20,10 +28,16 @@ interface AdresKaartProps {
   plaats: string;
   /** Coordinaten van het adres. Zonder deze kunnen we niets tekenen. */
   punt?: Punt | null;
-  /** Startpunt van de ronde, zodat je ziet welke kant je op moet. */
+  /** Startpunt van de ronde. */
   thuis?: Punt | null;
-  /** Tekst op de knop. Voor Jayce iets anders dan voor de beheerder. */
+  /** Tekst op de knop. Voor Jayce iets anders dan voor mama. */
   knopTekst?: string;
+  /**
+   * Toon ook een link naar de kaart-app van de telefoon. Staat uit voor Jayce,
+   * want op zijn toestel mag die niet open. Mama rijdt met de auto mee en wil
+   * juist wel haar eigen navigatie kunnen starten.
+   */
+  metKaartApp?: boolean;
 }
 
 const AdresKaart: React.FC<AdresKaartProps> = ({
@@ -33,25 +47,60 @@ const AdresKaart: React.FC<AdresKaartProps> = ({
   punt,
   thuis,
   knopTekst = 'Laat me de weg zien',
+  metKaartApp = false,
 }) => {
-  const [open, setOpen] = useState(false);
+  const { plekken, loadPlekken } = useInstellingenStore();
 
-  // Zonder coordinaten valt er niets te tekenen. Dan blijft alleen de kaart-app
-  // over, en die werkt niet op elk toestel; daarom zeggen we het er eerlijk bij.
+  const [open, setOpen] = useState(false);
+  const [route, setRoute] = useState<RouteResultaat | null>(null);
+  const [bezig, setBezig] = useState(false);
+
+  useEffect(() => {
+    if (open) loadPlekken();
+  }, [open, loadPlekken]);
+
+  // Zodra de kaart opengaat de route ophalen. Eén keer per adres is genoeg.
+  useEffect(() => {
+    if (!open || !punt || !thuis || route || bezig || !routeplannerBeschikbaar) return;
+
+    let afgebroken = false;
+    setBezig(true);
+
+    void (async () => {
+      const gevonden = await berekenRit(thuis, punt, plekken);
+      if (afgebroken) return;
+      setRoute(gevonden);
+      setBezig(false);
+    })();
+
+    return () => {
+      afgebroken = true;
+    };
+  }, [open, punt, thuis, route, bezig, plekken]);
+
+  const kaartAppLink = metKaartApp ? (
+    <a
+      href={mapsLink(adres, postcode, plaats)}
+      target="_blank"
+      rel="noopener noreferrer"
+      className="cmt-btn-ghost !py-2 !text-sm mt-2"
+    >
+      <ExternalLink className="w-4 h-4" /> Openen in je navigatie-app
+    </a>
+  ) : null;
+
+  // Zonder coordinaten valt er niets te tekenen. Dat zeggen we dan gewoon.
   if (!punt) {
     return (
-      <a
-        href={mapsLink(adres, postcode, plaats)}
-        target="_blank"
-        rel="noopener noreferrer"
-        className="cmt-btn-secondary mt-3"
-      >
-        <MapPin className="w-5 h-5" /> {knopTekst}
-      </a>
+      <div className="mt-3">
+        <p className="text-sm flex items-start gap-2" style={{ color: 'var(--cmt-ink-muted)' }}>
+          <AlertTriangle className="w-4 h-4 flex-shrink-0 mt-0.5" />
+          Dit adres staat nog niet op de kaart. Vraag papa om het op te zoeken.
+        </p>
+        {kaartAppLink}
+      </div>
     );
   }
-
-  const punten = thuis ? [thuis, punt] : [punt];
 
   return (
     <div className="mt-3">
@@ -76,13 +125,18 @@ const AdresKaart: React.FC<AdresKaartProps> = ({
         <div className="mt-3 cmt-animate-in">
           <Suspense
             fallback={
-              <div className="cmt-skeleton" style={{ height: '16rem', borderRadius: '18px' }} />
+              <div className="cmt-skeleton" style={{ height: '18rem', borderRadius: '18px' }} />
             }
           >
             <Kaart
               midden={punt}
-              pasOp={punten}
-              hoogte="16rem"
+              pasOp={thuis ? [thuis, punt] : [punt]}
+              hoogte="18rem"
+              lijn={route?.lijn}
+              cirkels={plekken.map((p) => ({
+                punt: { lat: p.lat, lon: p.lon },
+                straalMeters: p.straalMeters,
+              }))}
               markeringen={[
                 ...(thuis ? [{ punt: thuis, label: 'T', kleur: '#14181F' }] : []),
                 { punt, label: '1', kleur: '#0E8F6C' },
@@ -90,19 +144,67 @@ const AdresKaart: React.FC<AdresKaartProps> = ({
             />
           </Suspense>
 
-          <p className="text-sm mt-2" style={{ color: 'var(--cmt-ink-muted)' }}>
-            {thuis ? 'De zwarte stip is thuis, de groene is waar je heen moet.' : 'Hier moet je zijn.'}
+          {bezig && (
+            <p className="text-base mt-3" style={{ color: 'var(--cmt-ink-soft)' }}>
+              Ik zoek de weg...
+            </p>
+          )}
+
+          {route && !route.fout && route.afstandMeters > 0 && (
+            <div className="cmt-card cmt-card-tint mt-3">
+              <p className="text-base font-semibold flex items-center gap-2">
+                <Bike className="w-5 h-5" />
+                {(route.afstandMeters / 1000).toFixed(1)} km, ongeveer{' '}
+                {Math.max(1, Math.round(route.duurSeconden / 60))} minuten
+              </p>
+              <p className="text-sm mt-1" style={{ color: 'var(--cmt-ink-soft)' }}>
+                De groene lijn is de weg die je neemt. Hij gaat om drukke wegen heen en om de
+                plekken die mama heeft aangewezen.
+              </p>
+            </div>
+          )}
+
+          {route?.stappen && route.stappen.length > 0 && (
+            <div className="mt-3">
+              <p className="text-base font-semibold mb-2 flex items-center gap-2">
+                <Navigation className="w-5 h-5" /> Zo kom je er
+              </p>
+              <ol className="cmt-route-stappen">
+                {route.stappen.map((stap, i) => (
+                  <li key={i}>
+                    <span className="cmt-route-nummer">{i + 1}</span>
+                    <span className="flex-1">
+                      {stap.tekst}
+                      {stap.afstandMeters >= 10 && (
+                        <span className="block text-sm" style={{ color: 'var(--cmt-ink-muted)' }}>
+                          {Math.round(stap.afstandMeters)} meter
+                        </span>
+                      )}
+                    </span>
+                  </li>
+                ))}
+              </ol>
+            </div>
+          )}
+
+          {route?.fout && (
+            <p className="text-base mt-3" style={{ color: 'var(--cmt-ink-soft)' }}>
+              De weg zoeken lukte even niet, maar op de kaart zie je wel waar het is. De zwarte
+              stip is thuis, de groene is waar je heen moet.
+            </p>
+          )}
+
+          {!routeplannerBeschikbaar && (
+            <p className="text-base mt-3" style={{ color: 'var(--cmt-ink-soft)' }}>
+              De zwarte stip is thuis, de groene is waar je heen moet.
+            </p>
+          )}
+
+          <p className="text-xs mt-2" style={{ color: 'var(--cmt-ink-muted)' }}>
+            {adres}, {postcode} {plaats}
           </p>
 
-          <a
-            href={mapsLink(adres, postcode, plaats)}
-            target="_blank"
-            rel="noopener noreferrer"
-            className="inline-flex items-center gap-1.5 text-sm mt-1"
-            style={{ color: 'var(--cmt-ink-muted)' }}
-          >
-            <ExternalLink className="w-4 h-4" /> Openen in je kaart-app
-          </a>
+          {kaartAppLink}
         </div>
       )}
     </div>

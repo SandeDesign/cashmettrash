@@ -28,7 +28,11 @@ import type {
 /** Waarden waarmee de app werkt zolang er nog niets is ingesteld. */
 export const STANDAARD_WERKGEBIED: Werkgebied = {
   postcodes: [],
-  // Ongeveer de Magriethof in Tilburg.
+  // Ongeveer de Magriethof in Tilburg. Vul het echte thuisadres in op
+  // /admin/instellingen; dan wordt dit punt daarop gezet.
+  thuisAdres: '',
+  thuisPostcode: '',
+  thuisPlaats: '',
   middelpuntLat: 51.5606,
   middelpuntLon: 5.0919,
   straalAlleenMeters: 1200,

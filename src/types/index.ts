@@ -201,7 +201,11 @@ export interface RegisterData {
 export interface Werkgebied {
   /** Postcodes waar we ophalen, als begin van de postcode: ['5045', '5046']. */
   postcodes: string[];
-  /** Middelpunt van de ronde, meestal thuis. */
+  /* Waar de ronde begint en eindigt: thuis. Het adres bewaren we erbij, zodat
+     de beheerder het kan nakijken en opnieuw kan laten opzoeken. */
+  thuisAdres?: string;
+  thuisPostcode?: string;
+  thuisPlaats?: string;
   middelpuntLat: number;
   middelpuntLon: number;
   /** Tot hier mag Jayce alleen op pad, in meters. */

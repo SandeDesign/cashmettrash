@@ -649,6 +649,42 @@ h1, h2, h3, h4 {
   box-shadow: 0 0 0 2px var(--cmt-ink);
 }
 
+/* ---------- Route, stap voor stap ---------- */
+/* Grote tekst en veel ruimte: dit leest Jayce onderweg op zijn telefoon. */
+
+.cmt-route-stappen {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  counter-reset: stap;
+}
+
+.cmt-route-stappen li {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.75rem;
+  padding: 0.7rem 0.85rem;
+  border-radius: var(--cmt-radius-md);
+  border: 1px solid var(--cmt-border);
+  background: var(--cmt-surface);
+  font-size: 1rem;
+  line-height: 1.45;
+}
+
+.cmt-route-nummer {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 1.75rem;
+  height: 1.75rem;
+  flex-shrink: 0;
+  border-radius: 999px;
+  background: var(--cmt-accent-bg);
+  color: var(--cmt-accent);
+  font-size: 0.875rem;
+  font-weight: 700;
+}
+
 /* ---------- Tijdsloten ---------- */
 /* Grote, rustige knoppen: Jayce kiest hiermee wanneer hij langskomt. */
 
