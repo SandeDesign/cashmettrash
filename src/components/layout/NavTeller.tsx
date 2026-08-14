@@ -4,20 +4,40 @@
 // Boven de negen tonen we "9+", anders wordt het bolletje breder dan het icoon.
 
 import React from 'react';
+import type { TellerSleutel } from '../../hooks/useMenuTellers';
 
 interface NavTellerProps {
   aantal: number;
   /** Zweeft rechtsboven op het icoon in plaats van in de tekstregel te staan. */
   zwevend?: boolean;
+  /** Waar dit bolletje over gaat, alleen voor de voorleeshulp. */
+  soort?: TellerSleutel;
 }
 
-const NavTeller: React.FC<NavTellerProps> = ({ aantal, zwevend = false }) => {
+/** Wat een schermlezer voorleest. Enkelvoud en meervoud, want dat hoor je. */
+function omschrijf(aantal: number, soort: TellerSleutel): string {
+  const een = aantal === 1;
+  switch (soort) {
+    case 'chat':
+      return `${aantal} ongelezen ${een ? 'bericht' : 'berichten'}`;
+    case 'nieuw':
+      return `${aantal} nieuwe ${een ? 'aanvraag' : 'aanvragen'}`;
+    case 'ronde':
+      return `${aantal} ${een ? 'adres' : 'adressen'} op de ronde`;
+    case 'afrekenen':
+      return `${aantal} ${een ? 'melding' : 'meldingen'} om af te rekenen`;
+    case 'ideeen':
+      return `${aantal} nieuwe ${een ? 'idee' : 'ideeën'}`;
+  }
+}
+
+const NavTeller: React.FC<NavTellerProps> = ({ aantal, zwevend = false, soort = 'chat' }) => {
   if (aantal <= 0) return null;
 
   return (
     <span
       className={zwevend ? 'cmt-teller cmt-teller-zwevend' : 'cmt-teller'}
-      aria-label={`${aantal} ongelezen ${aantal === 1 ? 'bericht' : 'berichten'}`}
+      aria-label={omschrijf(aantal, soort)}
     >
       {aantal > 9 ? '9+' : aantal}
     </span>

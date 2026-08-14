@@ -9,11 +9,14 @@ import { NavLink, useLocation } from 'react-router-dom';
 import { ChevronDown, Menu, X } from 'lucide-react';
 import NavTeller from './NavTeller';
 import type { NavItem } from './AppLayout';
+import type { MenuTellers } from '../../hooks/useMenuTellers';
 
 interface MobielMenuProps {
   nav: NavItem[];
-  /** Ongelezen berichten, voor het bolletje op de knop en op het chat-item. */
-  ongelezen?: number;
+  /** De aantallen voor de bolletjes op de tegels. */
+  tellers?: MenuTellers;
+  /** Wat er op de menuknop zelf komt te staan. */
+  knopAantal?: number;
 }
 
 /** Hoort dit item bij het pad waar je nu bent? */
@@ -21,7 +24,7 @@ function isActief(item: NavItem, pad: string): boolean {
   return item.end ? pad === item.to : pad === item.to || pad.startsWith(`${item.to}/`);
 }
 
-const MobielMenu: React.FC<MobielMenuProps> = ({ nav, ongelezen = 0 }) => {
+const MobielMenu: React.FC<MobielMenuProps> = ({ nav, tellers = {}, knopAantal = 0 }) => {
   const { pathname } = useLocation();
   const [open, setOpen] = useState(false);
   // Alles staat open zodra je het menu opent; inklappen doe je zelf.
@@ -128,7 +131,13 @@ const MobielMenu: React.FC<MobielMenuProps> = ({ nav, ongelezen = 0 }) => {
                         >
                           <span className="cmt-menu-tegel-icoon">
                             {item.icon}
-                            {item.teller === 'chat' && <NavTeller aantal={ongelezen} zwevend />}
+                            {item.teller && (
+                              <NavTeller
+                                aantal={tellers[item.teller] ?? 0}
+                                soort={item.teller}
+                                zwevend
+                              />
+                            )}
                           </span>
                           <span className="text-sm font-semibold">{item.label}</span>
                         </NavLink>
@@ -151,7 +160,7 @@ const MobielMenu: React.FC<MobielMenuProps> = ({ nav, ongelezen = 0 }) => {
       >
         {open ? <X className="w-6 h-6" /> : <Menu className="w-6 h-6" />}
         {!open && actief && <span className="cmt-menu-knop-label">{actief.label}</span>}
-        {!open && <NavTeller aantal={ongelezen} zwevend />}
+        {!open && <NavTeller aantal={knopAantal} soort="nieuw" zwevend />}
       </button>
     </div>
   );

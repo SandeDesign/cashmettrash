@@ -11,6 +11,7 @@ Allow: /privacy
 Allow: /cookies
 Allow: /herroeping
 Allow: /disclaimer
+Allow: /statiegeld-verwerking
 Disallow: /mijn
 Disallow: /glas
 Disallow: /statiegeld

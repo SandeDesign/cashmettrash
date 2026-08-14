@@ -33,6 +33,7 @@ const PublicFooter: React.FC = () => (
           <Link to="/login">Inloggen</Link>
           <Link to="/registreren">Aanmelden</Link>
           <Link to="/installeren">App installeren</Link>
+          <Link to="/statiegeld-verwerking">Hoe je statiegeld werkt</Link>
         </nav>
 
         <nav className="flex flex-col gap-2 text-sm" aria-label="Juridisch">

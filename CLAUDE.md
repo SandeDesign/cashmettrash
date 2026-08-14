@@ -80,9 +80,14 @@ ongeluk verdwijnt.
 De navigatie per rol staat in `src/components/layout/navItems.tsx`. Op desktop is
 dat de balk onder de header; op mobiel opent `MobielMenu` rechtsonder een paneel
 waarin de items per `groep` bij elkaar staan, allemaal uitgeklapt zodat je in één
-oogopslag alles ziet; inklappen doe je zelf. Een item met `teller: 'chat'` krijgt
-het rode bolletje met het aantal ongelezen berichten, dat ook op de menuknop zelf
-verschijnt (`useOngelezen`).
+oogopslag alles ziet; inklappen doe je zelf.
+
+Een item kan een `teller` krijgen: het rode bolletje met een aantal. De aantallen
+komen uit `useMenuTellers`, dat per rol alleen luistert naar wat die rol mag
+lezen: `chat` (ongelezen berichten), `nieuw` (aanvragen zonder tijdslot), `ronde`
+(alles wat nog opgehaald moet worden), `afrekenen` (statiegeld dat wacht op de
+beheerder) en `ideeen`. Op de menuknop zelf staat alleen de som van `chat` en
+`nieuw`, want `ronde` zou daar altijd branden.
 
 ### Bekende
 
@@ -394,6 +399,7 @@ Naast de landingspagina zijn deze routes publiek en lazy geladen:
 | `/cookies` | Cookiebeleid, bewust in kindvriendelijke taal |
 | `/herroeping` | Herroepingsrecht, hoort bij het verplichte vinkje in `GlasAanvraag` |
 | `/disclaimer` | Disclaimer |
+| `/statiegeld-verwerking` | Hoe het statiegeld wordt verwerkt: verzamelen, inscannen bij Viatim, de Tikkie via de chat. Legt ook uit dat het bedrag uit de automaat komt en dus onaanraakbaar is |
 
 De header van de publieke pagina's heeft één menuknop rechtsboven
 (`PubliekMenu`) in plaats van losse knoppen; daar zitten inloggen, aanmelden en

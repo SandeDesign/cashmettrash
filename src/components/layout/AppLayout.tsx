@@ -8,7 +8,7 @@ import NavTeller from './NavTeller';
 import Rondleiding from '../uitleg/Rondleiding';
 import { useAuthStore } from '../../store/authStore';
 import { useAuth } from '../../hooks/useAuth';
-import { useOngelezen } from '../../hooks/useOngelezen';
+import { useMenuTellers, type TellerSleutel } from '../../hooks/useMenuTellers';
 import { useRondleiding } from '../../hooks/useRondleiding';
 
 export interface NavItem {
@@ -18,8 +18,8 @@ export interface NavItem {
   end?: boolean;
   /** Kopje waaronder dit item in het mobiele menu komt te staan. */
   groep?: string;
-  /** Zet hier 'chat' om het aantal ongelezen berichten als bolletje te tonen. */
-  teller?: 'chat';
+  /** Welk bolletje hier hoort. De aantallen komen uit `useMenuTellers`. */
+  teller?: TellerSleutel;
 }
 
 interface AppLayoutProps {
@@ -32,9 +32,17 @@ interface AppLayoutProps {
 const AppLayout: React.FC<AppLayoutProps> = ({ children, nav = [], title }) => {
   const { user } = useAuth();
   const logout = useAuthStore((s) => s.logout);
-  const ongelezen = useOngelezen();
+  const tellers = useMenuTellers();
   const rondleiding = useRondleiding();
   const heeftNav = nav.length > 0;
+
+  // Op de menuknop zelf alleen wat om aandacht vraagt: berichten en nieuwe
+  // aanvragen. De ronde erbij optellen zou het bolletje altijd laten branden.
+  const knopAantal = nav.reduce(
+    (som, item) =>
+      som + (item.teller === 'chat' || item.teller === 'nieuw' ? tellers[item.teller] ?? 0 : 0),
+    0
+  );
 
   return (
     <div className="min-h-screen flex flex-col" style={{ background: 'var(--cmt-paper)' }}>
@@ -96,7 +104,7 @@ const AppLayout: React.FC<AppLayoutProps> = ({ children, nav = [], title }) => {
                 >
                   {item.icon}
                   {item.label}
-                  {item.teller === 'chat' && <NavTeller aantal={ongelezen} />}
+                  {item.teller && <NavTeller aantal={tellers[item.teller] ?? 0} soort={item.teller} />}
                 </NavLink>
               ))}
             </div>
@@ -113,7 +121,7 @@ const AppLayout: React.FC<AppLayoutProps> = ({ children, nav = [], title }) => {
         {children}
       </main>
 
-      {heeftNav && <MobielMenu nav={nav} ongelezen={ongelezen} />}
+      {heeftNav && <MobielMenu nav={nav} tellers={tellers} knopAantal={knopAantal} />}
 
       {rondleiding.open && rondleiding.stappen && (
         <Rondleiding

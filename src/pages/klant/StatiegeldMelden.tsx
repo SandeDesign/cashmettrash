@@ -6,7 +6,7 @@
 
 import React, { useEffect, useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { AlertCircle, ArrowLeft, Heart, Recycle } from 'lucide-react';
+import { AlertCircle, ArrowLeft, Heart, MessageSquare, Recycle } from 'lucide-react';
 import AppLayout from '../../components/layout/AppLayout';
 import { KLANT_NAV } from '../../components/layout/navItems';
 import Loading from '../../components/shared/Loading';
@@ -177,6 +177,33 @@ const StatiegeldMelden: React.FC = () => {
               </label>
             )}
 
+            {!schenken && (
+              <div className="cmt-card cmt-card-tint !p-4 mb-5">
+                <p className="font-semibold text-sm flex items-center gap-1.5">
+                  <MessageSquare className="w-4 h-4" style={{ color: 'var(--cmt-stat)' }} />
+                  Je Tikkie komt in Berichten
+                </p>
+                <ol className="text-xs mt-2 space-y-1" style={{ color: 'var(--cmt-ink-soft)' }}>
+                  <li>1. Jayce haalt op en telt na wat er staat.</li>
+                  <li>2. Wij leveren het in bij Viatim; de automaat bepaalt het bedrag.</li>
+                  <li>
+                    3. Je betaalt hier de {formatCenten(STATIEGELD_SERVICE_CENTEN)} ophaalkosten.
+                  </li>
+                  <li>
+                    4. Daarna staat in <strong>Berichten</strong> de Tikkie klaar met het volledige
+                    statiegeld.
+                  </li>
+                </ol>
+                <p className="text-xs mt-2" style={{ color: 'var(--cmt-ink-muted)' }}>
+                  Het gaat dus niet per e-mail of sms.{' '}
+                  <Link to="/statiegeld-verwerking" className="underline">
+                    Lees hoe dat werkt
+                  </Link>
+                  .
+                </p>
+              </div>
+            )}
+
             <button
               type="submit"
               className="cmt-btn-primary cmt-btn-block cmt-btn-lg"
@@ -194,8 +221,8 @@ const StatiegeldMelden: React.FC = () => {
               ) : (
                 <>
                   Aanmelden is gratis. Zodra het is ingeleverd krijg je het volledige statiegeld
-                  terug via een Tikkie, en betaal je {formatCenten(STATIEGELD_SERVICE_CENTEN)}{' '}
-                  ophaalkosten.
+                  terug via een Tikkie in Berichten, en betaal je{' '}
+                  {formatCenten(STATIEGELD_SERVICE_CENTEN)} ophaalkosten.
                 </>
               )}
             </p>

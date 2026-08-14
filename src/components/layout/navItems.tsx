@@ -64,8 +64,15 @@ export const JAYCE_NAV: NavItem[] = [
     icon: <ClipboardList className="w-5 h-5" />,
     end: true,
     groep: 'Op pad',
+    teller: 'nieuw',
   },
-  { to: '/jayce/route', label: 'Route', icon: <Map className="w-5 h-5" />, groep: 'Op pad' },
+  {
+    to: '/jayce/route',
+    label: 'Route',
+    icon: <Map className="w-5 h-5" />,
+    groep: 'Op pad',
+    teller: 'ronde',
+  },
   {
     to: '/jayce/bekenden',
     label: 'Bekenden',
@@ -93,6 +100,7 @@ export const MOEDER_NAV: NavItem[] = [
     icon: <ClipboardList className="w-5 h-5" />,
     end: true,
     groep: 'Meekijken',
+    teller: 'ronde',
   },
   {
     to: '/mama/tijden',
@@ -146,6 +154,7 @@ export const ADMIN_NAV: NavItem[] = [
     label: 'Ophaalronde',
     icon: <Bike className="w-5 h-5" />,
     groep: 'Ophalen',
+    teller: 'nieuw',
   },
   { to: '/admin/glas', label: 'Glas', icon: <Wine className="w-5 h-5" />, groep: 'Ophalen' },
   {
@@ -153,6 +162,7 @@ export const ADMIN_NAV: NavItem[] = [
     label: 'Statiegeld',
     icon: <Recycle className="w-5 h-5" />,
     groep: 'Ophalen',
+    teller: 'afrekenen',
   },
   { to: '/admin/klanten', label: 'Mensen', icon: <Users className="w-5 h-5" />, groep: 'Beheer' },
   {
@@ -172,6 +182,7 @@ export const ADMIN_NAV: NavItem[] = [
     label: 'Ideeën',
     icon: <Lightbulb className="w-5 h-5" />,
     groep: 'Beheer',
+    teller: 'ideeen',
   },
   {
     to: '/admin/cijfers',

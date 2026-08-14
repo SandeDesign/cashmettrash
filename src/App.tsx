@@ -27,6 +27,7 @@ const Privacy = lazy(() => import('./pages/juridisch/Privacy'));
 const Cookies = lazy(() => import('./pages/juridisch/Cookies'));
 const Herroeping = lazy(() => import('./pages/juridisch/Herroeping'));
 const Disclaimer = lazy(() => import('./pages/juridisch/Disclaimer'));
+const Viatim = lazy(() => import('./pages/juridisch/Viatim'));
 
 const KlantOverzicht = lazy(() => import('./pages/klant/Overzicht'));
 const GlasAanvraag = lazy(() => import('./pages/klant/GlasAanvraag'));
@@ -110,6 +111,7 @@ const AppRoutes: React.FC = () => {
         <Route path="/cookies" element={<Cookies />} />
         <Route path="/herroeping" element={<Herroeping />} />
         <Route path="/disclaimer" element={<Disclaimer />} />
+        <Route path="/statiegeld-verwerking" element={<Viatim />} />
 
         {/* Klant */}
         <Route
