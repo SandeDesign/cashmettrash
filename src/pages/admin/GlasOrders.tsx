@@ -29,7 +29,7 @@ const GlasOrders: React.FC = () => {
 
   const exporteer = () => {
     const csv = naarCsv(
-      ['Order', 'Klant', 'Adres', 'Postcode', 'Plaats', 'Status', 'Bedrag', 'Aangemeld', 'Betaald', 'Opgehaald', 'Stripe sessie'],
+      ['Order', 'Klant', 'Adres', 'Postcode', 'Plaats', 'Status', 'Bedrag', 'Aangemeld', 'Betaald', 'Opgehaald', 'Stripe sessie', 'Contant', 'Contant bevestigd'],
       zichtbaar.map((o) => [
         o.id,
         o.customerNaam,
@@ -42,6 +42,8 @@ const GlasOrders: React.FC = () => {
         datumTijd(o.betaaldOp),
         datumTijd(o.opgehaaldOp),
         o.stripeSessionId ?? '',
+        o.contant ? 'ja' : 'nee',
+        datumTijd(o.contantBevestigdOp),
       ])
     );
     downloadCsv(`glas-orders-${new Date().toISOString().slice(0, 10)}.csv`, csv);
@@ -93,7 +95,7 @@ const GlasOrders: React.FC = () => {
                   <th>Adres</th>
                   <th>Aangemeld</th>
                   <th>Bedrag</th>
-                  <th>Stripe</th>
+                  <th>Betaling</th>
                   <th>Status</th>
                 </tr>
               </thead>
@@ -111,9 +113,17 @@ const GlasOrders: React.FC = () => {
                     <td className="whitespace-nowrap">{datumTijd(order.aangemaaktOp)}</td>
                     <td className="whitespace-nowrap">{formatCenten(order.bedrag)}</td>
                     <td>
-                      <span style={{ color: 'var(--cmt-ink-muted)' }}>
-                        {order.stripeStatus ?? 'geen'}
-                      </span>
+                      {order.contant ? (
+                        <span
+                          className={`cmt-badge ${order.contantBevestigdOp ? 'cmt-badge-done' : 'cmt-badge-warning'}`}
+                        >
+                          {order.contantBevestigdOp ? 'Contant voldaan' : 'Contant, wacht op mama'}
+                        </span>
+                      ) : (
+                        <span style={{ color: 'var(--cmt-ink-muted)' }}>
+                          {order.stripeStatus ?? 'geen'}
+                        </span>
+                      )}
                     </td>
                     <td>
                       <div className="flex items-center gap-2">

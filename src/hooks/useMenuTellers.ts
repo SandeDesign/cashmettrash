@@ -39,8 +39,9 @@ export type MenuTellers = Partial<Record<TellerSleutel, number>>;
 // Wanneer staat iets op de lijst van Jayce? Bij glas pas nadat de ophaalbeurt
 // betaald is; statiegeld is gratis en staat er meteen op. "Nieuw" is dus de
 // status waarin nog geen tijdslot is gekozen, en die verschilt per stroom.
-const GLAS_OPEN = ['betaald', 'ingepland'];
-const GLAS_NIEUW = 'betaald';
+// Een aangemelde glasorder telt alleen mee als de klant contant betaalt; anders
+// wacht die nog op een betaling en staat hij niet op de lijst van Jayce.
+const GLAS_OPEN = ['aangemeld', 'betaald', 'ingepland'];
 const STATIEGELD_OPEN = ['aangemeld', 'ingepland'];
 const STATIEGELD_NIEUW = 'aangemeld';
 
@@ -79,7 +80,17 @@ export function useMenuTellers(): MenuTellers {
 
     const stopGlas = onSnapshot(
       query(collection(db, 'glasOrders'), where('status', 'in', GLAS_OPEN)),
-      (snapshot) => setGlas(tel(snapshot.docs, GLAS_NIEUW)),
+      (snapshot) => {
+        const open = snapshot.docs.filter((d) => {
+          const rij = d.data();
+          return rij.status !== 'aangemeld' || rij.contant === true;
+        });
+        setGlas({
+          open: open.length,
+          // Nieuw is alles waar Jayce nog geen tijd voor heeft gekozen.
+          nieuw: open.filter((d) => d.data().status !== 'ingepland').length,
+        });
+      },
       () => setGlas(leeg)
     );
 
@@ -155,19 +166,43 @@ export function useMenuTellers(): MenuTellers {
 
     // Alleen wat Jayce al heeft opgehaald, want daarvoor hoort het geld in huis
     // te zijn. Dat laatste filteren we hier, want een tweede voorwaarde in de
-    // query zou een samengestelde index vragen.
-    const stopContant = onSnapshot(
+    // query zou een samengestelde index vragen. Contant kan bij allebei de
+    // stromen, dus we tellen glas en statiegeld bij elkaar op.
+    const nogAfTeVinken = (docs: { data: () => Record<string, unknown> }[]) =>
+      docs.filter((d) => d.data().opgehaaldOp && !d.data().contantBevestigdOp).length;
+
+    let vanGlas = 0;
+    let vanStatiegeld = 0;
+    const bijwerken = () => setContant(vanGlas + vanStatiegeld);
+
+    const stopContantStat = onSnapshot(
       query(collection(db, 'statiegeldLogs'), where('servicekostenContant', '==', true)),
-      (snapshot) =>
-        setContant(
-          snapshot.docs.filter((d) => d.data().opgehaaldOp && !d.data().contantBevestigdOp).length
-        ),
-      () => setContant(0)
+      (snapshot) => {
+        vanStatiegeld = nogAfTeVinken(snapshot.docs);
+        bijwerken();
+      },
+      () => {
+        vanStatiegeld = 0;
+        bijwerken();
+      }
+    );
+
+    const stopContantGlas = onSnapshot(
+      query(collection(db, 'glasOrders'), where('contant', '==', true)),
+      (snapshot) => {
+        vanGlas = nogAfTeVinken(snapshot.docs);
+        bijwerken();
+      },
+      () => {
+        vanGlas = 0;
+        bijwerken();
+      }
     );
 
     return () => {
       stopScannen();
-      stopContant();
+      stopContantStat();
+      stopContantGlas();
     };
   }, [rol]);
 

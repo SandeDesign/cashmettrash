@@ -71,6 +71,17 @@ export interface GlasOrder {
   voorkeurTijdslotId?: string;
   voorkeurVan?: string;
   voorkeurTot?: string;
+
+  /**
+   * De klant betaalt de ophaalbeurt contant aan Jayce in plaats van met iDEAL.
+   * De order staat dan meteen op de lijst van Jayce, ook al is er nog niets
+   * binnen. Mama bevestigt thuis dat het geld er is; dan pas staat er een
+   * `betaaldOp`.
+   */
+  contant?: boolean;
+  contantBevestigdOp?: string;
+  /** Uid van mama of de beheerder die het contante geld heeft gezien. */
+  contantBevestigdDoor?: string;
 }
 
 /* ------------------------------------------------------------------ */

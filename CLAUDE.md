@@ -28,7 +28,10 @@ niet in het datamodel, niet in de UI, niet in de security rules.
   de klant zelf in bij de supermarkt
 - Klant meldt zich aan en geeft adres op
 - Jayce haalt fysiek op bij de klant
-- Klant betaalt **€ 4,99 per ophaalbeurt** via Stripe (eenmalige betaling, niet per fles)
+- Klant betaalt **€ 4,99 per ophaalbeurt** via Stripe (eenmalige betaling, niet per fles),
+  of geeft dat bedrag **contant** mee aan Jayce (`contant`). Dan loopt er geen Stripe
+  aan te pas, staat de aanvraag meteen op de lijst van Jayce en bevestigt mama op
+  `/mama/contant` dat het geld er is (`contantBevestigdOp`, en dan pas `betaaldOp`)
 - Geld gaat naar de bedrijfsrekening (Buddy BV), **niet** naar Jayce
 - Firestore: `glasOrders`, mét Stripe-velden
 
@@ -236,6 +239,8 @@ glasOrders/{orderId}
   customerId, customerNaam, adres, postcode, plaats
   status: 'aangemeld' | 'ingepland' | 'opgehaald' | 'betaald' | 'geannuleerd'
   bedrag: 499                      // vast, in centen, per ophaalbeurt
+  contant?                         // klant geeft de EUR 4,99 mee aan Jayce
+  contantBevestigdOp?, contantBevestigdDoor?   // mama heeft het geld gezien
   stripeSessionId?, stripePaymentIntentId?, stripeStatus?
   aangemaaktOp, betaaldOp?, opgehaaldOp?, jayceId?
   tijdslotId?, geplandVan?, geplandTot?   // gezet door Jayce bij bevestigen

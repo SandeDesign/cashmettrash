@@ -32,11 +32,18 @@ interface GlasStore {
     customer: Customer,
     opmerking?: string,
     /** De wens van de klant over wanneer het uitkomt. Geen afspraak. */
-    voorkeur?: { voorkeurTijdslotId: string; voorkeurVan: string; voorkeurTot: string } | null
+    voorkeur?: { voorkeurTijdslotId: string; voorkeurVan: string; voorkeurTot: string } | null,
+    /** De klant geeft de ophaalbeurt contant mee aan Jayce. */
+    contant?: boolean
   ) => Promise<string>;
   setStatus: (orderId: string, status: GlasStatus) => Promise<void>;
   markeerBetaald: (orderId: string, stripeSessionId: string, stripeStatus: string) => Promise<void>;
   markeerOpgehaald: (orderId: string, jayceId: string) => Promise<void>;
+  /**
+   * Mama of de beheerder: Jayce heeft de ophaalbeurt contant gekregen. Dit is de
+   * enige weg waarop contant geld als betaald telt.
+   */
+  bevestigContant: (orderId: string, doorUid: string) => Promise<void>;
   /** Alleen de beheerder. Handig tijdens het testen, en om een misser op te ruimen. */
   verwijderOrder: (orderId: string) => Promise<void>;
   /** Jayce bevestigt en kiest een tijdslot waarop hij langskomt. */
@@ -80,14 +87,21 @@ export const useGlasStore = create<GlasStore>((set, get) => ({
   loadOpenstaand: async () => {
     try {
       set({ loading: true, error: null });
+      // Een order staat op de lijst van Jayce zodra hij betaald is. Wie contant
+      // betaalt heeft nog geen betaling gedaan, maar hoort er wel meteen op:
+      // hij krijgt het geld immers pas aan de deur. Daarom halen we ook de
+      // aangemelde orders op en zeven we ze hier.
       const snapshot = await getDocs(
         query(
           collection(db, COLLECTIE),
-          where('status', 'in', ['betaald', 'ingepland']),
+          where('status', 'in', ['aangemeld', 'betaald', 'ingepland']),
           orderBy('aangemaaktOp', 'asc')
         )
       );
-      set({ orders: mapOrders(snapshot.docs), loading: false });
+      const orders = mapOrders(snapshot.docs).filter(
+        (o) => o.status !== 'aangemeld' || o.contant
+      );
+      set({ orders, loading: false });
     } catch (error: unknown) {
       set({
         loading: false,
@@ -111,7 +125,7 @@ export const useGlasStore = create<GlasStore>((set, get) => ({
     }
   },
 
-  maakOrder: async (customer, opmerking, voorkeur) => {
+  maakOrder: async (customer, opmerking, voorkeur, contant) => {
     const order: Omit<GlasOrder, 'id'> = {
       customerId: customer.id,
       customerNaam: customer.naam,
@@ -120,6 +134,7 @@ export const useGlasStore = create<GlasStore>((set, get) => ({
       plaats: customer.plaats,
       status: 'aangemeld',
       bedrag: GLAS_PRIJS_CENTEN,
+      contant: !!contant,
       aangemaaktOp: new Date().toISOString(),
       ...(opmerking ? { opmerking } : {}),
       ...(voorkeur ?? {}),
@@ -162,6 +177,18 @@ export const useGlasStore = create<GlasStore>((set, get) => ({
       geplandVan,
       geplandTot,
       jayceId,
+    };
+    await updateDoc(doc(db, COLLECTIE, orderId), updates);
+    set({ orders: get().orders.map((o) => (o.id === orderId ? { ...o, ...updates } : o)) });
+  },
+
+  bevestigContant: async (orderId, doorUid) => {
+    const nu = new Date().toISOString();
+    const updates = {
+      contantBevestigdOp: nu,
+      contantBevestigdDoor: doorUid,
+      // Nu pas is er echt betaald; de cijfers rekenen met dit moment.
+      betaaldOp: nu,
     };
     await updateDoc(doc(db, COLLECTIE, orderId), updates);
     set({ orders: get().orders.map((o) => (o.id === orderId ? { ...o, ...updates } : o)) });

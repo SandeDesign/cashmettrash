@@ -85,7 +85,8 @@ const Overzicht: React.FC = () => {
       });
     }
 
-    const nietBetaald = orders.filter((o) => o.status === 'aangemeld');
+    // Contant betalen telt niet als achterstand: dat geld komt aan de deur.
+    const nietBetaald = orders.filter((o) => o.status === 'aangemeld' && !o.contant);
     if (nietBetaald.length > 0) {
       lijst.push({
         id: 'onbetaald',
@@ -189,6 +190,11 @@ const Overzicht: React.FC = () => {
                   <p className="text-xs" style={{ color: 'var(--cmt-ink-muted)' }}>
                     Aangemeld op {datum(order.aangemaaktOp)} · {formatCenten(order.bedrag)}
                   </p>
+                  {order.contant && !order.contantBevestigdOp && (
+                    <p className="text-xs mt-0.5" style={{ color: 'var(--cmt-glas)' }}>
+                      Leg {formatCenten(order.bedrag)} contant klaar voor Jayce
+                    </p>
+                  )}
                   {order.geplandVan && order.geplandTot && order.status === 'ingepland' && (
                     <p className="text-xs mt-0.5 font-medium" style={{ color: 'var(--cmt-glas)' }}>
                       <CalendarClock className="w-3.5 h-3.5 inline mr-1 -mt-0.5" />

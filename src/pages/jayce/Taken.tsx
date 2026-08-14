@@ -29,6 +29,7 @@ import { useStatiegeldStore } from '../../store/statiegeldStore';
 import { useCustomerStore } from '../../store/customerStore';
 import { useInstellingenStore } from '../../store/instellingenStore';
 import type { Punt } from '../../utils/geo';
+import { formatCenten } from '../../utils/constants';
 import { stuurPushNaarKlant, stuurPushNaarRol } from '../../utils/push';
 import type { GlasOrder, StatiegeldItems, StatiegeldLog, Tijdslot } from '../../types';
 
@@ -75,6 +76,20 @@ const AfspraakBalk: React.FC<{ van: string; tot: string }> = ({ van, tot }) => (
     <span>
       Je gaat <strong className="capitalize">{dagInWoorden(van)}</strong> tussen{' '}
       {format(new Date(van), 'HH:mm')} en {format(new Date(tot), 'HH:mm')}.
+    </span>
+  </p>
+);
+
+/**
+ * Hier staat wel een bedrag, en dat is met opzet: zonder dat weet Jayce niet wat
+ * hij aan moet nemen. Verder blijft geld van deze pagina af.
+ */
+const GeldMeeBalk: React.FC<{ bedrag: string }> = ({ bedrag }) => (
+  <p className="mt-3 cmt-card cmt-card-tint !p-3 flex items-start gap-2 text-base">
+    <Coins className="w-5 h-5 flex-shrink-0 mt-0.5" />
+    <span>
+      Je krijgt hier <strong>{bedrag}</strong> mee. Stop het in je zak en geef het thuis aan mama,
+      dan vinkt zij het af.
     </span>
   </p>
 );
@@ -193,6 +208,10 @@ const GlasTaak: React.FC<{
       order.voorkeurVan && <VoorkeurBalk van={order.voorkeurVan} />
     )}
 
+    {order.contant && !order.contantBevestigdOp && (
+      <GeldMeeBalk bedrag={formatCenten(order.bedrag)} />
+    )}
+
     <TaakKnoppen
       ingepland={order.status === 'ingepland'}
       sloten={sloten}
@@ -248,16 +267,8 @@ const StatiegeldTaak: React.FC<{
         log.voorkeurVan && <VoorkeurBalk van={log.voorkeurVan} />
       )}
 
-      {/* Hier staat wel een bedrag, en dat is met opzet: zonder dat weet Jayce
-          niet wat hij mee moet krijgen. Verder blijft geld van deze pagina af. */}
       {log.servicekostenContant && !log.contantBevestigdOp && (
-        <p className="mt-3 cmt-card cmt-card-tint !p-3 flex items-start gap-2 text-base">
-          <Coins className="w-5 h-5 flex-shrink-0 mt-0.5" />
-          <span>
-            Je krijgt hier <strong>2 euro</strong> mee. Stop het in je zak en geef het thuis aan
-            mama, dan vinkt zij het af.
-          </span>
-        </p>
+        <GeldMeeBalk bedrag={formatCenten(log.servicekosten)} />
       )}
 
       {!ingepland ? (

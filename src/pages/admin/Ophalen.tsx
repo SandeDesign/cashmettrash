@@ -131,7 +131,14 @@ const Ophalen: React.FC = () => {
 
   const { teBevestigen, ingepland } = useMemo(() => {
     const uitGlas: Rit[] = orders
-      .filter((o) => o.status === 'betaald' || o.status === 'ingepland')
+      // Contant betaalde aanvragen staan meteen op de lijst van Jayce, ook al
+      // is er nog niets binnen: dat geld krijgt hij aan de deur.
+      .filter(
+        (o) =>
+          o.status === 'betaald' ||
+          o.status === 'ingepland' ||
+          (o.status === 'aangemeld' && o.contant)
+      )
       .map((o) => ({
         id: o.id,
         soort: 'glas' as const,
@@ -140,7 +147,7 @@ const Ophalen: React.FC = () => {
         postcode: o.postcode,
         plaats: o.plaats,
         aangemaaktOp: o.aangemaaktOp,
-        omschrijving: 'Glas',
+        omschrijving: o.contant ? 'Glas · contant' : 'Glas',
         geplandVan: o.geplandVan,
         geplandTot: o.geplandTot,
         voorkeurVan: o.voorkeurVan,

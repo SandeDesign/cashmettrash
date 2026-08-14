@@ -106,9 +106,13 @@ service cloud.firestore {
       allow create: if isEigenaar(request.resource.data.customerId)
                     && request.resource.data.status == 'aangemeld'
                     && request.resource.data.bedrag == 499
+                    // Contant betalen mag de klant zelf kiezen; of het geld er is
+                    // bepaalt mama, niet de klant.
+                    && request.resource.data.contant is bool
                     && !request.resource.data.keys().hasAny(
                          ['stripeSessionId', 'stripePaymentIntentId', 'stripeStatus',
                           'betaaldOp', 'opgehaaldOp', 'jayceId',
+                          'contantBevestigdOp', 'contantBevestigdDoor',
                           // Inplannen doet Jayce; de klant geeft hoogstens een
                           // voorkeur door via de voorkeur*-velden.
                           'tijdslotId', 'geplandVan', 'geplandTot']);
@@ -129,7 +133,13 @@ service cloud.firestore {
                     || (isJayce()
                         && alleenVelden(['status', 'tijdslotId', 'geplandVan', 'geplandTot', 'jayceId'])
                         && request.resource.data.status == 'ingepland'
-                        && request.resource.data.jayceId == request.auth.uid);
+                        && request.resource.data.jayceId == request.auth.uid)
+                    // Mama bevestigt dat Jayce de ophaalbeurt contant heeft
+                    // gekregen. Pas dan staat er een betaalmoment op.
+                    || ((isMoeder() || isAdmin())
+                        && alleenVelden(['betaaldOp', 'contantBevestigdOp', 'contantBevestigdDoor'])
+                        && resource.data.contant == true
+                        && request.resource.data.contantBevestigdDoor == request.auth.uid);
 
       allow delete: if isAdmin();
     }

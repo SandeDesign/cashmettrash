@@ -25,7 +25,7 @@ const datum = (iso: string) =>
 
 const Overzicht: React.FC = () => {
   const { user } = useAuth();
-  const { orders, loading: glasLaadt, loadOpenstaand: loadGlas } = useGlasStore();
+  const { orders, loading: glasLaadt, loadAlle: loadGlas } = useGlasStore();
   const { logs, loadAlle: loadAlleStatiegeld } = useStatiegeldStore();
   const { customers, loadAlleCustomers } = useCustomerStore();
   const { werkgebied, loadWerkgebied } = useInstellingenStore();
@@ -48,8 +48,15 @@ const Overzicht: React.FC = () => {
       return klant?.lat != null && klant?.lon != null ? { lat: klant.lat, lon: klant.lon } : null;
     };
 
+    // Wat nog opgehaald moet worden: betaald of ingepland, plus wie contant
+    // betaalt want die staat ook meteen op de lijst van Jayce.
     const glas = orders
-      .filter((o) => o.status !== 'opgehaald')
+      .filter(
+        (o) =>
+          o.status === 'betaald' ||
+          o.status === 'ingepland' ||
+          (o.status === 'aangemeld' && o.contant)
+      )
       .map((o) => {
         const punt = coordVan(o.customerId);
         return {
@@ -97,9 +104,9 @@ const Overzicht: React.FC = () => {
   // Wat er buiten de ronde om op haar ligt te wachten. Dit staat bovenaan, want
   // dit dashboard hoort de vraag "wat moet ik nu doen" te beantwoorden.
   const teScannen = logs.filter((l) => l.status === 'opgehaald').length;
-  const teBevestigen = logs.filter(
-    (l) => l.servicekostenContant && l.opgehaaldOp && !l.contantBevestigdOp
-  ).length;
+  const teBevestigen =
+    logs.filter((l) => l.servicekostenContant && l.opgehaaldOp && !l.contantBevestigdOp).length +
+    orders.filter((o) => o.contant && o.opgehaaldOp && !o.contantBevestigdOp).length;
 
   const cijfers = useMemo(() => {
     const opgehaald = logs.filter((l) => l.opgehaaldOp);
@@ -143,11 +150,11 @@ const Overzicht: React.FC = () => {
                   <Coins className="w-5 h-5" style={{ color: 'var(--cmt-stat)' }} />
                   {teBevestigen === 1
                     ? 'Eén klant heeft geld meegegeven aan Jayce'
-                    : `${teBevestigen} klanten hebben geld meegegeven aan Jayce`}
+                    : `${teBevestigen} keer heeft een klant geld meegegeven aan Jayce`}
                 </p>
                 <p className="text-sm mt-1" style={{ color: 'var(--cmt-ink-soft)' }}>
-                  Vink af zodra je het van hem hebt gekregen. Tot die tijd kan die klant zijn
-                  Tikkie niet openen.
+                  Vink af zodra je het van hem hebt gekregen. Bij statiegeld kan de klant zijn
+                  Tikkie pas openen als jij dat hebt gedaan.
                 </p>
                 <Link to="/mama/contant" className="cmt-btn-primary mt-3">
                   Naar het contante geld

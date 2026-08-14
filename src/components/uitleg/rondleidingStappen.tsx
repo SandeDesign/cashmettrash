@@ -73,7 +73,8 @@ const klantStappen: RondleidingStap[] = [
         </p>
         <p>
           Dat kost <strong>{formatCenten(GLAS_PRIJS_CENTEN)} per keer</strong>, en niet per fles.
-          Vijf flessen of vijftig, de prijs blijft hetzelfde. Je rekent meteen af in de app.
+          Vijf flessen of vijftig, de prijs blijft hetzelfde. Je rekent meteen af in de app, of je
+          geeft het contant mee aan Jayce als hij langskomt.
         </p>
       </>
     ),
@@ -282,8 +283,8 @@ const jayceStappen: RondleidingStap[] = [
     tekst: (
       <>
         <p>
-          Bij sommige adressen staat dat je <strong>2 euro</strong> meekrijgt. Neem dat aan en stop
-          het goed weg.
+          Bij sommige adressen staat dat je geld meekrijgt, met het bedrag erbij. Neem dat aan en
+          stop het goed weg.
         </p>
         <p>
           Thuis geef je het aan mama. Zij vinkt het af in haar app. Dat geld is niet voor jou, het
@@ -403,12 +404,14 @@ const moederStappen: RondleidingStap[] = [
     tekst: (
       <>
         <p>
-          Een klant kan de {formatCenten(STATIEGELD_SERVICE_CENTEN)} ophaalkosten meegeven aan
-          Jayce in plaats van ze in de app te betalen. Jayce geeft dat geld thuis aan jou.
+          Een klant kan het geld meegeven aan Jayce in plaats van in de app te betalen. Dat kan
+          bij glas ({formatCenten(GLAS_PRIJS_CENTEN)} voor de ophaalbeurt) en bij statiegeld (
+          {formatCenten(STATIEGELD_SERVICE_CENTEN)} ophaalkosten). Jayce geeft dat geld thuis aan
+          jou.
         </p>
         <p>
-          Vink op de pagina Contant af dat je het hebt gekregen. Pas daarna komt de Tikkie bij de
-          klant vrij, dus zonder jouw vinkje loopt het vast.
+          Vink op de pagina Contant af dat je het hebt gekregen. Pas dan telt het als betaald, en
+          bij statiegeld komt daarna ook de Tikkie bij de klant vrij.
         </p>
       </>
     ),

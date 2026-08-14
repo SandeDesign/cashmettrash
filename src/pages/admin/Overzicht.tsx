@@ -135,6 +135,8 @@ const AdminOverzicht: React.FC = () => {
     const blijvenHangen = orders.filter(
       (o) =>
         o.status === 'aangemeld' &&
+        // Wie contant betaalt is niet afgehaakt; die wacht gewoon op Jayce.
+        !o.contant &&
         Date.now() - new Date(o.aangemaaktOp).getTime() > VERLOPEN_NA_MS
     ).length;
     if (blijvenHangen > 0) {
@@ -153,7 +155,8 @@ const AdminOverzicht: React.FC = () => {
     // Twee aparte regels, want het is echt iets anders: bij de eerste moet Jayce
     // nog zeggen wanneer hij komt, bij de tweede weet de klant dat al.
     const teBevestigen =
-      orders.filter((o) => o.status === 'betaald').length +
+      orders.filter((o) => o.status === 'betaald' || (o.status === 'aangemeld' && o.contant))
+        .length +
       logs.filter((l) => l.status === 'aangemeld').length;
     if (teBevestigen > 0) {
       lijst.push({

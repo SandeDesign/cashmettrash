@@ -110,7 +110,7 @@ const Route: React.FC = () => {
           hulpNodig: punt ? afstandMeters(thuis, punt) > werkgebied.straalAlleenMeters : false,
           van: o.geplandVan as string,
           tot: o.geplandTot as string,
-          contant: false,
+          contant: !!o.contant && !o.contantBevestigdOp,
         };
       });
 

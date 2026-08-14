@@ -1,7 +1,7 @@
 // src/pages/klant/GlasAanvraag.tsx
 import React, { useEffect, useState } from 'react';
-import { Link } from 'react-router-dom';
-import { AlertCircle, ArrowLeft, Wine } from 'lucide-react';
+import { Link, useNavigate } from 'react-router-dom';
+import { AlertCircle, ArrowLeft, Coins, Wine } from 'lucide-react';
 import AppLayout from '../../components/layout/AppLayout';
 import { KLANT_NAV } from '../../components/layout/navItems';
 import Loading from '../../components/shared/Loading';
@@ -13,14 +13,17 @@ import { useGlasStore } from '../../store/glasStore';
 import { useWerkgebiedToets } from '../../hooks/useWerkgebiedToets';
 import { createCheckoutSession } from '../../utils/stripe';
 import { formatCenten, GLAS_PRIJS_CENTEN } from '../../utils/constants';
+import { stuurPushNaarRol } from '../../utils/push';
 
 const GlasAanvraag: React.FC = () => {
+  const navigate = useNavigate();
   const { user } = useAuth();
   const { customer, loading, loadCustomer } = useCustomerStore();
   const maakOrder = useGlasStore((s) => s.maakOrder);
   const { bezig: toetsBezig, oordeel } = useWerkgebiedToets(customer);
 
   const [opmerking, setOpmerking] = useState('');
+  const [contant, setContant] = useState(false);
   const [akkoordDirect, setAkkoordDirect] = useState(false);
   const [voorkeur, setVoorkeur] = useState<Voorkeur | null>(null);
   const [fout, setFout] = useState<string | null>(null);
@@ -51,7 +54,25 @@ const GlasAanvraag: React.FC = () => {
     setBezig(true);
 
     try {
-      const orderId = await maakOrder(customer, opmerking.trim() || undefined, voorkeur);
+      const orderId = await maakOrder(customer, opmerking.trim() || undefined, voorkeur, contant);
+
+      // Contant betalen loopt niet langs Stripe: de aanvraag staat meteen op de
+      // lijst van Jayce en het geld krijgt hij aan de deur.
+      if (contant) {
+        void stuurPushNaarRol('jayce', {
+          titel: 'Nieuwe ophaaltaak',
+          tekst: `Er staat glas klaar bij ${customer.naam}.`,
+          url: '/jayce',
+        });
+        void stuurPushNaarRol('admin', {
+          titel: 'Glas aangemeld',
+          tekst: `${customer.naam} betaalt de ophaalbeurt contant.`,
+          url: '/admin',
+        });
+        navigate('/mijn', { replace: true });
+        return;
+      }
+
       const origin = window.location.origin;
 
       const sessie = await createCheckoutSession({
@@ -152,6 +173,47 @@ const GlasAanvraag: React.FC = () => {
               <span className="text-xl font-bold">{formatCenten(GLAS_PRIJS_CENTEN)}</span>
             </div>
 
+            <fieldset className="mb-5">
+              <legend className="cmt-label">Hoe wil je betalen?</legend>
+
+              <label className="cmt-card cmt-card-tint !p-4 mb-2 flex items-start gap-3 cursor-pointer">
+                <input
+                  type="radio"
+                  name="betaalwijze"
+                  className="mt-1 flex-shrink-0"
+                  checked={!contant}
+                  onChange={() => setContant(false)}
+                />
+                <span>
+                  <span className="font-semibold text-sm">Nu in de app</span>
+                  <span className="block text-xs mt-1" style={{ color: 'var(--cmt-ink-soft)' }}>
+                    Je rekent meteen af. Daarna komt je aanvraag bij Jayce op de lijst.
+                  </span>
+                </span>
+              </label>
+
+              <label className="cmt-card cmt-card-tint !p-4 flex items-start gap-3 cursor-pointer">
+                <input
+                  type="radio"
+                  name="betaalwijze"
+                  className="mt-1 flex-shrink-0"
+                  checked={contant}
+                  onChange={() => setContant(true)}
+                />
+                <span>
+                  <span className="font-semibold text-sm flex items-center gap-1.5">
+                    <Coins className="w-4 h-4" style={{ color: 'var(--cmt-glas)' }} />
+                    Contant meegeven aan Jayce
+                  </span>
+                  <span className="block text-xs mt-1" style={{ color: 'var(--cmt-ink-soft)' }}>
+                    Leg {formatCenten(GLAS_PRIJS_CENTEN)} klaar en geef het mee als hij langskomt.
+                    Je aanvraag staat meteen op zijn lijst. De moeder van Jayce bevestigt thuis dat
+                    hij het geld heeft.
+                  </span>
+                </span>
+              </label>
+            </fieldset>
+
             {/* Zonder deze instemming blijft de wettelijke bedenktijd van veertien
                 dagen staan en kan de ophaalbeurt niet meteen worden ingepland. */}
             <label className="flex items-start gap-2.5 mb-5 text-sm cursor-pointer">
@@ -175,11 +237,12 @@ const GlasAanvraag: React.FC = () => {
               className="cmt-btn-primary cmt-btn-block cmt-btn-lg"
               disabled={bezig || !akkoordDirect || !voorkeur}
             >
-              {bezig ? 'Bezig...' : 'Naar betalen'}
+              {bezig ? 'Bezig...' : contant ? 'Aanvragen' : 'Naar betalen'}
             </button>
 
             <p className="mt-3 text-center text-xs" style={{ color: 'var(--cmt-ink-muted)' }}>
               Je betaalt eenmalig per ophaalbeurt, niet per fles.
+              {contant && ' Leg het geld klaar voordat Jayce komt.'}
             </p>
           </form>
         )}
