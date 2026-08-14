@@ -3,6 +3,7 @@ import { create } from 'zustand';
 import {
   addDoc,
   collection,
+  deleteDoc,
   doc,
   getDocs,
   orderBy,
@@ -42,6 +43,8 @@ interface StatiegeldStore {
     /** De wens van de klant over wanneer het uitkomt. Geen afspraak. */
     voorkeur?: { voorkeurTijdslotId: string; voorkeurVan: string; voorkeurTot: string } | null
   ) => Promise<string>;
+  /** Alleen de beheerder. Handig tijdens het testen, en om een misser op te ruimen. */
+  verwijderLog: (logId: string) => Promise<void>;
   /** Jayce bevestigt en kiest een tijdslot waarop hij langskomt. */
   markeerIngepland: (
     logId: string,
@@ -159,6 +162,11 @@ export const useStatiegeldStore = create<StatiegeldStore>((set, get) => ({
     const ref = await addDoc(collection(db, COLLECTIE), log);
     set({ logs: [{ ...log, id: ref.id }, ...get().logs] });
     return ref.id;
+  },
+
+  verwijderLog: async (logId) => {
+    await deleteDoc(doc(db, COLLECTIE, logId));
+    set({ logs: get().logs.filter((l) => l.id !== logId) });
   },
 
   markeerIngepland: async (logId, jayceId, tijdslotId, geplandVan, geplandTot) => {

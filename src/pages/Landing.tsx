@@ -26,12 +26,12 @@ const STAPPEN = [
     tekst: 'Maak een account met je adres. Anders weet Jayce niet bij welke deur hij moet zijn.',
   },
   {
-    titel: 'Zet je zooi klaar',
-    tekst: 'Bij de deur, in de schuur, achterom. Tik in de app aan wat er staat: glas, statiegeld, of allebei.',
+    titel: 'Kies je moment',
+    tekst: 'Tik aan wat er staat, glas of statiegeld, en kies een ophaaltijd die jou uitkomt. Jayce bevestigt daarna wanneer hij komt.',
   },
   {
     titel: 'Ratel, ratel, weg',
-    tekst: 'Daar komt de skelter. Jayce laadt alles in, vinkt het af, en jij ziet in de app dat het gelukt is.',
+    tekst: 'Daar komt de skelter. Zorg dat je thuis bent, hij laadt alles in en vinkt het af. In de app zie je dat het gelukt is.',
   },
 ];
 
@@ -48,16 +48,21 @@ const VRAGEN = [
   },
   {
     vraag: 'Wat kost het ophalen van glas?',
-    antwoord: `${formatCenten(GLAS_PRIJS_CENTEN)} per keer. Niet per fles. Vijf flessen of vijftig flessen, de skelter rijdt toch, dus de prijs blijft hetzelfde.`,
+    antwoord: `${formatCenten(GLAS_PRIJS_CENTEN)} per keer. Niet per fles. Vijf flessen of vijftig flessen, de skelter rijdt toch, dus de prijs blijft hetzelfde. Je rekent dat meteen af bij het aanvragen.`,
   },
   {
     vraag: 'En het ophalen van statiegeld?',
-    antwoord: `Aanmelden kost niets. Pas als het echt is opgehaald en ingeleverd krijg je je statiegeld terug via een Tikkie, en betaal je ${formatCenten(STATIEGELD_SERVICE_CENTEN)} voor de rit. Staat er niets voor de deur, dan betaal je ook niets.`,
+    antwoord: `Aanmelden kost niets. Pas als het echt is opgehaald en ingeleverd krijg je bericht. Je betaalt dan ${formatCenten(STATIEGELD_SERVICE_CENTEN)} voor de rit, en daarna verschijnt de knop naar je Tikkie. Dat Tikkie-bedrag blijft ongemoeid: de ophaalkosten gaan er niet vanaf.`,
   },
   {
     vraag: 'Wanneer staat hij voor de deur?',
     antwoord:
-      'Als het hem uitkomt, meestal binnen een paar dagen. Hij plant zijn rondje zelf. Je hoeft geen tijd te kiezen en je hoeft niet thuis te zijn: zet het ergens neer en schrijf in de opmerking waar het staat.',
+      'Dat spreken we samen af. Bij het aanvragen kies je een van de ophaaltijden die het beste uitkomt. Jayce plant daarna zijn ronde en bevestigt wanneer hij echt komt; dat zie je in de app en je krijgt er een melding van.',
+  },
+  {
+    vraag: 'Moet ik thuis zijn?',
+    antwoord:
+      'Ja. Jayce belt aan, dus er moet iemand thuis zijn op het moment dat hij langskomt. Daarom kies je bij het aanvragen ook een tijd die je uitkomt. Lukt het toch niet? Stuur dan even een berichtje in de app.',
   },
   {
     vraag: 'Moet ik alles precies natellen?',
@@ -67,12 +72,12 @@ const VRAGEN = [
   {
     vraag: 'Houdt Jayce mijn statiegeld?',
     antwoord:
-      'Nee. Er gaat geen cent statiegeld via Jayce. Wat de inleverautomaat uitspuugt gaat helemaal naar jou, we kunnen dat bedrag niet eens aanpassen. De ophaalkosten betaal je los in de app.',
+      'Nee. Er gaat geen cent statiegeld via Jayce. Wat de inleverautomaat uitspuugt gaat helemaal naar jou, we kunnen dat bedrag niet eens aanpassen. De ophaalkosten betaal je los in de app. Alleen mensen die Jayce goed kennen kunnen ervoor kiezen hun statiegeld aan hem te geven, en dat is altijd hun eigen keuze.',
   },
   {
     vraag: 'Ik woon niet in de buurt. Mag ik ook?',
     antwoord:
-      'Dan wordt het lastig, want hij rijdt op een skelter en niet op een vrachtwagen. We halen op in Tilburg rond de Magriethof. Woon je net buiten de lijn? Maak toch een account aan en stuur een berichtje, dan kijken we mee.',
+      'Nee, dan lukt het niet. Hij rijdt op een skelter en niet op een vrachtwagen, dus we halen alleen op in Tilburg rond de Magriethof. Woon je daarbuiten, dan houdt de app je aanvraag tegen en zie je dat meteen. Twijfel je of je er net binnen valt? Maak een account aan; de app rekent het zelf uit.',
   },
 ];
 

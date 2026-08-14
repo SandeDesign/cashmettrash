@@ -51,6 +51,11 @@ const StatiegeldMelden: React.FC = () => {
       return;
     }
 
+    if (!voorkeur) {
+      setFout('Kies wanneer je thuis kunt zijn.');
+      return;
+    }
+
     setFout(null);
     setBezig(true);
 
@@ -142,7 +147,7 @@ const StatiegeldMelden: React.FC = () => {
                 className="cmt-textarea"
                 value={opmerking}
                 onChange={(e) => setOpmerking(e.target.value)}
-                placeholder="Bijv. de zakken staan in de schuur"
+                placeholder="Bijv. de zakken staan al klaar in de gang"
                 maxLength={280}
               />
             </div>
@@ -172,7 +177,11 @@ const StatiegeldMelden: React.FC = () => {
               </label>
             )}
 
-            <button type="submit" className="cmt-btn-primary cmt-btn-block cmt-btn-lg" disabled={bezig}>
+            <button
+              type="submit"
+              className="cmt-btn-primary cmt-btn-block cmt-btn-lg"
+              disabled={bezig || !voorkeur}
+            >
               {bezig ? 'Bezig...' : 'Aanmelden'}
             </button>
 

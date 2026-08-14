@@ -56,8 +56,8 @@ const Voorwaarden: React.FC = () => (
         terug. Zet je ze toch bij het glas, dan laat Jayce ze staan.
       </li>
       <li>
-        Zet het glas op een plek die vanaf de straat te bereiken is en geef in de opmerking
-        door waar het staat. Wij komen niet binnen.
+        Zet het glas klaar op een plek die vanaf de deur te bereiken is en geef in de
+        opmerking door waar het staat. Wij komen niet binnen.
       </li>
       <li>Losse scherven en gebroken glas nemen we niet mee.</li>
     </ul>
@@ -92,9 +92,20 @@ const Voorwaarden: React.FC = () => (
 
     <h2>5. Wanneer komen we langs?</h2>
     <p>
-      Jayce plant zijn eigen ronde. Wij streven ernaar binnen enkele dagen langs te komen,
-      maar geven daar geen garantie op. Je hoeft niet thuis te zijn. Je ziet in de app
-      wanneer je aanvraag is afgevinkt.
+      Bij het aanvragen kies je een van de ophaaltijden die wij hebben klaargezet. Dat is je
+      voorkeur. Jayce plant daarna zijn ronde en bevestigt in de app op welk moment hij echt
+      langskomt; daar krijg je een melding van.
+    </p>
+    <p>
+      <strong>Je moet thuis zijn op het bevestigde moment.</strong> Jayce belt aan en neemt
+      de spullen persoonlijk aan. Ben je er niet, dan kan hij niets meenemen en blijft je
+      aanvraag openstaan. Laat het ons via de chat weten als het toch niet lukt, dan kiezen
+      we een ander moment.
+    </p>
+    <p>
+      Wij streven ernaar het gekozen tijdvak aan te houden, maar geven daar geen garantie
+      op: het gaat om een ronde met een skelter, en weer of drukte kan roet in het eten
+      gooien.
     </p>
 
     <h2>6. Betalen</h2>

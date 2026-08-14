@@ -17,6 +17,7 @@ import {
   Recycle,
   Settings,
   ShieldAlert,
+  Smartphone,
   Star,
   User,
   Users,
@@ -47,6 +48,12 @@ export const KLANT_NAV: NavItem[] = [
     teller: 'chat',
   },
   { to: '/profiel', label: 'Gegevens', icon: <User className="w-5 h-5" />, groep: 'Van mij' },
+  {
+    to: '/installeren',
+    label: 'Op je telefoon',
+    icon: <Smartphone className="w-5 h-5" />,
+    groep: 'Van mij',
+  },
 ];
 
 // Korte woorden en grote knoppen, want dit menu is voor Jayce.
@@ -69,6 +76,12 @@ export const JAYCE_NAV: NavItem[] = [
     to: '/jayce/score',
     label: 'Mijn score',
     icon: <Star className="w-5 h-5" />,
+    groep: 'Van mij',
+  },
+  {
+    to: '/installeren',
+    label: 'Op je telefoon',
+    icon: <Smartphone className="w-5 h-5" />,
     groep: 'Van mij',
   },
 ];
@@ -97,6 +110,12 @@ export const MOEDER_NAV: NavItem[] = [
     to: '/mama/ideeen',
     label: 'Ideeën',
     icon: <Lightbulb className="w-5 h-5" />,
+    groep: 'Doorgeven',
+  },
+  {
+    to: '/installeren',
+    label: 'Op je telefoon',
+    icon: <Smartphone className="w-5 h-5" />,
     groep: 'Doorgeven',
   },
 ];
@@ -158,6 +177,12 @@ export const ADMIN_NAV: NavItem[] = [
     to: '/admin/cijfers',
     label: 'Cijfers',
     icon: <BarChart3 className="w-5 h-5" />,
+    groep: 'Beheer',
+  },
+  {
+    to: '/installeren',
+    label: 'Op je telefoon',
+    icon: <Smartphone className="w-5 h-5" />,
     groep: 'Beheer',
   },
 ];

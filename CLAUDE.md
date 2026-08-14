@@ -119,16 +119,21 @@ drukt op **Ik ga het halen** en kiest een tijdslot. De aanvraag krijgt dan statu
 `ingepland` met `geplandVan` en `geplandTot`, de klant krijgt een melding en ziet
 het moment in zijn overzicht. Pas daarna verschijnt de knop om af te vinken.
 
-De klant mag bij het aanmelden een **voorkeur** meegeven (`voorkeurTijdslotId`,
-`voorkeurVan`, `voorkeurTot`). Dat is een wens, geen afspraak: Jayce ziet hem
-bovenaan in zijn kiezer met een label, maar mag gewoon iets anders kiezen. De
-security rules laten de klant alleen de `voorkeur*`-velden zetten, nooit de
-`gepland*`-velden.
+De klant **moet** bij het aanmelden een voorkeur kiezen (`voorkeurTijdslotId`,
+`voorkeurVan`, `voorkeurTot`); zonder keuze kan hij niet verzenden. Reden: er moet
+iemand thuis zijn als Jayce aanbelt. Het blijft wel een wens en geen afspraak:
+Jayce ziet hem bovenaan in zijn kiezer met een label, maar mag iets anders kiezen.
+De security rules laten de klant alleen de `voorkeur*`-velden zetten, nooit de
+`gepland*`-velden. Staan er geen actieve tijdsloten, dan kan er dus ook niets
+worden aangevraagd; de klant krijgt dat te zien.
 
 De beheerder volgt dit op `/admin/ophalen`: alles wat op de lijst van Jayce
 staat, glas en statiegeld door elkaar, gesplitst in "wacht op Jayce" en
 "ingepland". Dat is bewust een aparte pagina, want `/admin/glas` en
-`/admin/statiegeld` gaan over de administratie en niet over de ronde zelf.
+`/admin/statiegeld` gaan over de administratie en niet over de ronde zelf. Daar
+kan hij een aanvraag ook **verwijderen**, met een bevestiging vooraf; dat is er
+voor de testfase en om een misser op te ruimen. De rules staan `delete` alleen
+een admin toe.
 
 De tijdsloten staan in `tijdsloten/{id}` en herhalen zich wekelijks: een dag plus
 een begin- en eindtijd. Mama beheert ze op `/mama/tijden`, de beheerder op
@@ -365,12 +370,16 @@ Naast de landingspagina zijn deze routes publiek en lazy geladen:
 
 | Route | Inhoud |
 |---|---|
-| `/installeren` | PWA-installatie-uitleg, herkent het platform en vangt `beforeinstallprompt` op |
+| `/installeren` | PWA-installatie-uitleg, herkent het platform en vangt `beforeinstallprompt` op. Ben je ingelogd, dan krijgt dezelfde pagina de omlijsting van je eigen rol en staat hij in het menu als "Op je telefoon" |
 | `/voorwaarden` | Algemene voorwaarden |
 | `/privacy` | Privacyverklaring |
 | `/cookies` | Cookiebeleid, bewust in kindvriendelijke taal |
 | `/herroeping` | Herroepingsrecht, hoort bij het verplichte vinkje in `GlasAanvraag` |
 | `/disclaimer` | Disclaimer |
+
+De header van de publieke pagina's heeft één menuknop rechtsboven
+(`PubliekMenu`) in plaats van losse knoppen; daar zitten inloggen, aanmelden en
+alle publieke pagina's met een icoon in.
 
 Bedrijfsgegevens staan op één plek: `src/utils/bedrijf.ts`. Zolang die niet zijn
 ingevuld tonen de juridische pagina's een waarschuwing.

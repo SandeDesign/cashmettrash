@@ -3,6 +3,7 @@ import { create } from 'zustand';
 import {
   addDoc,
   collection,
+  deleteDoc,
   doc,
   getDocs,
   orderBy,
@@ -36,6 +37,8 @@ interface GlasStore {
   setStatus: (orderId: string, status: GlasStatus) => Promise<void>;
   markeerBetaald: (orderId: string, stripeSessionId: string, stripeStatus: string) => Promise<void>;
   markeerOpgehaald: (orderId: string, jayceId: string) => Promise<void>;
+  /** Alleen de beheerder. Handig tijdens het testen, en om een misser op te ruimen. */
+  verwijderOrder: (orderId: string) => Promise<void>;
   /** Jayce bevestigt en kiest een tijdslot waarop hij langskomt. */
   markeerIngepland: (
     orderId: string,
@@ -145,6 +148,11 @@ export const useGlasStore = create<GlasStore>((set, get) => ({
     set({
       orders: get().orders.map((o) => (o.id === orderId ? { ...o, ...updates } : o)),
     });
+  },
+
+  verwijderOrder: async (orderId) => {
+    await deleteDoc(doc(db, COLLECTIE, orderId));
+    set({ orders: get().orders.filter((o) => o.id !== orderId) });
   },
 
   markeerIngepland: async (orderId, jayceId, tijdslotId, geplandVan, geplandTot) => {

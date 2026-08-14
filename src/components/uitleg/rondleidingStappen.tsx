@@ -120,12 +120,13 @@ const klantStappen: RondleidingStap[] = [
     tekst: (
       <>
         <p>
-          Bij het aanmelden mag je zeggen welk moment jou het beste uitkomt. Dat is een wens, geen
-          afspraak: Jayce plant zijn ronde zelf.
+          Bij het aanmelden kies je een van de ophaaltijden. Dat is verplicht, want er moet
+          iemand thuis zijn als Jayce aanbelt.
         </p>
         <p>
-          Zodra hij het bevestigt krijg je een seintje, en zie je in je overzicht wanneer hij
-          komt. Thuis zijn hoeft niet. Schrijf in het opmerkingenveld waar je het neerzet.
+          Jayce plant zijn ronde zelf, dus je keuze is een voorkeur en geen harde afspraak.
+          Zodra hij bevestigt krijg je een seintje en zie je in je overzicht wanneer hij echt
+          komt. <strong>Zorg dat je dan thuis bent.</strong>
         </p>
       </>
     ),
@@ -170,8 +171,8 @@ const klantStappen: RondleidingStap[] = [
           Tikkie klaarstaat.
         </p>
         <p>
-          Je kunt de app ook op je telefoon zetten alsof het een gewone app is. Dat leggen we uit
-          op de installatiepagina, onderaan de site.
+          Je kunt de app ook op je telefoon zetten alsof het een gewone app is. Kijk daarvoor
+          in het menu bij <strong>Op je telefoon</strong>.
         </p>
       </>
     ),
@@ -399,8 +400,8 @@ const moederStappen: RondleidingStap[] = [
     tekst: (
       <p>
         Zet meldingen aan op je overzicht, dan hoor je het als er iets nieuws klaarstaat. Je kunt
-        de app ook als echte app op je telefoon zetten; dat staat uitgelegd op de
-        installatiepagina.
+        de app ook als echte app op je telefoon zetten; kijk daarvoor in het menu bij
+        <strong> Op je telefoon</strong>.
       </p>
     ),
   },

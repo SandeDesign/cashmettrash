@@ -53,12 +53,16 @@ const PublicFooter: React.FC = () => (
           <Coins className="w-3.5 h-3.5" />
           Statiegeld is en blijft van jou.
         </p>
+        {/* Bewust kort: de volledige bedrijfsgegevens staan in de voorwaarden
+            en de privacyverklaring, en horen niet onder elke pagina. */}
         <p>
-          {BEDRIJF.rechtspersoon}
-          {BEDRIJF.kvk && ` · KvK ${BEDRIJF.kvk}`}
-          {BEDRIJF.btw && ` · btw ${BEDRIJF.btw}`}
-          {BEDRIJF.adres && ` · ${BEDRIJF.adres}, ${BEDRIJF.postcode} ${BEDRIJF.plaats}`}
-          {BEDRIJF.email && ` · ${BEDRIJF.email}`}
+          {BEDRIJF.handelsnaam} in samenwerking met {BEDRIJF.rechtspersoon}
+          {BEDRIJF.email && (
+            <>
+              {' · '}
+              <a href={`mailto:${BEDRIJF.email}`}>{BEDRIJF.email}</a>
+            </>
+          )}
         </p>
       </div>
     </div>

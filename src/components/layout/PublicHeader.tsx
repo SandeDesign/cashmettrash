@@ -2,6 +2,7 @@
 import React, { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import Logo from '../shared/Logo';
+import PubliekMenu from './PubliekMenu';
 
 /** Header voor de publieke landingspagina. Krijgt een rand zodra je scrollt. */
 const PublicHeader: React.FC = () => {
@@ -34,20 +35,11 @@ const PublicHeader: React.FC = () => {
           </span>
         </Link>
 
-        <nav className="flex items-center gap-1 sm:gap-2">
-          {/* Op smalle schermen is er geen ruimte naast het logo; de inloglink
-              staat dan nog op de aanmeldpagina en in de footer.
-              Het verbergen gebeurt op een wrapper: de cmt-btn-* classes zetten
-              zelf een display en zouden Tailwinds .hidden overrulen. */}
-          <span className="hidden xs:block">
-            <Link to="/login" className="cmt-btn-ghost">
-              Inloggen
-            </Link>
-          </span>
-          <Link to="/registreren" className="cmt-btn-primary">
-            Aanmelden
-          </Link>
-        </nav>
+        {/* Alles zit in één menu: inloggen, aanmelden en de publieke pagina's
+            pasten niet meer naast elkaar in de balk. */}
+        <div className="relative">
+          <PubliekMenu />
+        </div>
       </div>
     </header>
   );

@@ -1,13 +1,15 @@
 // src/components/klant/VoorkeurKiezer.tsx
 //
-// De klant kan aangeven welk moment hem het beste uitkomt. Het blijft een wens:
-// Jayce plant zijn ronde zelf en mag er van afwijken. Daarom staat er ook een
-// keuze "maakt niet uit" bij, en is die de standaard.
+// De klant kiest hier wanneer het hem uitkomt. Dit is verplicht: er moet iemand
+// thuis zijn als Jayce langskomt, dus we willen weten wanneer dat kan.
+//
+// Het blijft wel een voorkeur en geen harde afspraak: Jayce plant zijn ronde
+// zelf en bevestigt daarna welk moment het echt wordt.
 
 import React, { useEffect } from 'react';
 import { format, isToday, isTomorrow } from 'date-fns';
 import { nl } from 'date-fns/locale';
-import { CalendarClock } from 'lucide-react';
+import { AlertCircle, CalendarClock } from 'lucide-react';
 import { useInstellingenStore } from '../../store/instellingenStore';
 import { volgendeKeer } from '../../utils/tijdsloten';
 
@@ -19,7 +21,7 @@ export interface Voorkeur {
 
 interface VoorkeurKiezerProps {
   waarde: Voorkeur | null;
-  onKies: (voorkeur: Voorkeur | null) => void;
+  onKies: (voorkeur: Voorkeur) => void;
 }
 
 function dagInWoorden(datum: Date): string {
@@ -36,25 +38,30 @@ const VoorkeurKiezer: React.FC<VoorkeurKiezerProps> = ({ waarde, onKies }) => {
   }, [loadTijdsloten]);
 
   const actief = tijdsloten.filter((s) => s.actief);
-  if (actief.length === 0) return null;
+
+  // Zonder tijden kan niemand een moment kiezen, en dus ook niets aanvragen.
+  // Dat zeggen we hier eerlijk in plaats van een leeg blok te tonen.
+  if (actief.length === 0) {
+    return (
+      <div className="cmt-alert cmt-alert-warning mb-5">
+        <AlertCircle className="w-5 h-5 flex-shrink-0" />
+        <span>
+          Er staan op dit moment geen ophaaltijden klaar, dus we kunnen je aanvraag nog niet
+          aannemen. Probeer het later opnieuw of stuur een berichtje.
+        </span>
+      </div>
+    );
+  }
 
   return (
     <div className="mb-5">
-      <p className="cmt-label !mb-1">Wanneer komt het jou het beste uit?</p>
+      <p className="cmt-label !mb-1">Wanneer kun je thuis zijn?</p>
       <p className="text-xs mb-3" style={{ color: 'var(--cmt-ink-muted)' }}>
-        Jayce plant zijn eigen ronde, dus dit is een wens en geen afspraak. Hij laat weten
-        wanneer hij echt komt.
+        Er moet iemand thuis zijn als Jayce langskomt, dus kies een moment dat jou uitkomt.
+        Hij plant zijn ronde zelf en laat weten wanneer hij echt komt.
       </p>
 
       <div className="flex flex-wrap gap-2">
-        <button
-          type="button"
-          className={waarde === null ? 'cmt-btn-primary !py-2 !text-sm' : 'cmt-btn-ghost !py-2 !text-sm'}
-          onClick={() => onKies(null)}
-        >
-          Maakt niet uit
-        </button>
-
         {actief.map((slot) => {
           const { van, tot } = volgendeKeer(slot);
           const gekozen = waarde?.voorkeurTijdslotId === slot.id;

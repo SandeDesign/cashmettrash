@@ -77,14 +77,16 @@ const AppLayout: React.FC<AppLayoutProps> = ({ children, nav = [], title }) => {
             style={{ borderTop: '1px solid var(--cmt-border)' }}
             aria-label="Hoofdnavigatie"
           >
-            <div className="max-w-4xl mx-auto px-4 flex gap-1">
+            {/* De beheerder heeft elf items; die passen niet naast elkaar op een
+                laptop. Daarom mag de balk schuiven in plaats van over te lopen. */}
+            <div className="max-w-4xl mx-auto px-4 flex gap-1 overflow-x-auto cmt-nav-schuif">
               {nav.map((item) => (
                 <NavLink
                   key={item.to}
                   to={item.to}
                   end={item.end}
                   className={({ isActive }) =>
-                    `flex items-center gap-2 px-3 py-3 text-sm font-medium border-b-2 transition-colors ${
+                    `flex items-center gap-2 px-2.5 py-3 text-sm font-medium border-b-2 whitespace-nowrap flex-shrink-0 transition-colors ${
                       isActive ? 'border-current' : 'border-transparent'
                     }`
                   }

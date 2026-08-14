@@ -9,6 +9,10 @@ import { ArrowLeft, CheckCircle, Download, Info, Share, Smartphone } from 'lucid
 import PublicHeader from '../components/layout/PublicHeader';
 import PublicFooter from '../components/layout/PublicFooter';
 import CollapsibleSection from '../components/common/CollapsibleSection';
+import AppLayout from '../components/layout/AppLayout';
+import { ADMIN_NAV, JAYCE_NAV, KLANT_NAV, MOEDER_NAV } from '../components/layout/navItems';
+import { useAuth } from '../hooks/useAuth';
+import type { Rol } from '../types';
 import { usePwaInstall, type Platform } from '../hooks/usePwaInstall';
 
 interface Instructie {
@@ -103,7 +107,9 @@ const Stappen: React.FC<{ instructie: Instructie }> = ({ instructie }) => (
   </>
 );
 
-const Installeren: React.FC = () => {
+/** De uitleg zelf. Staat los van de omlijsting, want die verschilt: buiten de
+    app de publieke header, ingelogd het gewone menu van je rol. */
+const Uitleg: React.FC<{ ingelogd: boolean }> = ({ ingelogd }) => {
   const { kanInstalleren, isGeinstalleerd, bezig, installeer, platform, browser } =
     usePwaInstall();
 
@@ -112,19 +118,18 @@ const Installeren: React.FC = () => {
   const firefoxOpTelefoon = browser === 'firefox' && (platform === 'android' || platform === 'ios');
 
   return (
-    <div className="min-h-screen flex flex-col" style={{ background: 'var(--cmt-paper)' }}>
-      <PublicHeader />
-
-      <main className="flex-1 w-full max-w-2xl mx-auto px-4 py-10 sm:py-14">
-        <div className="mb-6">
-          <Link
-            to="/"
-            className="inline-flex items-center gap-1.5 text-sm"
-            style={{ color: 'var(--cmt-ink-muted)' }}
-          >
-            <ArrowLeft className="w-4 h-4" /> Terug naar de site
-          </Link>
-        </div>
+    <>
+        {!ingelogd && (
+          <div className="mb-6">
+            <Link
+              to="/"
+              className="inline-flex items-center gap-1.5 text-sm"
+              style={{ color: 'var(--cmt-ink-muted)' }}
+            >
+              <ArrowLeft className="w-4 h-4" /> Terug naar de site
+            </Link>
+          </div>
+        )}
 
         <span
           className="flex items-center justify-center w-12 h-12 rounded-full mb-5"
@@ -218,8 +223,41 @@ const Installeren: React.FC = () => {
             </ul>
           </div>
         </section>
-      </main>
+    </>
+  );
+};
 
+/**
+ * Buiten de app is dit een gewone publieke pagina. Ben je ingelogd, dan krijgt
+ * hij de omlijsting van je eigen rol, zodat het menu blijft staan en je er niet
+ * uit valt. De uitleg zelf is voor iedereen hetzelfde.
+ */
+const NAV_PER_ROL: Record<Rol, typeof KLANT_NAV> = {
+  klant: KLANT_NAV,
+  jayce: JAYCE_NAV,
+  moeder: MOEDER_NAV,
+  admin: ADMIN_NAV,
+};
+
+const Installeren: React.FC = () => {
+  const { user } = useAuth();
+
+  if (user) {
+    return (
+      <AppLayout nav={NAV_PER_ROL[user.rol]}>
+        <div className="max-w-2xl">
+          <Uitleg ingelogd />
+        </div>
+      </AppLayout>
+    );
+  }
+
+  return (
+    <div className="min-h-screen flex flex-col" style={{ background: 'var(--cmt-paper)' }}>
+      <PublicHeader />
+      <main className="flex-1 w-full max-w-2xl mx-auto px-4 py-10 sm:py-14">
+        <Uitleg ingelogd={false} />
+      </main>
       <PublicFooter />
     </div>
   );

@@ -541,6 +541,79 @@ h1, h2, h3, h4 {
   background: var(--cmt-accent);
 }
 
+/* ---------- Navigatiebalk ---------- */
+/* Schuifbaar zonder zichtbare scrollbar: die zou onder de balk uitsteken en
+   de actieve onderstreping doorsnijden. */
+
+.cmt-nav-schuif {
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+}
+
+.cmt-nav-schuif::-webkit-scrollbar {
+  display: none;
+}
+
+/* ---------- Publiek menu ---------- */
+/* Hangt onder de knop rechtsboven op de landingspagina en de juridische
+   pagina's. Op de telefoon wordt het een paneel over de volle breedte. */
+
+.cmt-publiek-menu {
+  position: absolute;
+  right: 0;
+  top: calc(100% + 0.6rem);
+  z-index: 50;
+  width: 19rem;
+  max-width: calc(100vw - 2rem);
+  max-height: min(32rem, calc(100vh - 6rem));
+  overflow-y: auto;
+  padding: 1rem;
+  background: var(--cmt-surface);
+  border: 1px solid var(--cmt-border);
+  border-radius: var(--cmt-radius-lg);
+  box-shadow: var(--cmt-shadow-lift);
+  transform-origin: top right;
+  animation: cmt-menu-open-rechts 0.2s cubic-bezier(0.2, 0.9, 0.3, 1.15) both;
+}
+
+@keyframes cmt-menu-open-rechts {
+  from { opacity: 0; transform: translateY(-8px) scale(0.97); }
+  to { opacity: 1; transform: none; }
+}
+
+.cmt-publiek-menu-kop {
+  font-size: 0.75rem;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--cmt-ink-muted);
+  margin-bottom: 0.5rem;
+}
+
+.cmt-publiek-menu-item {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0.5rem;
+  border-radius: var(--cmt-radius-md);
+  color: var(--cmt-ink);
+  transition: background 0.15s ease, transform 0.12s ease;
+}
+
+.cmt-publiek-menu-item:hover {
+  background: var(--cmt-paper);
+}
+
+.cmt-publiek-menu-item:active {
+  transform: scale(0.98);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .cmt-publiek-menu {
+    animation: none;
+  }
+}
+
 /* ---------- Teller ---------- */
 /* Het rode bolletje met een aantal, zoals op een app-icoon. */
 

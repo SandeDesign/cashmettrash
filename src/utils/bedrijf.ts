@@ -25,7 +25,7 @@ export const BEDRIJF = {
   postcode: '6162 BD',
   plaats: 'Geleen',
 
-  email: NOG_INVULLEN,
+  email: 'info@cashmettrash.nl',
   telefoon: NOG_INVULLEN,
 
   /** Waar we ophalen, zoals genoemd in de voorwaarden. */

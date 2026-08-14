@@ -37,6 +37,11 @@ const GlasAanvraag: React.FC = () => {
     e.preventDefault();
     if (!customer || !user) return;
 
+    if (!voorkeur) {
+      setFout('Kies wanneer je thuis kunt zijn.');
+      return;
+    }
+
     if (!akkoordDirect) {
       setFout('Zet een vinkje bij de laatste regel om verder te kunnen.');
       return;
@@ -130,7 +135,7 @@ const GlasAanvraag: React.FC = () => {
                 className="cmt-textarea"
                 value={opmerking}
                 onChange={(e) => setOpmerking(e.target.value)}
-                placeholder="Bijv. de kratten staan naast de voordeur"
+                placeholder="Bijv. bel bij het bovenste belletje"
                 maxLength={280}
               />
             </div>
@@ -168,7 +173,7 @@ const GlasAanvraag: React.FC = () => {
             <button
               type="submit"
               className="cmt-btn-primary cmt-btn-block cmt-btn-lg"
-              disabled={bezig || !akkoordDirect}
+              disabled={bezig || !akkoordDirect || !voorkeur}
             >
               {bezig ? 'Bezig...' : 'Naar betalen'}
             </button>

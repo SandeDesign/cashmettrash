@@ -8,7 +8,7 @@ import React, { useEffect, useMemo } from 'react';
 import { Link } from 'react-router-dom';
 import { format, isToday, isTomorrow } from 'date-fns';
 import { nl } from 'date-fns/locale';
-import { CalendarClock, CheckCircle, Clock, MapPin, Recycle, Wine } from 'lucide-react';
+import { CalendarClock, CheckCircle, Clock, MapPin, Recycle, Trash2, Wine } from 'lucide-react';
 import AppLayout from '../../components/layout/AppLayout';
 import { ADMIN_NAV } from '../../components/layout/navItems';
 import Loading from '../../components/shared/Loading';
@@ -42,7 +42,10 @@ function moment(iso: string): string {
   return format(d, 'EEEE d MMM', { locale: nl });
 }
 
-const RitKaart: React.FC<{ rit: Rit }> = ({ rit }) => (
+const RitKaart: React.FC<{ rit: Rit; onVerwijder: (rit: Rit) => void }> = ({
+  rit,
+  onVerwijder,
+}) => (
   <li
     className={`cmt-flow-${rit.soort === 'glas' ? 'glas' : 'stat'} cmt-card cmt-card-flow`}
   >
@@ -89,13 +92,37 @@ const RitKaart: React.FC<{ rit: Rit }> = ({ rit }) => (
       <Link to={rit.naar} className="cmt-btn-ghost !py-2 !text-sm">
         Naar de administratie
       </Link>
+      {/* Tijdens het testen schieten er aanvragen in die je zo weer kwijt wilt.
+          Verwijderen kan alleen de beheerder, en alleen na bevestigen. */}
+      <button
+        className="cmt-btn-ghost !py-2 !text-sm ml-auto"
+        style={{ color: 'var(--cmt-error)' }}
+        onClick={() => onVerwijder(rit)}
+      >
+        <Trash2 className="w-4 h-4" /> Verwijderen
+      </button>
     </div>
   </li>
 );
 
 const Ophalen: React.FC = () => {
-  const { orders, loading: glasLaadt, loadAlle: loadGlas } = useGlasStore();
-  const { logs, loading: statLaadt, loadAlle: loadStatiegeld } = useStatiegeldStore();
+  const { orders, loading: glasLaadt, loadAlle: loadGlas, verwijderOrder } = useGlasStore();
+  const {
+    logs,
+    loading: statLaadt,
+    loadAlle: loadStatiegeld,
+    verwijderLog,
+  } = useStatiegeldStore();
+
+  const verwijder = async (rit: Rit) => {
+    const bevestigd = window.confirm(
+      `Aanvraag van ${rit.naam} verwijderen? Dit kan niet ongedaan gemaakt worden.`
+    );
+    if (!bevestigd) return;
+
+    if (rit.soort === 'glas') await verwijderOrder(rit.id);
+    else await verwijderLog(rit.id);
+  };
 
   useEffect(() => {
     loadGlas();
@@ -186,7 +213,7 @@ const Ophalen: React.FC = () => {
         ) : (
           <ul className="space-y-3">
             {teBevestigen.map((rit) => (
-              <RitKaart key={rit.id} rit={rit} />
+              <RitKaart key={rit.id} rit={rit} onVerwijder={verwijder} />
             ))}
           </ul>
         )}
@@ -211,7 +238,7 @@ const Ophalen: React.FC = () => {
         ) : (
           <ul className="space-y-3">
             {ingepland.map((rit) => (
-              <RitKaart key={rit.id} rit={rit} />
+              <RitKaart key={rit.id} rit={rit} onVerwijder={verwijder} />
             ))}
           </ul>
         )}
