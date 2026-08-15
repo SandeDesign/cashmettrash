@@ -18,10 +18,19 @@ import { MOEDER_NAV } from '../../components/layout/navItems';
 import Loading from '../../components/shared/Loading';
 import { useAuth } from '../../hooks/useAuth';
 import { useStatiegeldStore } from '../../store/statiegeldStore';
-import { centenAlsInvoer, formatCenten, naarCenten } from '../../utils/constants';
+import {
+  centenAlsInvoer,
+  formatCenten,
+  naarCenten,
+  VIATIM_CENT_PER_ITEM,
+  viatimVergoeding,
+} from '../../utils/constants';
 import { isLink, normaliseerLink } from '../../utils/links';
 import { stuurPushNaarRol } from '../../utils/push';
 import type { StatiegeldLog } from '../../types';
+
+/** 3.5 wordt "3,5", want zo schrijf je dat in het Nederlands. */
+const komma = (getal: number) => String(getal).replace('.', ',');
 
 const datum = (iso?: string) => (iso ? format(new Date(iso), 'd MMM', { locale: nl }) : '');
 
@@ -36,6 +45,7 @@ const InscanKaart: React.FC<{
   const [bezig, setBezig] = useState(false);
 
   const geteld = log.itemsWerkelijk ?? log.items;
+  const aantal = geteld.plastic + geteld.blik;
   const centen = naarCenten(euro);
   // Bij een schenking gaat het bedrag naar het potje van Jayce; dan is er geen
   // Tikkie nodig en hoeft er dus ook geen link te worden ingevuld.
@@ -107,6 +117,11 @@ const InscanKaart: React.FC<{
               value={euro}
               onChange={(e) => setEuro(e.target.value)}
             />
+            <p className="mt-1 text-xs" style={{ color: 'var(--cmt-ink-muted)' }}>
+              Alleen het statiegeld. De vergoeding van {komma(VIATIM_CENT_PER_ITEM)} cent per stuk
+              rekent de app er zelf bij: {aantal} × {komma(VIATIM_CENT_PER_ITEM)} ={' '}
+              {formatCenten(viatimVergoeding(aantal))}.
+            </p>
           </div>
 
           {!schenking && (
