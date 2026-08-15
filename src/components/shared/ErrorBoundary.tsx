@@ -16,6 +16,21 @@ interface State {
  * Vangt render-fouten op. Gebruikt bewust inline styles: als de fout vroeg optreedt
  * is het stylesheet mogelijk nog niet geladen.
  */
+/**
+ * Een mislukte import betekent bijna altijd dat er intussen een nieuwe versie is
+ * gedeployd en de pagina naar bestanden wijst die er niet meer zijn. Dat is geen
+ * kapotte app, dus dat zeggen we ook zo.
+ */
+function isNieuweVersie(error: Error | null): boolean {
+  const tekst = `${error?.name ?? ''} ${error?.message ?? ''}`.toLowerCase();
+  return (
+    tekst.includes('dynamically imported module') ||
+    tekst.includes('importing a module script failed') ||
+    tekst.includes('failed to fetch') ||
+    tekst.includes('chunkloaderror')
+  );
+}
+
 class ErrorBoundary extends Component<Props, State> {
   state: State = { hasError: false, error: null };
 
@@ -59,10 +74,12 @@ class ErrorBoundary extends Component<Props, State> {
             style={{ width: '2.5rem', height: '2.5rem', color: '#c0392b', margin: '0 auto 1rem' }}
           />
           <h2 style={{ fontSize: '1.25rem', fontWeight: 700, color: '#14181f', marginBottom: '0.5rem' }}>
-            Er is iets misgegaan
+            {isNieuweVersie(this.state.error) ? 'Er is een nieuwe versie' : 'Er is iets misgegaan'}
           </h2>
           <p style={{ color: '#4a525e', marginBottom: '1.25rem', fontSize: '0.875rem' }}>
-            Er is een onverwachte fout opgetreden. Vernieuw de pagina om het opnieuw te proberen.
+            {isNieuweVersie(this.state.error)
+              ? 'De app is bijgewerkt terwijl je hem open had staan. Vernieuw de pagina, dan werk je verder met de nieuwe versie. Er gaat niets verloren.'
+              : 'Er is een onverwachte fout opgetreden. Vernieuw de pagina om het opnieuw te proberen.'}
           </p>
           {this.state.error && (
             <details

@@ -1,8 +1,9 @@
 // src/App.tsx
-import React, { lazy, Suspense, useEffect } from 'react';
+import React, { Suspense, useEffect } from 'react';
 import { BrowserRouter as Router, Navigate, Route, Routes } from 'react-router-dom';
 
 import ErrorBoundary from './components/shared/ErrorBoundary';
+import { lazyRoute } from './utils/lazyRoute';
 import ScrollToTop from './components/shared/ScrollToTop';
 import Loading from './components/shared/Loading';
 import RouteProgress from './components/shared/RouteProgress';
@@ -18,50 +19,50 @@ import { setupGlobalErrorHandlers } from './utils/errorLogger';
 import Landing from './pages/Landing';
 import Login from './pages/Login';
 
-const Registreren = lazy(() => import('./pages/Registreren'));
-const GeenToegang = lazy(() => import('./pages/GeenToegang'));
-const Installeren = lazy(() => import('./pages/Installeren'));
+const Registreren = lazyRoute(() => import('./pages/Registreren'));
+const GeenToegang = lazyRoute(() => import('./pages/GeenToegang'));
+const Installeren = lazyRoute(() => import('./pages/Installeren'));
 
-const Voorwaarden = lazy(() => import('./pages/juridisch/Voorwaarden'));
-const Privacy = lazy(() => import('./pages/juridisch/Privacy'));
-const Cookies = lazy(() => import('./pages/juridisch/Cookies'));
-const Herroeping = lazy(() => import('./pages/juridisch/Herroeping'));
-const Disclaimer = lazy(() => import('./pages/juridisch/Disclaimer'));
-const Viatim = lazy(() => import('./pages/juridisch/Viatim'));
+const Voorwaarden = lazyRoute(() => import('./pages/juridisch/Voorwaarden'));
+const Privacy = lazyRoute(() => import('./pages/juridisch/Privacy'));
+const Cookies = lazyRoute(() => import('./pages/juridisch/Cookies'));
+const Herroeping = lazyRoute(() => import('./pages/juridisch/Herroeping'));
+const Disclaimer = lazyRoute(() => import('./pages/juridisch/Disclaimer'));
+const Viatim = lazyRoute(() => import('./pages/juridisch/Viatim'));
 
-const KlantOverzicht = lazy(() => import('./pages/klant/Overzicht'));
-const GlasAanvraag = lazy(() => import('./pages/klant/GlasAanvraag'));
-const StatiegeldMelden = lazy(() => import('./pages/klant/StatiegeldMelden'));
-const BetalingGelukt = lazy(() => import('./pages/klant/BetalingGelukt'));
-const BetalingGeannuleerd = lazy(() => import('./pages/klant/BetalingGeannuleerd'));
-const Profiel = lazy(() => import('./pages/klant/Profiel'));
-const KlantChat = lazy(() => import('./pages/klant/Chat'));
+const KlantOverzicht = lazyRoute(() => import('./pages/klant/Overzicht'));
+const GlasAanvraag = lazyRoute(() => import('./pages/klant/GlasAanvraag'));
+const StatiegeldMelden = lazyRoute(() => import('./pages/klant/StatiegeldMelden'));
+const BetalingGelukt = lazyRoute(() => import('./pages/klant/BetalingGelukt'));
+const BetalingGeannuleerd = lazyRoute(() => import('./pages/klant/BetalingGeannuleerd'));
+const Profiel = lazyRoute(() => import('./pages/klant/Profiel'));
+const KlantChat = lazyRoute(() => import('./pages/klant/Chat'));
 
-const JayceTaken = lazy(() => import('./pages/jayce/Taken'));
-const JayceScore = lazy(() => import('./pages/jayce/Score'));
-const JayceRoute = lazy(() => import('./pages/jayce/Route'));
-const JayceBekenden = lazy(() => import('./pages/jayce/Bekenden'));
+const JayceTaken = lazyRoute(() => import('./pages/jayce/Taken'));
+const JayceScore = lazyRoute(() => import('./pages/jayce/Score'));
+const JayceRoute = lazyRoute(() => import('./pages/jayce/Route'));
+const JayceBekenden = lazyRoute(() => import('./pages/jayce/Bekenden'));
 
-const MoederOverzicht = lazy(() => import('./pages/moeder/Overzicht'));
-const MoederPlekken = lazy(() => import('./pages/moeder/Plekken'));
-const MoederIdeeen = lazy(() => import('./pages/moeder/Ideeen'));
-const MoederTijden = lazy(() => import('./pages/moeder/Tijden'));
-const MoederContant = lazy(() => import('./pages/moeder/Contant'));
-const MoederInscannen = lazy(() => import('./pages/moeder/Inscannen'));
+const MoederOverzicht = lazyRoute(() => import('./pages/moeder/Overzicht'));
+const MoederPlekken = lazyRoute(() => import('./pages/moeder/Plekken'));
+const MoederIdeeen = lazyRoute(() => import('./pages/moeder/Ideeen'));
+const MoederTijden = lazyRoute(() => import('./pages/moeder/Tijden'));
+const MoederContant = lazyRoute(() => import('./pages/moeder/Contant'));
+const MoederInscannen = lazyRoute(() => import('./pages/moeder/Inscannen'));
 
-const AdminOverzicht = lazy(() => import('./pages/admin/Overzicht'));
-const AdminGlasOrders = lazy(() => import('./pages/admin/GlasOrders'));
-const AdminStatiegeldLog = lazy(() => import('./pages/admin/StatiegeldLog'));
-const AdminGesprekken = lazy(() => import('./pages/admin/Gesprekken'));
-const AdminGesprek = lazy(() => import('./pages/admin/Gesprek'));
-const AdminCijfers = lazy(() => import('./pages/admin/Cijfers'));
-const AdminKlanten = lazy(() => import('./pages/admin/Klanten'));
-const AdminInstellingen = lazy(() => import('./pages/admin/Instellingen'));
-const AdminDagoverzicht = lazy(() => import('./pages/admin/Dagoverzicht'));
-const AdminIdeeen = lazy(() => import('./pages/admin/Ideeen'));
-const AdminTijden = lazy(() => import('./pages/admin/Tijden'));
-const AdminOphalen = lazy(() => import('./pages/admin/Ophalen'));
-const AdminContant = lazy(() => import('./pages/admin/Contant'));
+const AdminOverzicht = lazyRoute(() => import('./pages/admin/Overzicht'));
+const AdminGlasOrders = lazyRoute(() => import('./pages/admin/GlasOrders'));
+const AdminStatiegeldLog = lazyRoute(() => import('./pages/admin/StatiegeldLog'));
+const AdminGesprekken = lazyRoute(() => import('./pages/admin/Gesprekken'));
+const AdminGesprek = lazyRoute(() => import('./pages/admin/Gesprek'));
+const AdminCijfers = lazyRoute(() => import('./pages/admin/Cijfers'));
+const AdminKlanten = lazyRoute(() => import('./pages/admin/Klanten'));
+const AdminInstellingen = lazyRoute(() => import('./pages/admin/Instellingen'));
+const AdminDagoverzicht = lazyRoute(() => import('./pages/admin/Dagoverzicht'));
+const AdminIdeeen = lazyRoute(() => import('./pages/admin/Ideeen'));
+const AdminTijden = lazyRoute(() => import('./pages/admin/Tijden'));
+const AdminOphalen = lazyRoute(() => import('./pages/admin/Ophalen'));
+const AdminContant = lazyRoute(() => import('./pages/admin/Contant'));
 
 /** Stuurt een ingelogde gebruiker naar het dashboard van zijn rol. */
 const NaarDashboard: React.FC = () => {

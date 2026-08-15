@@ -9,9 +9,10 @@
 // en de aanwijzingen stap voor stap in het Nederlands. De kaart zelf wordt pas
 // geladen zodra je hem opent, want Leaflet is een flink stuk code.
 
-import React, { lazy, Suspense, useEffect, useRef, useState } from 'react';
+import React, { Suspense, useEffect, useRef, useState } from 'react';
 import { AlertTriangle, Bike, ChevronUp, ExternalLink, MapPin, Navigation } from 'lucide-react';
 import { mapsLink } from '../../utils/constants';
+import { lazyRoute } from '../../utils/lazyRoute';
 import { useInstellingenStore } from '../../store/instellingenStore';
 import {
   berekenRit,
@@ -20,7 +21,7 @@ import {
   type RouteResultaat,
 } from '../../utils/geo';
 
-const Kaart = lazy(() => import('./Kaart'));
+const Kaart = lazyRoute(() => import('./Kaart'));
 
 interface AdresKaartProps {
   adres: string;

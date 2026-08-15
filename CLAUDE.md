@@ -231,7 +231,11 @@ kaart-app. Voor Jayce is de sleutel daarmee in de praktijk verplicht.
 - Pushmeldingen via Firebase Cloud Messaging, verstuurd door `php/push.php`
 - Kaart met Leaflet + react-leaflet en OpenStreetMap-tegels; routes via
   OpenRouteService (`src/utils/geo.ts`). Alleen op de kaartpagina's geladen
-- Routes worden lazy geladen met `React.lazy`, met een voortgangsbalk als fallback
+- Routes worden lazy geladen via `lazyRoute` (`src/utils/lazyRoute.ts`), met een
+  voortgangsbalk als fallback. Dat is `React.lazy` met een tweede poging en een
+  eenmalige herlading erbij: na een deploy wijst een openstaande pagina naar
+  bestanden die er niet meer zijn, en dan herstelt de app dat zelf in plaats van
+  in de foutmelding te eindigen
 - Vercel hosting
 
 ---
