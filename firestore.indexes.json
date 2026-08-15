@@ -1,0 +1,47 @@
+{
+  "comment": [
+    "Samengestelde indexen. Firestore maakt losse velden vanzelf, maar een",
+    "where() op het ene veld met een orderBy() op het andere moet hier staan.",
+    "Ontbreekt zo'n index, dan mislukt de query en ziet de klant een lege lijst",
+    "in plaats van zijn aanvragen. Deployen met: firebase deploy --only firestore"
+  ],
+  "indexes": [
+    {
+      "comment": "Eigen aanvragen van een klant, nieuwste eerst (loadVoorKlant).",
+      "collectionGroup": "glasOrders",
+      "queryScope": "COLLECTION",
+      "fields": [
+        { "fieldPath": "customerId", "order": "ASCENDING" },
+        { "fieldPath": "aangemaaktOp", "order": "DESCENDING" }
+      ]
+    },
+    {
+      "comment": "De openstaande ronde van Jayce, oudste eerst (loadOpenstaand).",
+      "collectionGroup": "glasOrders",
+      "queryScope": "COLLECTION",
+      "fields": [
+        { "fieldPath": "status", "order": "ASCENDING" },
+        { "fieldPath": "aangemaaktOp", "order": "ASCENDING" }
+      ]
+    },
+    {
+      "comment": "Eigen meldingen van een klant, nieuwste eerst (loadVoorKlant).",
+      "collectionGroup": "statiegeldLogs",
+      "queryScope": "COLLECTION",
+      "fields": [
+        { "fieldPath": "customerId", "order": "ASCENDING" },
+        { "fieldPath": "aangemaaktOp", "order": "DESCENDING" }
+      ]
+    },
+    {
+      "comment": "De openstaande ronde van Jayce, oudste eerst (loadOpenstaand).",
+      "collectionGroup": "statiegeldLogs",
+      "queryScope": "COLLECTION",
+      "fields": [
+        { "fieldPath": "status", "order": "ASCENDING" },
+        { "fieldPath": "aangemaaktOp", "order": "ASCENDING" }
+      ]
+    }
+  ],
+  "fieldOverrides": []
+}

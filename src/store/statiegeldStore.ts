@@ -12,6 +12,7 @@ import {
   where,
 } from 'firebase/firestore';
 import { db } from '../lib/firebase';
+import { logError } from '../utils/errorLogger';
 import type {
   Customer,
   ServicekostenStatus,
@@ -115,6 +116,7 @@ export const useStatiegeldStore = create<StatiegeldStore>((set, get) => ({
       );
       set({ logs: mapLogs(snapshot.docs), loading: false });
     } catch (error: unknown) {
+      logError(error instanceof Error ? error : String(error), 'statiegeldLogs');
       set({
         loading: false,
         error: error instanceof Error ? error.message : 'Kon statiegeld-meldingen niet laden',
@@ -134,6 +136,7 @@ export const useStatiegeldStore = create<StatiegeldStore>((set, get) => ({
       );
       set({ logs: mapLogs(snapshot.docs), loading: false });
     } catch (error: unknown) {
+      logError(error instanceof Error ? error : String(error), 'statiegeldLogs');
       set({
         loading: false,
         error: error instanceof Error ? error.message : 'Kon ophaaltaken niet laden',
@@ -149,6 +152,7 @@ export const useStatiegeldStore = create<StatiegeldStore>((set, get) => ({
       );
       set({ logs: mapLogs(snapshot.docs), loading: false });
     } catch (error: unknown) {
+      logError(error instanceof Error ? error : String(error), 'statiegeldLogs');
       set({
         loading: false,
         error: error instanceof Error ? error.message : 'Kon statiegeld-log niet laden',

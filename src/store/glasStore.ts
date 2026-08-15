@@ -12,6 +12,7 @@ import {
   where,
 } from 'firebase/firestore';
 import { db } from '../lib/firebase';
+import { logError } from '../utils/errorLogger';
 import type { Customer, GlasOrder, GlasStatus } from '../types';
 import { GLAS_PRIJS_CENTEN } from '../utils/constants';
 
@@ -77,6 +78,7 @@ export const useGlasStore = create<GlasStore>((set, get) => ({
       );
       set({ orders: mapOrders(snapshot.docs), loading: false });
     } catch (error: unknown) {
+      logError(error instanceof Error ? error : String(error), 'glasOrders');
       set({
         loading: false,
         error: error instanceof Error ? error.message : 'Kon glas-aanvragen niet laden',
@@ -103,6 +105,7 @@ export const useGlasStore = create<GlasStore>((set, get) => ({
       );
       set({ orders, loading: false });
     } catch (error: unknown) {
+      logError(error instanceof Error ? error : String(error), 'glasOrders');
       set({
         loading: false,
         error: error instanceof Error ? error.message : 'Kon ophaaltaken niet laden',
@@ -118,6 +121,7 @@ export const useGlasStore = create<GlasStore>((set, get) => ({
       );
       set({ orders: mapOrders(snapshot.docs), loading: false });
     } catch (error: unknown) {
+      logError(error instanceof Error ? error : String(error), 'glasOrders');
       set({
         loading: false,
         error: error instanceof Error ? error.message : 'Kon glas-orders niet laden',
