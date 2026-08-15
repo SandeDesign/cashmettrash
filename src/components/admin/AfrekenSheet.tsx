@@ -72,7 +72,9 @@ const AfrekenSheet: React.FC<AfrekenSheetProps> = ({ log, onSluiten, onAfrekenen
         style={{ maxWidth: '32rem' }}
       >
         <div className="flex items-start justify-between gap-3 mb-1">
-          <h2 className="text-lg font-bold">Afrekenen met {log.customerNaam}</h2>
+          <h2 className="text-lg font-bold">
+            {schenking ? `Gift van ${log.customerNaam}` : `Afrekenen met ${log.customerNaam}`}
+          </h2>
           <button
             type="button"
             onClick={onSluiten}
@@ -85,7 +87,7 @@ const AfrekenSheet: React.FC<AfrekenSheetProps> = ({ log, onSluiten, onAfrekenen
         </div>
         <p className="text-sm mb-5" style={{ color: 'var(--cmt-ink-soft)' }}>
           {schenking
-            ? 'Vul in wat er uit Viatim kwam. Dit bedrag gaat naar het potje van Jayce, dus er wordt geen Tikkie gestuurd.'
+            ? 'Vul in wat er uit Viatim kwam. Dit bedrag gaat naar het potje van Jayce, dus er wordt geen Tikkie gestuurd en er is niets af te rekenen.'
             : 'Vul in wat er uit Viatim kwam. De klant krijgt het bericht meteen in de chat.'}
         </p>
 
@@ -202,8 +204,8 @@ const AfrekenSheet: React.FC<AfrekenSheetProps> = ({ log, onSluiten, onAfrekenen
             className="cmt-btn-primary"
             disabled={bezig || centen === null || !linkGeldig}
           >
-            <ExternalLink className="w-4 h-4" />
-            {bezig ? 'Bezig...' : schenking ? 'Afronden' : 'Afronden en versturen'}
+            {schenking ? <Heart className="w-4 h-4" /> : <ExternalLink className="w-4 h-4" />}
+            {bezig ? 'Bezig...' : schenking ? 'Bijschrijven in het potje' : 'Afronden en versturen'}
           </button>
         </div>
       </form>

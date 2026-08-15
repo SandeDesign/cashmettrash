@@ -9,7 +9,7 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import { format } from 'date-fns';
 import { nl } from 'date-fns/locale';
-import { Check, Download, ExternalLink, Recycle, Trash2, Wallet } from 'lucide-react';
+import { Check, Download, ExternalLink, Heart, Recycle, Trash2, Wallet } from 'lucide-react';
 import AppLayout from '../../components/layout/AppLayout';
 import { ADMIN_NAV } from '../../components/layout/navItems';
 import Loading from '../../components/shared/Loading';
@@ -35,8 +35,11 @@ const datum = (iso: string) => format(new Date(iso), 'd MMM', { locale: nl });
 function volgendeStap(log: StatiegeldLogType): string | null {
   if (log.status === 'aangemeld') return 'Wacht op Jayce';
   if (log.status === 'ingepland') return 'Jayce komt langs';
-  if (log.status === 'opgehaald') return 'Afrekenen';
-  if (log.status === 'verwerktBijViatim') return 'Afrekenen';
+  // Bij een gift valt er niets af te rekenen: het bedrag gaat naar het potje van
+  // Jayce en er komt geen Tikkie aan te pas.
+  if (log.status === 'opgehaald' || log.status === 'verwerktBijViatim') {
+    return log.geschonken ? 'Bijschrijven in het potje' : 'Afrekenen';
+  }
   if (log.servicekostenContant && !log.contantBevestigdOp && log.servicekostenStatus === 'openstaand')
     return 'Wacht op mama (contant)';
   if (log.servicekostenStatus === 'openstaand') return 'Wacht op betaling';
@@ -187,11 +190,13 @@ const StatiegeldLogPagina: React.FC = () => {
             <div className="flex items-center gap-2 mb-1" style={{ color: 'var(--cmt-stat)' }}>
               <Wallet className="w-5 h-5" />
               <span className="font-bold">
-                {teAfrekenen} {teAfrekenen === 1 ? 'melding' : 'meldingen'} klaar om af te rekenen
+                {teAfrekenen} {teAfrekenen === 1 ? 'melding' : 'meldingen'} wacht
+                {teAfrekenen === 1 ? '' : 'en'} op jou
               </span>
             </div>
             <p className="text-sm" style={{ color: 'var(--cmt-ink-soft)' }}>
-              Scan ze in bij Viatim en neem het bedrag en de Tikkie-link hier over.
+              Neem het bedrag en de Tikkie-link uit Viatim hier over. Bij een gift hoef je alleen
+              het bedrag te bevestigen; dat gaat naar het potje van Jayce.
             </p>
           </div>
         )}
@@ -261,13 +266,19 @@ const StatiegeldLogPagina: React.FC = () => {
                           </p>
                           <p className="text-xs mt-0.5" style={{ color: 'var(--cmt-ink-muted)' }}>
                             Aangemeld {datum(log.aangemaaktOp)}
-                            {log.tikkieBedrag != null && ` · Tikkie ${formatCenten(log.tikkieBedrag)}`}
+                            {log.tikkieBedrag != null &&
+                              ` · ${log.geschonken ? 'gift' : 'Tikkie'} ${formatCenten(log.tikkieBedrag)}`}
                             {log.servicekostenStatus === 'betaald' && ' · ophaalkosten betaald'}
                           </p>
                         </div>
 
                         <div className="flex items-center gap-2 flex-wrap">
                           <StatiegeldStatusBadge status={log.status} />
+                          {log.geschonken && (
+                            <span className="cmt-badge cmt-badge-stat">
+                              <Heart className="w-3.5 h-3.5" /> Gift voor Jayce
+                            </span>
+                          )}
                           {log.servicekostenStatus === 'openstaand' &&
                             !log.servicekostenContant && (
                               <span className="cmt-badge cmt-badge-warning">
@@ -293,7 +304,15 @@ const StatiegeldLogPagina: React.FC = () => {
                               className="cmt-btn-primary cmt-btn-block sm:!w-auto"
                               onClick={() => setAfrekenen(log)}
                             >
-                              <ExternalLink className="w-4 h-4" /> Afrekenen
+                              {log.geschonken ? (
+                                <>
+                                  <Heart className="w-4 h-4" /> Naar het potje
+                                </>
+                              ) : (
+                                <>
+                                  <ExternalLink className="w-4 h-4" /> Afrekenen
+                                </>
+                              )}
                             </button>
                           ) : (
                             stap && (
